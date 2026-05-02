@@ -58,12 +58,24 @@
   }
 </script>
 <style>
-  html, body { background: #0B0908; }
+  html, body {
+    background: #0B0908;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
   body {
     font-family: 'Space Grotesk', sans-serif;
     color: #F5F1ED;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    width: 100%;
+  }
+  /* Гарантия что ничего не вылезает за viewport на мобиле */
+  * { min-width: 0; }
+  img, svg, video { max-width: 100%; height: auto; }
+  /* мобильный нижний отступ — sticky CTA bar занимает ~64px */
+  @media (max-width: 767px) {
+    main, footer { padding-bottom: env(safe-area-inset-bottom); }
   }
   /* warm grain */
   .grain::before {
@@ -100,6 +112,18 @@
   .thin-scroll::-webkit-scrollbar { width: 6px; }
   .thin-scroll::-webkit-scrollbar-track { background: transparent; }
   .thin-scroll::-webkit-scrollbar-thumb { background: #2A2320; border-radius: 3px; }
+
+  /* плавное появление inline-карточки детали на мобиле */
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* мягкая пульсация выноски выбранной детали на схеме */
+  @keyframes hotPulse {
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(255,107,26,0.6)); }
+    50%      { filter: drop-shadow(0 0 14px rgba(255,107,26,0.95)); }
+  }
 </style>
 </head>
 <body>
@@ -255,22 +279,22 @@ const TRUST_BADGES = [
 // ─────────────────────────────────────────────────────────────────────────────
 const CONTACTS = {
   manager:      'Матвей',
-  phoneDisplay: '+7 701 550 9377',
-  phoneE164:    '+77015509377',          // tel:+77015509377
+  phoneDisplay: '+7 701 550 93 77',
+  phoneE164:    '+77015509377',
   whatsapp:     'https://wa.me/77015509377?text=Здравствуйте,%20нужна%20запчасть%20на%20двигатель',
-  telegram:     'https://t.me/myavto_kz',
-  telegramHandle: '@myavto_kz',
-  instagram:    'https://instagram.com/myavto.kz',
-  instagramHandle: '@myavto.kz',
-  tiktok:       'https://tiktok.com/@myavto.kz',
+  telegram:     'https://t.me/+B9HzpYNs7QpiZDAy',
+  telegramHandle: 'MY AVTO · канал',
+  instagram:    'https://www.instagram.com/myavto.kz_',
+  instagramHandle: '@myavto.kz_',
+  tiktok:       'https://www.tiktok.com/@myavto.kz',
   tiktokHandle: '@myavto.kz',
-  kaspi:        'https://kaspi.kz/shop/p/my-avto', // если есть Kaspi-магазин — поменяйте
-  kolesa:       'https://kolesa.kz/a/show-by-author/00000',
-  olx:          'https://www.olx.kz/list/user/00000/',
-  address:      'г. Алматы, ТЦ Car City, 3 ярус, бутик 135В',
-  addressShort: 'Car City · бутик 135В',
-  hours:        'Пн–Сб 09:00–19:00 · Вс выходной',
-  legalName:    'ИП MY AVTO',
+  kaspi:        'https://l.kaspi.kz/shop/U2E5tHvjbzmz9vD',
+  kolesa:       'https://kolesa.kz/a/show/216448704?redirect=1',
+  olx:          'https://www.olx.kz/d/obyavlenie/remkomplekt-prokladok-toyota-IDqsXKp.html',
+  address:      'г. Алматы, ТЦ «CarCity», 3 ярус, бутик 135В',
+  addressShort: 'CarCity · 3 ярус · 135В',
+  hours:        'Пн–Сб 09:00–17:00 · Вс 11:00–16:00',
+  legalName:    'MY AVTO',
   bin:          '',
 };
 
@@ -1247,8 +1271,8 @@ const { useState: useStateS, useEffect: useEffectS, useRef: useRefS } = React;
 function NavBar() {
   return (
     <nav className="sticky top-0 z-40 bg-ink-900/90 backdrop-blur-md border-b border-ink-600">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10 h-14 md:h-16 flex items-center justify-between gap-3">
-        <a href="#" className="flex-shrink-0"><BrandMark size={36}/></a>
+      <div className="max-w-[1440px] mx-auto px-3 md:px-10 h-14 md:h-16 flex items-center justify-between gap-2 md:gap-3">
+        <a href="#" className="flex-shrink-0 min-w-0"><BrandMark size={32} compact/></a>
         <div className="hidden lg:flex items-center gap-7 text-sm">
           <a href="#picker"   className="text-bone-300 hover:text-ember-500 transition">Подбор</a>
           <a href="#engines"  className="text-bone-300 hover:text-ember-500 transition">Двигатели</a>
@@ -1256,12 +1280,15 @@ function NavBar() {
           <a href="#b2b"      className="text-bone-300 hover:text-ember-500 transition">Для СТО</a>
           <a href="#faq"      className="text-bone-300 hover:text-ember-500 transition">FAQ</a>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
-            className="hidden sm:inline-flex items-center gap-2 px-3 py-2 border border-ink-600 hover:border-ember-500 transition text-sm">
-            <IconWhatsApp size={16}/><span className="hidden md:inline font-mono">{CONTACTS.phoneDisplay}</span>
+            className="hidden md:inline-flex items-center gap-2 px-3 py-2 border border-ink-600 hover:border-ember-500 transition text-sm">
+            <IconWhatsApp size={16}/><span className="font-mono">{CONTACTS.phoneDisplay}</span>
           </a>
-          <a href="#picker" className="inline-flex items-center gap-2 px-3 md:px-4 py-2 bg-ember-500 text-ink-900 font-medium hover:bg-ember-600 transition text-sm">
+          <a href={`tel:${CONTACTS.phoneE164}`} className="md:hidden inline-flex items-center justify-center w-9 h-9 border border-ink-600 active:border-ember-500 transition" aria-label="Позвонить">
+            <IconPhone size={15} className="text-ember-500"/>
+          </a>
+          <a href="#picker" className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 bg-ember-500 text-ink-900 font-medium hover:bg-ember-600 transition text-sm whitespace-nowrap">
             Подобрать <IconArrowRight size={14}/>
           </a>
         </div>
@@ -1276,13 +1303,13 @@ function NavBar() {
 function TrustStrip() {
   return (
     <div className="border-y border-ink-600 bg-ink-850">
-      <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-ink-600">
+      <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-ink-600">
         {TRUST_BADGES.map((b, i) => (
-          <div key={i} className="px-6 md:px-10 py-6 md:py-8">
-            <div className="font-display text-3xl md:text-5xl font-semibold text-ember-500 leading-none tabular-nums">
+          <div key={i} className="px-4 md:px-10 py-4 md:py-8">
+            <div className="font-display text-2xl md:text-5xl font-semibold text-ember-500 leading-none tabular-nums">
               {b.stat}
             </div>
-            <div className="text-bone-300 text-sm mt-2 leading-snug">{b.label}</div>
+            <div className="text-bone-300 text-xs md:text-sm mt-1.5 md:mt-2 leading-snug">{b.label}</div>
           </div>
         ))}
       </div>
@@ -1304,14 +1331,14 @@ function EnginesGrid() {
   });
 
   return (
-    <section id="engines" className="py-20 md:py-28 px-6 md:px-10 max-w-[1440px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+    <section id="engines" className="py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
         <div>
-          <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">02 / КАТАЛОГ</div>
-          <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
-            Не по типам деталей. <span className="text-bone-500">По двигателям.</span>
+          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">02 / КАТАЛОГ</div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
+            Каталог по двигателям. <span className="text-bone-500">Не по типам деталей.</span>
           </h2>
-          <p className="mt-4 text-bone-300 max-w-xl">
+          <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
             Мастер мыслит кодом ДВС, а не названием детали. Выбираете двигатель — видите всё, что под него лежит на складе.
           </p>
         </div>
@@ -1381,14 +1408,14 @@ function EngineCard({ engine }) {
 function BrandsSection() {
   const [active, setActive] = useStateS(BRANDS[0]);
   return (
-    <section id="brands" className="py-20 md:py-28 bg-ink-850 border-y border-ink-600">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-        <div className="mb-10">
-          <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">03 / БРЕНДЫ</div>
-          <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] max-w-3xl">
+    <section id="brands" className="py-14 md:py-28 bg-ink-850 border-y border-ink-600">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
+        <div className="mb-8 md:mb-10">
+          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">03 / БРЕНДЫ</div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-3xl">
             Только то, чем комплектуют конвейер.
           </h2>
-          <p className="mt-4 text-bone-300 max-w-xl">
+          <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
             Никаких безымянных коробок из-под станка. OEM-поставщики и проверенные альтернативы — всё.
           </p>
         </div>
@@ -1411,15 +1438,15 @@ function BrandsSection() {
           </div>
 
           {/* right: detail */}
-          <div className="lg:col-span-2 bg-ink-900 p-8 md:p-12 relative overflow-hidden">
+          <div className="lg:col-span-2 bg-ink-900 p-6 md:p-12 relative overflow-hidden">
             {/* huge wordmark */}
-            <div className="absolute -bottom-8 -right-4 font-display font-bold text-[180px] md:text-[260px] leading-none text-ink-700 select-none pointer-events-none">
+            <div className="absolute -bottom-4 md:-bottom-8 -right-2 md:-right-4 font-display font-bold text-[110px] sm:text-[160px] md:text-[260px] leading-none text-ink-700 select-none pointer-events-none whitespace-nowrap">
               {active.name.toLowerCase()}
             </div>
             <div className="relative">
-              <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">SUPPLIER · {active.country.toUpperCase()}</div>
-              <div className="font-display font-bold text-5xl md:text-7xl tracking-tight mb-6">{active.name}</div>
-              <p className="text-bone-100 text-lg md:text-xl leading-relaxed max-w-xl">{active.desc}</p>
+              <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-2 md:mb-3">SUPPLIER · {active.country.toUpperCase()}</div>
+              <div className="font-display font-bold text-4xl sm:text-5xl md:text-7xl tracking-tight mb-4 md:mb-6">{active.name}</div>
+              <p className="text-bone-100 text-base md:text-xl leading-relaxed max-w-xl">{active.desc}</p>
 
               <div className="mt-8 grid grid-cols-3 gap-4 max-w-md">
                 <div className="border-l border-ember-500 pl-3">
@@ -1454,15 +1481,15 @@ function B2BSection() {
     { icon: IconBolt,   title: 'Бонусная программа мастеров',desc: 'За каждый ремкомплект — баллы. Тратятся как деньги' },
   ];
   return (
-    <section id="b2b" className="py-20 md:py-28 px-6 md:px-10 max-w-[1440px] mx-auto">
+    <section id="b2b" className="py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
       <div className="grid lg:grid-cols-2 gap-px bg-ink-600">
         {/* Left: pitch + perks */}
-        <div className="bg-ink-900 p-8 md:p-12">
-          <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">04 / B2B</div>
-          <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] mb-4">
+        <div className="bg-ink-900 p-6 md:p-12">
+          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">04 / B2B</div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] mb-4">
             Работаете в моторном цехе или у вас СТО?
           </h2>
-          <p className="text-bone-300 text-lg mb-10 max-w-md">
+          <p className="text-bone-300 text-base md:text-lg mb-8 md:mb-10 max-w-md">
             Отдельный канал, отдельные условия, отдельный менеджер, который разбирается в номенклатуре не хуже вашего мастера.
           </p>
           <div className="grid sm:grid-cols-2 gap-x-6 gap-y-8">
@@ -1506,12 +1533,12 @@ function B2BSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 function ArticlesSection() {
   return (
-    <section className="py-20 md:py-28 bg-ink-850 border-y border-ink-600">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+    <section className="py-14 md:py-28 bg-ink-850 border-y border-ink-600">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
           <div>
-            <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">05 / БАЗА ЗНАНИЙ</div>
-            <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
+            <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">05 / БАЗА ЗНАНИЙ</div>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
               Полезное для специалистов.
             </h2>
           </div>
@@ -1594,11 +1621,11 @@ function ArticleCard({ article, index }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function FAQSection() {
   return (
-    <section id="faq" className="py-20 md:py-28 px-6 md:px-10 max-w-[1440px] mx-auto">
-      <div className="grid lg:grid-cols-12 gap-12">
+    <section id="faq" className="py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
+      <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-4">
-          <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">06 / FAQ</div>
-          <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] mb-4">
+          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">06 / FAQ</div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] mb-4">
             Частые вопросы.
           </h2>
           <p className="text-bone-300 mb-8">
@@ -1619,21 +1646,21 @@ function FAQSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Brand mark — кликабельный логотип. Поменяйте на <img src="/logo.svg"/> при желании.
 // ─────────────────────────────────────────────────────────────────────────────
-function BrandMark({ size = 40 }) {
+function BrandMark({ size = 40, compact = false }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-ember-500 to-forge-500 rotate-45"/>
-        <svg width={size*0.55} height={size*0.55} viewBox="0 0 24 24" className="relative" fill="none">
-          <circle cx="12" cy="12" r="8" stroke="#0B0908" strokeWidth="2"/>
-          <circle cx="12" cy="12" r="2.5" fill="#0B0908"/>
-          <path d="M12 4v2.5M12 17.5v2.5M4 12h2.5M17.5 12h2.5" stroke="#0B0908" strokeWidth="1.8" strokeLinecap="round"/>
-        </svg>
-      </div>
-      <div>
-        <div className="font-display font-bold text-xl leading-none tracking-tight">MY AVTO</div>
-        <div className="font-mono text-[10px] text-bone-500 tracking-widest leading-none mt-1">ENGINE · OVERHAUL · KZ</div>
-      </div>
+    <div className="flex items-center gap-2.5">
+      <img
+        src="assets/logo.png"
+        alt="MY AVTO"
+        style={{ height: size, width: 'auto' }}
+        className="object-contain drop-shadow-[0_0_12px_rgba(255,107,26,0.25)]"
+      />
+      {!compact && (
+        <div className="hidden sm:block leading-none">
+          <div className="font-mono text-[9px] text-bone-500 tracking-[0.2em]">ВНУТРЯНКА ДВС</div>
+          <div className="font-mono text-[9px] text-bone-500 tracking-[0.2em] mt-1">ЯПОНСКИЕ АВТО · KZ</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1682,14 +1709,14 @@ function SocialTile({ href, Icon, label, sub }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-ink-850 border-t border-ink-600 pt-16 pb-24 md:pb-8">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-10">
-        <div className="grid lg:grid-cols-12 gap-10 mb-12 pb-12 border-b border-ink-600">
+    <footer className="bg-ink-850 border-t border-ink-600 pt-12 md:pt-16 pb-24 md:pb-8">
+      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
+        <div className="grid lg:grid-cols-12 gap-8 md:gap-10 mb-10 md:mb-12 pb-10 md:pb-12 border-b border-ink-600">
           {/* Brand */}
           <div className="lg:col-span-4">
             <BrandMark size={44}/>
-            <p className="text-bone-300 max-w-xs leading-relaxed mt-5">
-              Внутренние запчасти двигателя для капитального ремонта японских и корейских авто. Поршни, кольца, вкладыши, прокладки, ремкомплекты ГБЦ.
+            <p className="text-bone-300 max-w-xs leading-relaxed mt-5 text-sm md:text-base">
+              Внутренние запчасти двигателя для капитального ремонта японских авто. Поршни, кольца, вкладыши, прокладки, ремкомплекты ГБЦ.
             </p>
             <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-forge-500/40 bg-forge-500/5">
               <span className="w-1.5 h-1.5 rounded-full bg-forge-500"/>
@@ -1794,7 +1821,7 @@ function PartDetailPanel({ partId, onClose }) {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: '100%', opacity: 0 }}
           transition={{ type: 'tween', duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed top-0 right-0 z-50 h-full w-full sm:w-[440px] bg-ink-850 border-l border-ember-500 shadow-2xl thin-scroll overflow-y-auto"
+          className="hidden lg:block fixed top-0 right-0 z-50 h-full w-[440px] bg-ink-850 border-l border-ember-500 shadow-2xl thin-scroll overflow-y-auto"
         >
           {/* header */}
           <div className="sticky top-0 bg-ink-850 border-b border-ink-600 px-6 py-4 flex items-center justify-between z-10">
@@ -1868,118 +1895,137 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
       {/* scanline */}
       <div className="absolute inset-0 scanline pointer-events-none opacity-50"/>
 
-      <div className="relative max-w-[1440px] mx-auto px-6 md:px-10 pt-12 md:pt-20 pb-16">
+      <div className="relative max-w-[1440px] mx-auto px-4 md:px-10 pt-8 md:pt-20 pb-12 md:pb-16">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
           {/* LEFT: copy */}
-          <div className="lg:col-span-7 lg:pt-8">
+          <div className="lg:col-span-7 lg:pt-8 min-w-0">
             {/* tag */}
-            <div className="inline-flex items-center gap-3 mb-8 font-mono text-xs tracking-widest">
-              <div className="flex items-center gap-2 text-ember-500">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-6 md:mb-8 font-mono text-[10px] md:text-xs tracking-widest">
+              <span className="inline-flex items-center gap-2 text-ember-500">
                 <span className="w-1.5 h-1.5 bg-ember-500 rounded-full ember-pulse"/>
-                MY AVTO · CAR CITY · 3 ЯРУС · БУТИК 135В
-              </div>
+                CARCITY · 3 ЯРУС · 135В
+              </span>
               <span className="text-bone-500">/</span>
-              <span className="text-bone-300">ВНУТРЕННЯЯ ЧАСТЬ ДВС</span>
+              <span className="text-bone-300">ЯПОНСКИЕ АВТО · ВНУТРЯНКА ДВС</span>
             </div>
 
-            <h1 className="font-display font-semibold text-5xl md:text-7xl lg:text-[5.5rem] leading-[0.95] tracking-tight mb-6">
-              Капитальный ремонт двигателя.<br/>
-              <span className="text-bone-500">Только внутрянка ДВС —</span><br/>
-              для <span className="text-ember-500">специалистов</span>.
+            <h1 className="font-display font-semibold text-[2.25rem] sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] md:leading-[0.95] tracking-tight mb-5 md:mb-6 break-words">
+              Запчасти по двигателю<br/>
+              <span className="text-ember-500">на японские авто</span><br/>
+              <span className="text-bone-500 text-[1.6rem] sm:text-3xl md:text-5xl lg:text-6xl block mt-2">для капитального ремонта</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-bone-300 max-w-2xl leading-relaxed mb-8">
-              Поршни, кольца, вкладыши, прокладки, ремкомплекты ГБЦ. Бренды
-              <span className="text-bone-100 font-medium"> Teikin, NPR, Riken, Taiho, NDC, NOK, IZUMI</span>. Алматы — доставка по городу за 2 часа,
-              отправка по всему Казахстану. Оплата Kaspi, рассрочка 0–0–12.
+            <p className="text-base md:text-xl text-bone-300 max-w-2xl leading-relaxed mb-6 md:mb-8">
+              Поршни, кольца, вкладыши, прокладки ГБЦ, ремкомплекты, сальники, цепи ГРМ.
+              Бренды <span className="text-bone-100 font-medium">Teikin, NPR, Riken, Taiho, NDC, NOK, IZUMI</span>.
+              Алматы — курьером за 2 ч, по всему Казахстану — Казпочта, СДЭК, автобусом.
+              Оплата Kaspi, рассрочка 0–0–12.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <a href="#picker" className="group inline-flex items-center justify-center gap-3 bg-ember-500 hover:bg-ember-600 text-ink-900 font-display font-semibold text-lg px-7 py-4 transition shadow-ember">
+              <a href="#picker" className="group inline-flex items-center justify-center gap-2 bg-ember-500 hover:bg-ember-600 text-ink-900 font-display font-semibold text-base md:text-lg px-5 md:px-7 py-3.5 md:py-4 transition shadow-ember">
                 Подобрать по двигателю
-                <IconArrowRight size={20} sw={2} className="group-hover:translate-x-1 transition"/>
+                <IconArrowRight size={18} sw={2} className="group-hover:translate-x-1 transition"/>
               </a>
               <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
-                className="inline-flex items-center justify-center gap-3 border border-ink-500 hover:border-ember-500 text-bone-100 font-display font-medium text-lg px-7 py-4 transition">
-                <IconWhatsApp size={22}/> WhatsApp
+                className="inline-flex items-center justify-center gap-2 border border-ink-500 hover:border-ember-500 text-bone-100 font-display font-medium text-base md:text-lg px-5 md:px-7 py-3.5 md:py-4 transition">
+                <IconWhatsApp size={20}/> Написать в WhatsApp
               </a>
             </div>
 
             {/* contact card — реальный менеджер */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-ink-850 border border-ink-600 max-w-2xl">
-              <div className="w-14 h-14 rounded-full bg-ember-500/15 border border-ember-500 flex items-center justify-center font-display font-semibold text-ember-500 text-xl flex-shrink-0">М</div>
+            <a href={`tel:${CONTACTS.phoneE164}`} className="flex items-center gap-3 md:gap-4 mb-5 md:mb-6 p-3 md:p-4 bg-ink-850 border border-ink-600 max-w-2xl active:border-ember-500 transition">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-ember-500/15 border border-ember-500 flex items-center justify-center font-display font-semibold text-ember-500 text-lg md:text-xl flex-shrink-0">М</div>
               <div className="flex-1 min-w-0">
-                <div className="font-display font-semibold text-lg text-bone-100">{CONTACTS.manager}</div>
-                <div className="font-mono text-xs text-bone-500 tracking-wider">МЕНЕДЖЕР · ПОДБОР ЗАПЧАСТЕЙ</div>
+                <div className="font-display font-semibold text-base md:text-lg text-bone-100">{CONTACTS.manager}</div>
+                <div className="font-mono text-[10px] md:text-xs text-bone-500 tracking-wider">МЕНЕДЖЕР · ПОДБОР</div>
+                <div className="font-mono text-sm md:hidden text-ember-500 mt-1">{CONTACTS.phoneDisplay}</div>
               </div>
-              <a href={`tel:${CONTACTS.phoneE164}`} className="hidden sm:block font-mono text-bone-100 hover:text-ember-500 transition whitespace-nowrap">
+              <span className="hidden sm:block font-mono text-bone-100 hover:text-ember-500 transition whitespace-nowrap">
                 {CONTACTS.phoneDisplay}
+              </span>
+            </a>
+
+            {/* адрес и часы — для мобилы важно */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6 max-w-2xl text-sm">
+              <a href="https://2gis.kz/almaty/search/CarCity" target="_blank" rel="noopener"
+                 className="flex items-start gap-2 p-3 bg-ink-850 border border-ink-600 hover:border-ember-500 transition">
+                <IconMapPin size={16} className="text-ember-500 mt-0.5 flex-shrink-0"/>
+                <span className="text-bone-100 leading-snug">{CONTACTS.address}</span>
               </a>
+              <div className="flex items-start gap-2 p-3 bg-ink-850 border border-ink-600">
+                <IconClock size={16} className="text-ember-500 mt-0.5 flex-shrink-0"/>
+                <span className="text-bone-100 leading-snug">{CONTACTS.hours}</span>
+              </div>
             </div>
 
             {/* мини-полоса каналов под CTA */}
-            <div className="flex items-center gap-3 mb-10 flex-wrap">
-              <span className="font-mono text-[10px] tracking-widest text-bone-500">МЫ ВЕЗДЕ:</span>
-              <a href={CONTACTS.kaspi}     target="_blank" rel="noopener" title="Kaspi Магазин"     className="hover:scale-110 transition"><IconKaspi size={26}/></a>
-              <a href={CONTACTS.kolesa}    target="_blank" rel="noopener" title="Kolesa.kz"         className="hover:scale-110 transition"><IconKolesa size={26}/></a>
-              <a href={CONTACTS.olx}       target="_blank" rel="noopener" title="OLX.kz"            className="hover:scale-110 transition"><IconOLX size={26}/></a>
-              <a href={CONTACTS.telegram}  target="_blank" rel="noopener" title="Telegram-канал"    className="hover:scale-110 transition"><IconTelegram size={26}/></a>
-              <a href={CONTACTS.instagram} target="_blank" rel="noopener" title="Instagram"         className="hover:scale-110 transition"><IconInstagram size={26}/></a>
-              <a href={CONTACTS.tiktok}    target="_blank" rel="noopener" title="TikTok"            className="hover:scale-110 transition"><IconTikTok size={26}/></a>
+            <div className="flex items-center gap-3 mb-8 md:mb-10 flex-wrap">
+              <span className="font-mono text-[10px] tracking-widest text-bone-500 w-full sm:w-auto mb-1 sm:mb-0">МЫ ВЕЗДЕ:</span>
+              <a href={CONTACTS.whatsapp}  target="_blank" rel="noopener" title="WhatsApp"          className="active:scale-95 hover:scale-110 transition"><IconWhatsApp size={28}/></a>
+              <a href={CONTACTS.telegram}  target="_blank" rel="noopener" title="Telegram"          className="active:scale-95 hover:scale-110 transition"><IconTelegram size={28}/></a>
+              <a href={CONTACTS.instagram} target="_blank" rel="noopener" title="Instagram"         className="active:scale-95 hover:scale-110 transition"><IconInstagram size={28}/></a>
+              <a href={CONTACTS.tiktok}    target="_blank" rel="noopener" title="TikTok"            className="active:scale-95 hover:scale-110 transition"><IconTikTok size={28}/></a>
+              <a href={CONTACTS.kaspi}     target="_blank" rel="noopener" title="Kaspi Магазин"     className="active:scale-95 hover:scale-110 transition"><IconKaspi size={28}/></a>
+              <a href={CONTACTS.kolesa}    target="_blank" rel="noopener" title="Kolesa.kz"         className="active:scale-95 hover:scale-110 transition"><IconKolesa size={28}/></a>
+              <a href={CONTACTS.olx}       target="_blank" rel="noopener" title="OLX.kz"            className="active:scale-95 hover:scale-110 transition"><IconOLX size={28}/></a>
             </div>
 
             {/* trust badges */}
-            <div className="grid sm:grid-cols-3 gap-4 max-w-2xl">
-              <div className="border-l-2 border-ember-500 pl-4">
-                <div className="font-display font-semibold text-2xl">5+ лет</div>
-                <div className="text-sm text-bone-300">на рынке моторных комплектующих</div>
+            <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-2xl">
+              <div className="border-l-2 border-ember-500 pl-3 md:pl-4">
+                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">5+ лет</div>
+                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">на рынке моторных комплектующих</div>
               </div>
-              <div className="border-l-2 border-bone-500 pl-4">
-                <div className="font-display font-semibold text-2xl">Только OEM</div>
-                <div className="text-sm text-bone-300">и проверенные альтернативы</div>
+              <div className="border-l-2 border-bone-500 pl-3 md:pl-4">
+                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">Только OEM</div>
+                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">и проверенные альтернативы</div>
               </div>
-              <div className="border-l-2 border-bone-500 pl-4">
-                <div className="font-display font-semibold text-2xl">Отсрочка СТО</div>
-                <div className="text-sm text-bone-300">7–30 дней по согласованию</div>
+              <div className="border-l-2 border-bone-500 pl-3 md:pl-4">
+                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">СТО до 30 дн.</div>
+                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">отсрочка по согласованию</div>
               </div>
             </div>
           </div>
 
           {/* RIGHT: piston diagram */}
-          <div className="lg:col-span-5 relative">
+          <div className="lg:col-span-5 relative min-w-0">
             {/* prado photo header */}
             <div className="relative mb-4 bg-gradient-to-br from-ink-850 to-ink-900 border border-ink-600 overflow-hidden">
               <div className="absolute inset-0 opacity-20"
                 style={{ background: 'radial-gradient(circle at 70% 50%, #FF6B1A 0%, transparent 60%)' }}/>
               <div className="relative flex items-center gap-3 p-3">
-                <img src="assets/photos/prado.png" alt="Toyota Land Cruiser Prado" className="h-16 md:h-20 object-contain"/>
+                <img src="assets/photos/prado.png" alt="Toyota Land Cruiser Prado" className="h-14 md:h-20 object-contain flex-shrink-0"/>
                 <div className="flex-1 min-w-0">
-                  <div className="font-mono text-[10px] text-bone-500 tracking-widest">СПЕЦИАЛИЗАЦИЯ</div>
-                  <div className="font-display font-semibold text-bone-100 leading-tight">Запчасти по двигателю<br/>на японские авто</div>
+                  <div className="font-mono text-[9px] md:text-[10px] text-bone-500 tracking-widest">СПЕЦИАЛИЗАЦИЯ</div>
+                  <div className="font-display font-semibold text-sm md:text-base text-bone-100 leading-tight">Запчасти по двигателю<br/>на японские авто</div>
                 </div>
               </div>
-              <div className="border-t border-ink-600 px-3 py-2 flex items-center gap-2 text-xs text-bone-300">
-                <IconMapPin size={14} className="text-ember-500"/>
-                <span>{CONTACTS.address}</span>
+              <div className="border-t border-ink-600 px-3 py-2 flex items-center gap-2 text-[11px] md:text-xs text-bone-300">
+                <IconMapPin size={14} className="text-ember-500 flex-shrink-0"/>
+                <span className="truncate">{CONTACTS.address}</span>
               </div>
             </div>
 
             <div className="relative bg-ink-900/60 border border-ink-600 backdrop-blur-sm">
               {/* header bar */}
-              <div className="flex items-center justify-between border-b border-ink-600 px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
+              <div className="flex items-center justify-between border-b border-ink-600 px-3 md:px-4 py-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex gap-1 flex-shrink-0">
                     <div className="w-2 h-2 rounded-full bg-forge-500"/>
                     <div className="w-2 h-2 rounded-full bg-ember-500"/>
                     <div className="w-2 h-2 rounded-full bg-bone-500"/>
                   </div>
-                  <span className="font-mono text-[10px] text-bone-500 tracking-wider ml-2">SCHEMATIC.svg</span>
+                  <span className="font-mono text-[10px] text-bone-500 tracking-wider ml-1 md:ml-2 truncate">PISTON.svg</span>
                 </div>
-                <div className="font-mono text-[10px] text-ember-500 tracking-wider">INTERACTIVE</div>
+                <div className="font-mono text-[10px] text-ember-500 tracking-wider flex-shrink-0">
+                  <span className="hidden sm:inline">INTERACTIVE</span>
+                  <span className="sm:hidden">ТАПНИ ↓</span>
+                </div>
               </div>
 
-              <div className="p-4">
+              <div className="p-2 md:p-4">
                 <PistonDiagram
                   activeId={activeId}
                   hoverId={hoverId}
@@ -1989,22 +2035,90 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
               </div>
 
               {/* bottom hint */}
-              <div className="border-t border-ink-600 px-4 py-2.5 flex items-center justify-between font-mono text-[10px] tracking-wider">
-                <span className="text-bone-500">КЛИКНИТЕ НОМЕР ДЛЯ ДЕТАЛЕЙ</span>
-                <span className="text-ember-500">{PISTON_PARTS.length} ЭЛЕМЕНТОВ</span>
+              <div className="border-t border-ink-600 px-3 md:px-4 py-2.5 flex items-center justify-between font-mono text-[10px] tracking-wider">
+                <span className="text-bone-500 hidden sm:inline">НАВЕДИТЕ / КЛИКНИТЕ ДЕТАЛЬ</span>
+                <span className="text-bone-500 sm:hidden">ВЫБЕРИ НИЖЕ ↓</span>
+                <span className="text-ember-500">{PISTON_PARTS.length} ДЕТАЛЕЙ</span>
               </div>
             </div>
 
-            {/* mobile carousel hint */}
-            <div className="mt-3 lg:hidden flex gap-2 overflow-x-auto thin-scroll pb-2">
-              {PISTON_PARTS.map((p, i) => (
-                <button key={p.id} onClick={() => onSelectPart(p.id)}
-                  className={`flex-shrink-0 px-3 py-2 font-mono text-xs border transition ${
-                    activeId === p.id ? 'bg-ember-500 text-ink-900 border-ember-500' : 'bg-ink-800 border-ink-600 text-bone-300'
-                  }`}>
-                  {(i+1).toString().padStart(2,'0')} · {p.short}
-                </button>
-              ))}
+            {/* MOBILE — крупная сетка чипов 4×2 с номерами */}
+            <div className="lg:hidden mt-3">
+              <div className="grid grid-cols-4 gap-1.5">
+                {PISTON_PARTS.map((p, i) => {
+                  const on = activeId === p.id;
+                  return (
+                    <button key={p.id} onClick={() => onSelectPart(p.id)}
+                      className={`relative flex flex-col items-center justify-center gap-0.5 py-2 px-1 border transition active:scale-95 ${
+                        on
+                          ? 'bg-ember-500 text-ink-900 border-ember-500 shadow-ember'
+                          : 'bg-ink-800 border-ink-600 text-bone-300 hover:border-ember-500'
+                      }`}>
+                      <span className={`font-mono text-[10px] font-bold tabular-nums ${on ? 'text-ink-900' : 'text-ember-500'}`}>
+                        {(i+1).toString().padStart(2,'0')}
+                      </span>
+                      <span className="text-[10px] leading-tight text-center font-medium">{p.short.split(',')[0]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* INLINE раскрывающаяся карточка под чипами — для мобилы */}
+              {activeId && (() => {
+                const part = PISTON_PARTS.find(p => p.id === activeId);
+                const idx = PISTON_PARTS.findIndex(p => p.id === activeId) + 1;
+                if (!part) return null;
+                return (
+                  <div className="mt-3 bg-ink-850 border-l-2 border-ember-500 border-y border-r border-ink-600 p-4 animate-[fadeSlide_0.25s_ease-out]">
+                    <div className="flex items-start justify-between mb-3 gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <div className="w-7 h-7 bg-ember-500 text-ink-900 flex items-center justify-center font-mono text-xs font-bold flex-shrink-0">
+                            {idx.toString().padStart(2,'0')}
+                          </div>
+                          <div className="font-mono text-[10px] text-ember-500 tracking-widest">{part.short.toUpperCase()}</div>
+                        </div>
+                        <h3 className="font-display text-xl font-semibold leading-tight">{part.label}</h3>
+                      </div>
+                      <button onClick={() => onSelectPart(activeId)} className="w-8 h-8 border border-ink-600 hover:border-ember-500 flex items-center justify-center transition flex-shrink-0">
+                        <IconX size={14}/>
+                      </button>
+                    </div>
+                    <div className="space-y-3 text-sm">
+                      <div className="border-l-2 border-ember-500 pl-3">
+                        <div className="font-mono text-[9px] text-bone-500 tracking-widest mb-1">ЧТО ЭТО</div>
+                        <p className="text-bone-100 leading-relaxed">{part.desc}</p>
+                      </div>
+                      <div className="border-l-2 border-forge-500 pl-3">
+                        <div className="font-mono text-[9px] text-bone-500 tracking-widest mb-1">КОГДА МЕНЯЕТСЯ</div>
+                        <p className="text-bone-100 leading-relaxed">{part.when}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-ink-800 border border-ink-600 p-2.5">
+                          <div className="font-mono text-[9px] text-bone-500 tracking-widest mb-1">РАЗМЕРЫ</div>
+                          <div className="font-mono text-xs text-bone-100">{part.sizes}</div>
+                        </div>
+                        <div className="bg-ink-800 border border-ink-600 p-2.5">
+                          <div className="font-mono text-[9px] text-bone-500 tracking-widest mb-1">БРЕНДЫ</div>
+                          <div className="font-mono text-xs text-bone-100">{part.brands}</div>
+                        </div>
+                      </div>
+                      <a href="#picker" onClick={() => onSelectPart(activeId)}
+                        className="flex items-center justify-between w-full bg-ember-500 active:bg-ember-600 text-ink-900 font-display font-semibold p-3.5 transition mt-3">
+                        <span>Подобрать на свой двигатель</span>
+                        <IconArrowRight size={18} sw={2}/>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {!activeId && (
+                <div className="mt-3 px-3 py-3 border border-dashed border-ink-600 text-center">
+                  <div className="font-mono text-[10px] text-bone-500 tracking-widest mb-1">↑ ТАПНИ ЛЮБУЮ ДЕТАЛЬ</div>
+                  <div className="text-xs text-bone-300">Подсветится на схеме + появится описание</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2012,21 +2126,24 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
 
       {/* Filter line — сразу отсекаем не-ЦА */}
       <div className="relative border-t border-ink-600 bg-ink-900/60">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-10 py-4 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-xs">
-          <span className="text-ember-500 tracking-widest">МЫ ПРОДАЁМ:</span>
-          <span className="text-bone-100">поршни</span>
-          <span className="text-bone-100">кольца</span>
-          <span className="text-bone-100">вкладыши</span>
-          <span className="text-bone-100">прокладки ГБЦ</span>
-          <span className="text-bone-100">ремкомплекты</span>
-          <span className="text-bone-100">сальники</span>
-          <span className="text-bone-100">цепи ГРМ</span>
-          <span className="text-bone-500 mx-2">|</span>
-          <span className="text-forge-500 tracking-widest">МЫ НЕ ПРОДАЁМ:</span>
-          <span className="text-bone-500 line-through">бамперы</span>
-          <span className="text-bone-500 line-through">фары</span>
-          <span className="text-bone-500 line-through">кузовщину</span>
-          <span className="text-bone-500 line-through">расходники</span>
+        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 font-mono text-[10px] md:text-xs space-y-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="text-ember-500 tracking-widest">ПРОДАЁМ:</span>
+            <span className="text-bone-100">поршни</span>
+            <span className="text-bone-100">кольца</span>
+            <span className="text-bone-100">вкладыши</span>
+            <span className="text-bone-100">прокладки ГБЦ</span>
+            <span className="text-bone-100">ремкомплекты</span>
+            <span className="text-bone-100">сальники</span>
+            <span className="text-bone-100">цепи ГРМ</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <span className="text-forge-500 tracking-widest">НЕ ПРОДАЁМ:</span>
+            <span className="text-bone-500 line-through">бамперы</span>
+            <span className="text-bone-500 line-through">фары</span>
+            <span className="text-bone-500 line-through">кузовщину</span>
+            <span className="text-bone-500 line-through">расходники</span>
+          </div>
         </div>
       </div>
     </section>
@@ -2038,14 +2155,14 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function PickerSection() {
   return (
-    <section id="picker" className="relative py-20 md:py-28 px-6 md:px-10 max-w-[1440px] mx-auto">
-      <div className="grid lg:grid-cols-12 gap-12">
+    <section id="picker" className="relative py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
+      <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
         <div className="lg:col-span-5 lg:sticky lg:top-24 self-start">
-          <div className="font-mono text-xs text-ember-500 tracking-widest mb-3">01 / ПОДБОР</div>
-          <h2 className="font-display text-4xl md:text-6xl font-semibold leading-[1.05] mb-6">
+          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">01 / ПОДБОР</div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] mb-5 md:mb-6">
             Дайте код двигателя — <span className="text-ember-500">остальное соберём.</span>
           </h2>
-          <p className="text-bone-300 text-lg leading-relaxed mb-8">
+          <p className="text-bone-300 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
             Не нужно подбирать каждую деталь отдельно. Вы говорите код ДВС и что меняете — мы собираем спецификацию,
             проверяем наличие, считаем цену по вашему ценнику (мастер / СТО / розница).
           </p>
@@ -2089,17 +2206,40 @@ function PickerSection() {
 function App() {
   const [activeId, setActiveId] = useState(null);
   const [hoverId, setHoverId] = useState(null);
+  const [autoIdx, setAutoIdx] = useState(0);
+  const [userInteracted, setUserInteracted] = useState(false);
 
-  const onSelectPart = (id) => setActiveId(prev => prev === id ? null : id);
+  const onSelectPart = (id) => {
+    setUserInteracted(true);
+    setActiveId(prev => prev === id ? null : id);
+  };
+  const onHoverPart = (id) => {
+    if (id) setUserInteracted(true);
+    setHoverId(id);
+  };
+
+  // Автоплей подсветки на мобиле — пока пользователь не тапнул, перебираем детали по кругу.
+  // Подсказывает что схема интерактивная даже без курсора.
+  useEffect(() => {
+    if (userInteracted) return;
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches;
+    if (!isMobile) return;
+    const t = setInterval(() => {
+      setAutoIdx(i => (i + 1) % PISTON_PARTS.length);
+    }, 1400);
+    return () => clearInterval(t);
+  }, [userInteracted]);
+
+  const displayHoverId = userInteracted ? hoverId : PISTON_PARTS[autoIdx]?.id;
 
   return (
     <div className="min-h-screen bg-ink-900 text-bone-50">
       <NavBar/>
       <Hero
         activeId={activeId}
-        hoverId={hoverId}
+        hoverId={displayHoverId}
         onSelectPart={onSelectPart}
-        onHoverPart={setHoverId}
+        onHoverPart={onHoverPart}
       />
       <TrustStrip/>
       <PickerSection/>
