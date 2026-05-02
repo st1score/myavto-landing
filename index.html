@@ -202,6 +202,7 @@ const MAKERS = [
   { name: 'Subaru',     logo: 'assets/brands/subaru.png',     codes: ['EJ20', 'EJ25', 'FB20'] },
   { name: 'Mazda',      logo: 'assets/brands/mazda.png',      codes: ['LF', 'L3'] },
   { name: 'Mitsubishi', logo: 'assets/brands/mitsubishi.png', codes: ['4B11', '4B12', '4G63', '6G72', '4M40', '4M41', '4D56'] },
+  { name: 'Suzuki',     logo: 'assets/brands/suzuki.png',     codes: ['Под заказ'] },
   { name: 'Hyundai',    logo: 'assets/brands/hyundai.png',    codes: ['G4KE', 'G4KD', 'G4FC', 'G4FA', 'D4CB', 'D4HB', 'D4EA'] },
   { name: 'Kia',        logo: 'assets/brands/kia.png',        codes: ['G4KE', 'G4FC', 'D4CB', 'D4HB'] },
 ];
@@ -1048,7 +1049,9 @@ function EnginePickerForm() {
                     : 'bg-ink-800 text-bone-100 border-ink-600 hover:border-ember-500 hover:-translate-y-0.5'
                 }`}>
                 {m.logo
-                  ? <img src={m.logo} alt={m.name} className={`h-7 max-w-[70%] object-contain ${maker?.name === m.name ? '' : 'invert brightness-0 opacity-90'}`}/>
+                  ? <img src={m.logo} alt={m.name}
+                      className={`h-7 max-w-[80%] object-contain ${maker?.name === m.name ? 'brightness-0 invert-0' : 'opacity-95'}`}
+                      style={maker?.name === m.name ? { filter: 'brightness(0)' } : {}}/>
                   : <span>{m.name}</span>}
                 <span className="opacity-80">{m.name}</span>
               </button>
@@ -1690,6 +1693,17 @@ function MobileStickyCTA() {
   );
 }
 
+// Compact social/marketplace badge — единый стиль с подписью под иконкой
+function SocialBubble({ href, Icon, label }) {
+  return (
+    <a href={href} target="_blank" rel="noopener" title={label}
+      className="group flex flex-col items-center gap-1.5 p-2.5 bg-ink-850 border border-ink-600 hover:border-ember-500 active:scale-95 hover:-translate-y-0.5 transition">
+      <Icon size={26}/>
+      <span className="font-mono text-[9px] tracking-wider text-bone-300 group-hover:text-ember-500 transition truncate max-w-full">{label}</span>
+    </a>
+  );
+}
+
 function SocialTile({ href, Icon, label, sub }) {
   return (
     <a href={href} target="_blank" rel="noopener"
@@ -1793,7 +1807,7 @@ function Footer() {
 
 Object.assign(window, {
   NavBar, TrustStrip, EnginesGrid, BrandsSection, B2BSection, ArticlesSection, FAQSection, Footer,
-  BrandMark, MobileStickyCTA, SocialTile
+  BrandMark, MobileStickyCTA, SocialTile, SocialBubble
 });
 
   </script>
@@ -1960,16 +1974,18 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
               </div>
             </div>
 
-            {/* мини-полоса каналов под CTA */}
-            <div className="flex items-center gap-3 mb-8 md:mb-10 flex-wrap">
-              <span className="font-mono text-[10px] tracking-widest text-bone-500 w-full sm:w-auto mb-1 sm:mb-0">МЫ ВЕЗДЕ:</span>
-              <a href={CONTACTS.whatsapp}  target="_blank" rel="noopener" title="WhatsApp"          className="active:scale-95 hover:scale-110 transition"><IconWhatsApp size={28}/></a>
-              <a href={CONTACTS.telegram}  target="_blank" rel="noopener" title="Telegram"          className="active:scale-95 hover:scale-110 transition"><IconTelegram size={28}/></a>
-              <a href={CONTACTS.instagram} target="_blank" rel="noopener" title="Instagram"         className="active:scale-95 hover:scale-110 transition"><IconInstagram size={28}/></a>
-              <a href={CONTACTS.tiktok}    target="_blank" rel="noopener" title="TikTok"            className="active:scale-95 hover:scale-110 transition"><IconTikTok size={28}/></a>
-              <a href={CONTACTS.kaspi}     target="_blank" rel="noopener" title="Kaspi Магазин"     className="active:scale-95 hover:scale-110 transition"><IconKaspi size={28}/></a>
-              <a href={CONTACTS.kolesa}    target="_blank" rel="noopener" title="Kolesa.kz"         className="active:scale-95 hover:scale-110 transition"><IconKolesa size={28}/></a>
-              <a href={CONTACTS.olx}       target="_blank" rel="noopener" title="OLX.kz"            className="active:scale-95 hover:scale-110 transition"><IconOLX size={28}/></a>
+            {/* мини-полоса каналов под CTA — единый стиль с подписями */}
+            <div className="mb-8 md:mb-10">
+              <div className="font-mono text-[10px] tracking-widest text-bone-500 mb-2.5">МЫ ВЕЗДЕ — ПИШИ В УДОБНЫЙ КАНАЛ:</div>
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 max-w-2xl">
+                <SocialBubble href={CONTACTS.whatsapp}  Icon={IconWhatsApp}  label="WhatsApp"/>
+                <SocialBubble href={CONTACTS.telegram}  Icon={IconTelegram}  label="Telegram"/>
+                <SocialBubble href={CONTACTS.instagram} Icon={IconInstagram} label="Instagram"/>
+                <SocialBubble href={CONTACTS.tiktok}    Icon={IconTikTok}    label="TikTok"/>
+                <SocialBubble href={CONTACTS.kaspi}     Icon={IconKaspi}     label="Kaspi"/>
+                <SocialBubble href={CONTACTS.kolesa}    Icon={IconKolesa}    label="Kolesa"/>
+                <SocialBubble href={CONTACTS.olx}       Icon={IconOLX}       label="OLX"/>
+              </div>
             </div>
 
             {/* trust badges */}
