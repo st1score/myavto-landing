@@ -1039,23 +1039,29 @@ function EnginePickerForm() {
             <label className="font-mono text-xs text-bone-500 tracking-wider">01 · ПРОИЗВОДИТЕЛЬ</label>
             {maker && <span className="font-mono text-xs text-ember-500">{maker.name.toUpperCase()}</span>}
           </div>
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-            {MAKERS.map(m => (
-              <button key={m.name} type="button" onClick={() => setMaker(m)}
-                title={m.name}
-                className={`h-16 flex flex-col gap-1 items-center justify-center font-display font-medium text-[11px] transition border ${
-                  maker?.name === m.name
-                    ? 'bg-ember-500 text-ink-900 border-ember-500'
-                    : 'bg-ink-800 text-bone-100 border-ink-600 hover:border-ember-500 hover:-translate-y-0.5'
-                }`}>
-                {m.logo
-                  ? <img src={m.logo} alt={m.name}
-                      className={`h-7 max-w-[80%] object-contain ${maker?.name === m.name ? 'brightness-0 invert-0' : 'opacity-95'}`}
-                      style={maker?.name === m.name ? { filter: 'brightness(0)' } : {}}/>
-                  : <span>{m.name}</span>}
-                <span className="opacity-80">{m.name}</span>
-              </button>
-            ))}
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+            {MAKERS.map(m => {
+              const on = maker?.name === m.name;
+              return (
+                <button key={m.name} type="button" onClick={() => setMaker(m)}
+                  title={m.name}
+                  className={`group flex flex-col items-stretch text-[11px] font-display font-medium transition border overflow-hidden ${
+                    on
+                      ? 'border-ember-500 ring-2 ring-ember-500 -translate-y-0.5'
+                      : 'border-ink-600 hover:border-ember-500 hover:-translate-y-0.5'
+                  }`}>
+                  {/* Светлая карточка-фон для логотипа — цветной лого виден как у официального бренда */}
+                  <div className={`h-14 flex items-center justify-center px-3 ${on ? 'bg-bone-50' : 'bg-bone-50/95 group-hover:bg-bone-50'}`}>
+                    {m.logo
+                      ? <img src={m.logo} alt={m.name} className="max-h-9 max-w-[90%] object-contain"/>
+                      : <span className="text-ink-900 font-bold">{m.name}</span>}
+                  </div>
+                  <span className={`py-1.5 text-center transition ${
+                    on ? 'bg-ember-500 text-ink-900' : 'bg-ink-800 text-bone-100 group-hover:bg-ink-700'
+                  }`}>{m.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1678,7 +1684,7 @@ function MobileStickyCTA() {
       </a>
       <a href={CONTACTS.kaspi} target="_blank" rel="noopener"
         className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600">
-        <IconKaspi size={22}/><span>Kaspi</span>
+        <img src="assets/social/kaspi.png" alt="Kaspi" className="w-[22px] h-[22px] object-contain rounded"/><span>Kaspi</span>
       </a>
       <a href={`tel:${CONTACTS.phoneE164}`}
         className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600">
@@ -1693,22 +1699,31 @@ function MobileStickyCTA() {
   );
 }
 
-// Compact social/marketplace badge — единый стиль с подписью под иконкой
-function SocialBubble({ href, Icon, label }) {
+// Compact social/marketplace badge — единый стиль с подписью под иконкой.
+// Принимает либо Icon (SVG-компонент), либо img (путь к PNG) — для официальных лого брендов.
+function SocialBubble({ href, Icon, img, label }) {
   return (
     <a href={href} target="_blank" rel="noopener" title={label}
-      className="group flex flex-col items-center gap-1.5 p-2.5 bg-ink-850 border border-ink-600 hover:border-ember-500 active:scale-95 hover:-translate-y-0.5 transition">
-      <Icon size={26}/>
+      className="group flex flex-col items-center gap-1.5 p-2 bg-ink-850 border border-ink-600 hover:border-ember-500 active:scale-95 hover:-translate-y-0.5 transition">
+      <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
+        {img
+          ? <img src={img} alt={label} className="w-full h-full object-contain rounded-md"/>
+          : Icon ? <Icon size={32}/> : null}
+      </div>
       <span className="font-mono text-[9px] tracking-wider text-bone-300 group-hover:text-ember-500 transition truncate max-w-full">{label}</span>
     </a>
   );
 }
 
-function SocialTile({ href, Icon, label, sub }) {
+function SocialTile({ href, Icon, img, label, sub }) {
   return (
     <a href={href} target="_blank" rel="noopener"
       className="flex items-center gap-3 p-3 bg-ink-800 border border-ink-600 hover:border-ember-500 transition group">
-      <div className="flex-shrink-0"><Icon size={28}/></div>
+      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center overflow-hidden rounded">
+        {img
+          ? <img src={img} alt={label} className="w-full h-full object-contain"/>
+          : Icon ? <Icon size={28}/> : null}
+      </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm text-bone-100 truncate">{label}</div>
         <div className="font-mono text-[10px] text-bone-500 truncate">{sub}</div>
@@ -1769,15 +1784,15 @@ function Footer() {
           <div className="lg:col-span-3">
             <div className="font-mono text-xs text-bone-500 tracking-widest mb-4">СОЦСЕТИ И КАНАЛЫ</div>
             <div className="grid grid-cols-1 gap-2">
-              <SocialTile href={CONTACTS.telegram}  Icon={IconTelegram}  label="Telegram-канал" sub={`${CONTACTS.telegramHandle} · НАЛИЧИЕ И ЦЕНЫ`}/>
-              <SocialTile href={CONTACTS.instagram} Icon={IconInstagram} label="Instagram"      sub={`${CONTACTS.instagramHandle} · ФОТО СО СКЛАДА`}/>
-              <SocialTile href={CONTACTS.tiktok}    Icon={IconTikTok}    label="TikTok"         sub={`${CONTACTS.tiktokHandle} · РАЗБОРЫ ДВС`}/>
+              <SocialTile href={CONTACTS.telegram}  Icon={IconTelegram}                  label="Telegram-канал" sub={`${CONTACTS.telegramHandle} · НАЛИЧИЕ И ЦЕНЫ`}/>
+              <SocialTile href={CONTACTS.instagram} img="assets/social/instagram.png"   label="Instagram"      sub={`${CONTACTS.instagramHandle} · ФОТО СО СКЛАДА`}/>
+              <SocialTile href={CONTACTS.tiktok}    img="assets/social/tiktok.png"      label="TikTok"         sub={`${CONTACTS.tiktokHandle} · РАЗБОРЫ ДВС`}/>
             </div>
             <div className="font-mono text-xs text-bone-500 tracking-widest mt-5 mb-3">МАРКЕТПЛЕЙСЫ</div>
             <div className="grid grid-cols-1 gap-2">
-              <SocialTile href={CONTACTS.kaspi}  Icon={IconKaspi}  label="Kaspi Магазин"   sub="ОПЛАТА · РАССРОЧКА 0–0–12"/>
-              <SocialTile href={CONTACTS.kolesa} Icon={IconKolesa} label="Kolesa.kz"       sub="ВСЕ АКТИВНЫЕ ОБЪЯВЛЕНИЯ"/>
-              <SocialTile href={CONTACTS.olx}    Icon={IconOLX}    label="OLX.kz"          sub="ПРАЙС И ОТЗЫВЫ"/>
+              <SocialTile href={CONTACTS.kaspi}  img="assets/social/kaspi.png"  label="Kaspi Магазин"   sub="ОПЛАТА · РАССРОЧКА 0–0–12"/>
+              <SocialTile href={CONTACTS.kolesa} img="assets/social/kolesa.jpg" label="Kolesa.kz"       sub="ВСЕ АКТИВНЫЕ ОБЪЯВЛЕНИЯ"/>
+              <SocialTile href={CONTACTS.olx}    img="assets/social/olx.jpg"    label="OLX.kz"          sub="ПРАЙС И ОТЗЫВЫ"/>
             </div>
           </div>
 
@@ -1978,13 +1993,13 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
             <div className="mb-8 md:mb-10">
               <div className="font-mono text-[10px] tracking-widest text-bone-500 mb-2.5">МЫ ВЕЗДЕ — ПИШИ В УДОБНЫЙ КАНАЛ:</div>
               <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 max-w-2xl">
-                <SocialBubble href={CONTACTS.whatsapp}  Icon={IconWhatsApp}  label="WhatsApp"/>
-                <SocialBubble href={CONTACTS.telegram}  Icon={IconTelegram}  label="Telegram"/>
-                <SocialBubble href={CONTACTS.instagram} Icon={IconInstagram} label="Instagram"/>
-                <SocialBubble href={CONTACTS.tiktok}    Icon={IconTikTok}    label="TikTok"/>
-                <SocialBubble href={CONTACTS.kaspi}     Icon={IconKaspi}     label="Kaspi"/>
-                <SocialBubble href={CONTACTS.kolesa}    Icon={IconKolesa}    label="Kolesa"/>
-                <SocialBubble href={CONTACTS.olx}       Icon={IconOLX}       label="OLX"/>
+                <SocialBubble href={CONTACTS.whatsapp}  Icon={IconWhatsApp}            label="WhatsApp"/>
+                <SocialBubble href={CONTACTS.telegram}  Icon={IconTelegram}            label="Telegram"/>
+                <SocialBubble href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"/>
+                <SocialBubble href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"/>
+                <SocialBubble href={CONTACTS.kaspi}     img="assets/social/kaspi.png"     label="Kaspi"/>
+                <SocialBubble href={CONTACTS.kolesa}    img="assets/social/kolesa.jpg"    label="Kolesa"/>
+                <SocialBubble href={CONTACTS.olx}       img="assets/social/olx.jpg"       label="OLX"/>
               </div>
             </div>
 
