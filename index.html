@@ -1676,53 +1676,51 @@ function BrandMark({ size = 40, compact = false }) {
 
 // Sticky bottom CTA — только на мобильных. Главные действия за палец.
 function MobileStickyCTA() {
+  // Все 4 кнопки в едином iOS-app-icon стиле — одинаковый размер, скругление, тень.
+  const stickyTile = "flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600 first:border-l-0";
+  const iconBox = "w-[26px] h-[26px] rounded-[22%] overflow-hidden ring-1 ring-ink-700";
   return (
     <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900/95 backdrop-blur-md border-t border-ink-600 grid grid-cols-4 text-[10px] font-mono">
-      <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
-        className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800">
-        <IconWhatsApp size={22}/><span>WhatsApp</span>
+      <a href={CONTACTS.whatsapp} target="_blank" rel="noopener" className={stickyTile}>
+        <img src="assets/social/whatsapp.png" alt="WhatsApp" className={iconBox}/><span>WhatsApp</span>
       </a>
-      <a href={CONTACTS.kaspi} target="_blank" rel="noopener"
-        className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600">
-        <img src="assets/social/kaspi.png" alt="Kaspi" className="w-[22px] h-[22px] object-contain rounded"/><span>Kaspi</span>
+      <a href={CONTACTS.kaspi} target="_blank" rel="noopener" className={stickyTile}>
+        <img src="assets/social/kaspi.png" alt="Kaspi" className={iconBox}/><span>Kaspi</span>
       </a>
-      <a href={`tel:${CONTACTS.phoneE164}`}
-        className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600">
-        <span className="w-[22px] h-[22px] rounded-full bg-ember-500 flex items-center justify-center text-ink-900"><IconPhone size={13} sw={2}/></span>
+      <a href={`tel:${CONTACTS.phoneE164}`} className={stickyTile}>
+        <span className={`${iconBox} bg-ember-500 flex items-center justify-center text-ink-900`}>
+          <IconPhone size={14} sw={2.2}/>
+        </span>
         <span>Звонок</span>
       </a>
-      <a href={CONTACTS.telegram} target="_blank" rel="noopener"
-        className="flex flex-col items-center gap-1 py-2.5 text-bone-100 active:bg-ink-800 border-l border-ink-600">
-        <IconTelegram size={22}/><span>Telegram</span>
+      <a href={CONTACTS.telegram} target="_blank" rel="noopener" className={stickyTile}>
+        <img src="assets/social/telegram.png" alt="Telegram" className={iconBox}/><span>Telegram</span>
       </a>
     </div>
   );
 }
 
-// Compact social/marketplace badge — единый стиль с подписью под иконкой.
-// Принимает либо Icon (SVG-компонент), либо img (путь к PNG) — для официальных лого брендов.
-function SocialBubble({ href, Icon, img, label }) {
+// iOS-style app-icon социалка: одинаковые квадраты с фирменным фоном внутри img,
+// скругление как у iPhone, лёгкая тень, единая подпись снизу.
+function SocialBubble({ href, img, label }) {
   return (
     <a href={href} target="_blank" rel="noopener" title={label}
-      className="group flex flex-col items-center gap-1.5 p-2 bg-ink-850 border border-ink-600 hover:border-ember-500 active:scale-95 hover:-translate-y-0.5 transition">
-      <div className="w-10 h-10 flex items-center justify-center overflow-hidden">
-        {img
-          ? <img src={img} alt={label} className="w-full h-full object-contain rounded-md"/>
-          : Icon ? <Icon size={32}/> : null}
+      className="group flex flex-col items-center gap-1.5 active:scale-95 hover:-translate-y-1 transition">
+      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-[22%] overflow-hidden shadow-lift bg-ink-800
+                       ring-1 ring-ink-600/60 group-hover:ring-ember-500 transition-all">
+        <img src={img} alt={label} className="w-full h-full object-cover" loading="lazy"/>
       </div>
-      <span className="font-mono text-[9px] tracking-wider text-bone-300 group-hover:text-ember-500 transition truncate max-w-full">{label}</span>
+      <span className="font-mono text-[10px] tracking-wider text-bone-300 group-hover:text-ember-500 transition">{label}</span>
     </a>
   );
 }
 
-function SocialTile({ href, Icon, img, label, sub }) {
+function SocialTile({ href, img, label, sub }) {
   return (
     <a href={href} target="_blank" rel="noopener"
       className="flex items-center gap-3 p-3 bg-ink-800 border border-ink-600 hover:border-ember-500 transition group">
-      <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center overflow-hidden rounded">
-        {img
-          ? <img src={img} alt={label} className="w-full h-full object-contain"/>
-          : Icon ? <Icon size={28}/> : null}
+      <div className="flex-shrink-0 w-9 h-9 rounded-[22%] overflow-hidden ring-1 ring-ink-600/60">
+        <img src={img} alt={label} className="w-full h-full object-cover"/>
       </div>
       <div className="min-w-0 flex-1">
         <div className="text-sm text-bone-100 truncate">{label}</div>
@@ -1784,15 +1782,16 @@ function Footer() {
           <div className="lg:col-span-3">
             <div className="font-mono text-xs text-bone-500 tracking-widest mb-4">СОЦСЕТИ И КАНАЛЫ</div>
             <div className="grid grid-cols-1 gap-2">
-              <SocialTile href={CONTACTS.telegram}  Icon={IconTelegram}                  label="Telegram-канал" sub={`${CONTACTS.telegramHandle} · НАЛИЧИЕ И ЦЕНЫ`}/>
-              <SocialTile href={CONTACTS.instagram} img="assets/social/instagram.png"   label="Instagram"      sub={`${CONTACTS.instagramHandle} · ФОТО СО СКЛАДА`}/>
-              <SocialTile href={CONTACTS.tiktok}    img="assets/social/tiktok.png"      label="TikTok"         sub={`${CONTACTS.tiktokHandle} · РАЗБОРЫ ДВС`}/>
+              <SocialTile href={CONTACTS.whatsapp}  img="assets/social/whatsapp.png"  label="WhatsApp"       sub={`${CONTACTS.phoneDisplay} · ОТВЕТ ЗА 15 МИН`}/>
+              <SocialTile href={CONTACTS.telegram}  img="assets/social/telegram.png"  label="Telegram-канал" sub={`${CONTACTS.telegramHandle} · НАЛИЧИЕ И ЦЕНЫ`}/>
+              <SocialTile href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"      sub={`${CONTACTS.instagramHandle} · ФОТО СО СКЛАДА`}/>
+              <SocialTile href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"         sub={`${CONTACTS.tiktokHandle} · РАЗБОРЫ ДВС`}/>
             </div>
             <div className="font-mono text-xs text-bone-500 tracking-widest mt-5 mb-3">МАРКЕТПЛЕЙСЫ</div>
             <div className="grid grid-cols-1 gap-2">
               <SocialTile href={CONTACTS.kaspi}  img="assets/social/kaspi.png"  label="Kaspi Магазин"   sub="ОПЛАТА · РАССРОЧКА 0–0–12"/>
-              <SocialTile href={CONTACTS.kolesa} img="assets/social/kolesa.jpg" label="Kolesa.kz"       sub="ВСЕ АКТИВНЫЕ ОБЪЯВЛЕНИЯ"/>
-              <SocialTile href={CONTACTS.olx}    img="assets/social/olx.jpg"    label="OLX.kz"          sub="ПРАЙС И ОТЗЫВЫ"/>
+              <SocialTile href={CONTACTS.kolesa} img="assets/social/kolesa.png" label="Kolesa.kz"       sub="ВСЕ АКТИВНЫЕ ОБЪЯВЛЕНИЯ"/>
+              <SocialTile href={CONTACTS.olx}    img="assets/social/olx.png"    label="OLX.kz"          sub="ПРАЙС И ОТЗЫВЫ"/>
             </div>
           </div>
 
@@ -1992,14 +1991,14 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
             {/* мини-полоса каналов под CTA — единый стиль с подписями */}
             <div className="mb-8 md:mb-10">
               <div className="font-mono text-[10px] tracking-widest text-bone-500 mb-2.5">МЫ ВЕЗДЕ — ПИШИ В УДОБНЫЙ КАНАЛ:</div>
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 max-w-2xl">
-                <SocialBubble href={CONTACTS.whatsapp}  Icon={IconWhatsApp}            label="WhatsApp"/>
-                <SocialBubble href={CONTACTS.telegram}  Icon={IconTelegram}            label="Telegram"/>
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 max-w-2xl">
+                <SocialBubble href={CONTACTS.whatsapp}  img="assets/social/whatsapp.png"  label="WhatsApp"/>
+                <SocialBubble href={CONTACTS.telegram}  img="assets/social/telegram.png"  label="Telegram"/>
                 <SocialBubble href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"/>
                 <SocialBubble href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"/>
                 <SocialBubble href={CONTACTS.kaspi}     img="assets/social/kaspi.png"     label="Kaspi"/>
-                <SocialBubble href={CONTACTS.kolesa}    img="assets/social/kolesa.jpg"    label="Kolesa"/>
-                <SocialBubble href={CONTACTS.olx}       img="assets/social/olx.jpg"       label="OLX"/>
+                <SocialBubble href={CONTACTS.kolesa}    img="assets/social/kolesa.png"    label="Kolesa"/>
+                <SocialBubble href={CONTACTS.olx}       img="assets/social/olx.png"       label="OLX"/>
               </div>
             </div>
 
