@@ -34,11 +34,11 @@
             700: '#5A5249',
           },
           ember: {
-            50:  '#FFF1E8',
-            300: '#FFB07A',
-            500: '#FF6B1A',
-            600: '#E5560A',
-            700: '#B83F00',
+            50:  '#EFF4FF',
+            300: '#93B4FF',
+            500: '#2563EB',
+            600: '#1D4ED8',
+            700: '#1E40AF',
           },
           forge: {
             500: '#E63946',
@@ -50,7 +50,7 @@
           mono: ['"JetBrains Mono"', 'monospace'],
         },
         boxShadow: {
-          'ember': '0 0 0 1px rgba(255,107,26,0.4), 0 8px 24px -8px rgba(255,107,26,0.35)',
+          'ember': '0 0 0 1px rgba(37,99,235,0.4), 0 8px 24px -8px rgba(37,99,235,0.35)',
           'lift':  '0 12px 32px -12px rgba(0,0,0,0.6)',
         }
       }
@@ -81,7 +81,7 @@
   .grain::before {
     content: '';
     position: absolute; inset: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.6  0 0 0 0 0.42  0 0 0 0 0.18  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.15  0 0 0 0 0.30  0 0 0 0 0.85  0 0 0 0.18 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     opacity: 0.5;
     mix-blend-mode: overlay;
     pointer-events: none;
@@ -89,8 +89,8 @@
   .hairline { border-color: #2A2320; }
   /* ember glow keyframes */
   @keyframes emberPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,26,0.0); }
-    50%      { box-shadow: 0 0 24px 2px rgba(255,107,26,0.45); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.0); }
+    50%      { box-shadow: 0 0 24px 2px rgba(37,99,235,0.45); }
   }
   .ember-pulse { animation: emberPulse 2.4s ease-in-out infinite; }
 
@@ -98,15 +98,15 @@
   .scanline {
     background-image: repeating-linear-gradient(
       0deg,
-      rgba(255,107,26,0.03) 0px,
-      rgba(255,107,26,0.03) 1px,
+      rgba(37,99,235,0.03) 0px,
+      rgba(37,99,235,0.03) 1px,
       transparent 1px,
       transparent 4px
     );
   }
 
   /* selection */
-  ::selection { background: #FF6B1A; color: #0B0908; }
+  ::selection { background: #2563EB; color: #0B0908; }
 
   /* scrollbar in side panel */
   .thin-scroll::-webkit-scrollbar { width: 6px; }
@@ -121,8 +121,8 @@
 
   /* мягкая пульсация выноски выбранной детали на схеме */
   @keyframes hotPulse {
-    0%, 100% { filter: drop-shadow(0 0 6px rgba(255,107,26,0.6)); }
-    50%      { filter: drop-shadow(0 0 14px rgba(255,107,26,0.95)); }
+    0%, 100% { filter: drop-shadow(0 0 6px rgba(37,99,235,0.6)); }
+    50%      { filter: drop-shadow(0 0 14px rgba(37,99,235,0.95)); }
   }
 </style>
 </head>
@@ -136,75 +136,32 @@
 const ENGINES = [
   // Toyota — бензин
   { code: '2AZ-FE', maker: 'Toyota', vol: '2.4L', cars: 'Camry, RAV4, Highlander, Estima, Alphard', common: 'Поршни, кольца, вкладыши, цепь ГРМ', stock: true },
-  { code: '1ZZ-FE', maker: 'Toyota', vol: '1.8L', cars: 'Corolla, Avensis, Celica, Matrix', common: 'Поршни (масложор), кольца, колпачки', stock: true },
-  { code: '2ZR-FE', maker: 'Toyota', vol: '1.8L', cars: 'Corolla E150/E180, Auris, Verso', common: 'Кольца, вкладыши, цепь ГРМ', stock: true },
-  { code: '3S-FE',  maker: 'Toyota', vol: '2.0L', cars: 'Camry SV30/40, Avensis, Carina', common: 'Поршни, кольца, прокладка ГБЦ', stock: true },
   { code: '1MZ-FE', maker: 'Toyota', vol: '3.0L V6', cars: 'Camry, Harrier, Highlander, ES300', common: 'Вкладыши, кольца, прокладки ГБЦ', stock: true },
   { code: '2GR-FE', maker: 'Toyota', vol: '3.5L V6', cars: 'Camry V6, RAV4, Highlander, Lexus RX350', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
   { code: '1GR-FE', maker: 'Toyota', vol: '4.0L V6', cars: 'Land Cruiser Prado 120/150, Hilux, FJ Cruiser', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: true },
-  { code: '2UZ-FE', maker: 'Toyota', vol: '4.7L V8', cars: 'Land Cruiser 100, LX470, Tundra, Sequoia', common: 'Вкладыши, прокладки, цепь ГРМ', stock: true },
-  { code: '3UZ-FE', maker: 'Toyota', vol: '4.3L V8', cars: 'Lexus GS430, LS430, SC430', common: 'Вкладыши, прокладки ГБЦ', stock: false },
-  { code: '1JZ-GE', maker: 'Toyota', vol: '2.5L R6', cars: 'Mark II, Chaser, Crown, Soarer', common: 'Поршни, кольца, вкладыши', stock: true },
-  { code: '2JZ-GE', maker: 'Toyota', vol: '3.0L R6', cars: 'Aristo, Supra, Mark II, Crown Majesta', common: 'Кольца, вкладыши, прокладки', stock: true },
   // Toyota — дизель
   { code: '1KZ-TE', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Hilux Surf, Prado 90/95, Land Cruiser 70', common: 'Поршни, кольца, прокладка ГБЦ, вкладыши', stock: true },
   { code: '1KD-FTV', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Land Cruiser Prado 120/150, Hilux, Fortuner', common: 'Поршни, ремкомплект, форсунки (под заказ)', stock: true },
-  { code: '2KD-FTV', maker: 'Toyota', vol: '2.5L Diesel', cars: 'Hilux, Fortuner, Hiace', common: 'Поршни, кольца, вкладыши', stock: true },
-  { code: '1HD-FTE', maker: 'Toyota', vol: '4.2L Diesel', cars: 'Land Cruiser 100, 105', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: false },
-
-  // Honda
-  { code: 'K24',   maker: 'Honda', vol: '2.4L', cars: 'Accord CL/CM, CR-V RD/RE, Element, Odyssey', common: 'Цепь ГРМ, вкладыши, кольца', stock: true },
-  { code: 'K20',   maker: 'Honda', vol: '2.0L', cars: 'Civic, Stream, CR-V, Integra', common: 'Кольца, вкладыши, цепь ГРМ', stock: true },
-  { code: 'R20A',  maker: 'Honda', vol: '2.0L', cars: 'Civic 4D, CR-V RE', common: 'Кольца, вкладыши', stock: true },
-  { code: 'J35',   maker: 'Honda', vol: '3.5L V6', cars: 'Odyssey, Pilot, MDX, Ridgeline', common: 'Вкладыши, цепь ГРМ, прокладки', stock: true },
-  { code: 'L15',   maker: 'Honda', vol: '1.5L', cars: 'Fit, Jazz, Freed, City', common: 'Кольца, прокладка ГБЦ', stock: true },
+  { code: '1HD-FTE', maker: 'Toyota', vol: '4.2L Diesel', cars: 'Land Cruiser 100, 105', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: true },
 
   // Nissan
   { code: 'VQ35-DE', maker: 'Nissan', vol: '3.5L V6', cars: 'Murano, Teana J32, 350Z, Pathfinder', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
+  { code: 'VQ40-DE', maker: 'Nissan', vol: '4.0L V6', cars: 'Pathfinder R51, Navara D40, Frontier, Xterra', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
   { code: 'QR25-DE', maker: 'Nissan', vol: '2.5L', cars: 'X-Trail T31, Teana, Altima, Rogue', common: 'Цепь ГРМ, вкладыши, кольца', stock: true },
-  { code: 'MR20-DE', maker: 'Nissan', vol: '2.0L', cars: 'X-Trail T31/T32, Qashqai, Sentra', common: 'Цепь ГРМ, кольца', stock: true },
-  { code: 'YD25-DDTi', maker: 'Nissan', vol: '2.5L Diesel', cars: 'Navara D40, Pathfinder R51, NP300', common: 'Поршни, ремкомплект ГБЦ, вкладыши', stock: true },
-  { code: 'M9R',   maker: 'Nissan', vol: '2.0L Diesel', cars: 'X-Trail T31, Qashqai, Espace', common: 'Поршни, ремкомплект, форсунки (под заказ)', stock: true },
-
-  // Subaru
-  { code: 'EJ20',  maker: 'Subaru', vol: '2.0L H4', cars: 'Impreza, Forester SF/SG, Legacy BE/BH', common: 'Вкладыши, кольца, прокладки ГБЦ', stock: true },
-  { code: 'EJ25',  maker: 'Subaru', vol: '2.5L H4', cars: 'Forester XT, Legacy GT, WRX, Outback', common: 'Поршни (трещины), вкладыши, прокладки', stock: true },
-  { code: 'FB20',  maker: 'Subaru', vol: '2.0L H4', cars: 'Forester SJ, Impreza GP, XV', common: 'Кольца, вкладыши', stock: true },
+  { code: 'TD27',    maker: 'Nissan', vol: '2.7L Diesel', cars: 'Terrano, Mistral, Datsun, Caravan, Patrol Y60', common: 'Поршни, ремкомплект ГБЦ, форсунки', stock: true },
+  { code: 'RD28',    maker: 'Nissan', vol: '2.8L Diesel R6', cars: 'Patrol Y60/Y61, Laurel, Skyline R32', common: 'Поршни, прокладки ГБЦ, вкладыши', stock: true },
 
   // Mitsubishi
-  { code: '4B11',  maker: 'Mitsubishi', vol: '2.0L', cars: 'Lancer X, Outlander XL, ASX', common: 'Цепь ГРМ, вкладыши, кольца', stock: true },
-  { code: '4B12',  maker: 'Mitsubishi', vol: '2.4L', cars: 'Outlander XL, Lancer X', common: 'Цепь ГРМ, вкладыши', stock: true },
-  { code: '4G63',  maker: 'Mitsubishi', vol: '2.0L Turbo', cars: 'Lancer Evo, Galant VR-4, Outlander', common: 'Кованые поршни, вкладыши усиленные', stock: true },
   { code: '6G72',  maker: 'Mitsubishi', vol: '3.0L V6', cars: 'Pajero, Montero Sport, Galant', common: 'Поршни, вкладыши, прокладки', stock: true },
+  { code: '4B12',  maker: 'Mitsubishi', vol: '2.4L', cars: 'Outlander XL, Lancer X', common: 'Цепь ГРМ, вкладыши', stock: true },
   { code: '4M40',  maker: 'Mitsubishi', vol: '2.8L Diesel', cars: 'Pajero II/III, Delica, Canter', common: 'Поршни, кольца, ремкомплект ГБЦ', stock: true },
-  { code: '4M41',  maker: 'Mitsubishi', vol: '3.2L Diesel', cars: 'Pajero III/IV, Pajero Sport', common: 'Поршни, вкладыши, ремкомплект', stock: true },
   { code: '4D56',  maker: 'Mitsubishi', vol: '2.5L Diesel', cars: 'Pajero Sport, L200, Delica, Galloper', common: 'Поршни, кольца, ГБЦ (под заказ)', stock: true },
-
-  // Hyundai / Kia
-  { code: 'G4KE',  maker: 'Hyundai/Kia', vol: '2.4L', cars: 'Sonata YF, Optima, Sorento R, Santa Fe', common: 'Поршни, вкладыши (задиры), цепь ГРМ', stock: true },
-  { code: 'G4KD',  maker: 'Hyundai/Kia', vol: '2.0L', cars: 'Sonata YF, Optima, Tucson, Sportage', common: 'Поршни, цепь ГРМ', stock: true },
-  { code: 'G4FC',  maker: 'Hyundai/Kia', vol: '1.6L', cars: 'Solaris, Rio, Cerato, Accent, i30', common: 'Кольца, вкладыши, прокладка ГБЦ', stock: true },
-  { code: 'G4FA',  maker: 'Hyundai/Kia', vol: '1.4L', cars: 'Solaris, Rio, Accent', common: 'Кольца, прокладки', stock: true },
-  { code: 'G6DB',  maker: 'Hyundai/Kia', vol: '3.3L V6', cars: 'Grandeur, Sonata, Sorento', common: 'Вкладыши, прокладки', stock: false },
-  { code: 'D4CB',  maker: 'Hyundai/Kia', vol: '2.5L Diesel', cars: 'Starex H1, Sorento, Bongo, Porter', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: true },
-  { code: 'D4HB',  maker: 'Hyundai/Kia', vol: '2.2L Diesel', cars: 'Santa Fe, Sorento R, Tucson', common: 'Поршни, ремкомплект ГБЦ', stock: true },
-  { code: 'D4EA',  maker: 'Hyundai/Kia', vol: '2.0L Diesel', cars: 'Tucson, Sportage, Trajet', common: 'Поршни, прокладки', stock: true },
-
-  // Mazda
-  { code: 'L3',    maker: 'Mazda',  vol: '2.3L', cars: 'Mazda 6 GG/GH, CX-7, MPV', common: 'Цепь ГРМ, вкладыши, кольца', stock: true },
-  { code: 'LF',    maker: 'Mazda',  vol: '2.0L', cars: 'Mazda 3 BK/BL, Mazda 6, Premacy', common: 'Кольца, вкладыши', stock: true },
 ];
 
 const MAKERS = [
-  { name: 'Toyota',     logo: 'assets/brands/toyota.png',     codes: ['2AZ-FE', '1ZZ-FE', '1MZ-FE', '2GR-FE', '1GR-FE', '2UZ-FE', '1JZ', '2JZ', '1KZ-TE', '1KD-FTV', '4M40'] },
-  { name: 'Honda',      logo: 'assets/brands/honda.png',      codes: ['K24', 'K20', 'R20A', 'J35', 'L15'] },
-  { name: 'Nissan',     logo: 'assets/brands/nissan.png',     codes: ['VQ35-DE', 'QR25-DE', 'MR20-DE', 'YD25-DDTi', 'M9R'] },
-  { name: 'Subaru',     logo: 'assets/brands/subaru.png',     codes: ['EJ20', 'EJ25', 'FB20'] },
-  { name: 'Mazda',      logo: 'assets/brands/mazda.png',      codes: ['LF', 'L3'] },
-  { name: 'Mitsubishi', logo: 'assets/brands/mitsubishi.png', codes: ['4B11', '4B12', '4G63', '6G72', '4M40', '4M41', '4D56'] },
-  { name: 'Suzuki',     logo: 'assets/brands/suzuki.png',     codes: ['Под заказ'] },
-  { name: 'Hyundai',    logo: 'assets/brands/hyundai.png',    codes: ['G4KE', 'G4KD', 'G4FC', 'G4FA', 'D4CB', 'D4HB', 'D4EA'] },
-  { name: 'Kia',        logo: 'assets/brands/kia.png',        codes: ['G4KE', 'G4FC', 'D4CB', 'D4HB'] },
+  { name: 'Toyota',     logo: 'assets/brands/toyota.png',     codes: ['2AZ-FE', '1MZ-FE', '2GR-FE', '1GR-FE', '1KZ-TE', '1KD-FTV', '1HD-FTE'] },
+  { name: 'Nissan',     logo: 'assets/brands/nissan.png',     codes: ['VQ35-DE', 'VQ40-DE', 'QR25-DE', 'TD27', 'RD28'] },
+  { name: 'Mitsubishi', logo: 'assets/brands/mitsubishi.png', codes: ['6G72', '4B12', '4M40', '4D56'] },
 ];
 
 const PART_TYPES = [
@@ -252,7 +209,7 @@ const FAQ = [
   { q: 'Сколько идёт доставка по Алматы и по Казахстану?',
     a: 'По Алматы — курьером в течение 2 часов с момента подтверждения заказа. По регионам РК — Казпочта, СДЭК, Pony Express или автобусом-попуткой (для крупных городов): 1–3 дня. Астана, Шымкент, Караганда, Тараз, Актобе, Усть-Каменогорск, Атырау, Актау, Павлодар, Костанай, Кызылорда — отправка ежедневно.' },
   { q: 'Какие способы оплаты вы принимаете?',
-    a: 'Kaspi (перевод по номеру, Kaspi QR, Kaspi Red в рассрочку 0–0–12 для физлиц), Halyk Bank, Forte, безналичный расчёт для юр.лиц с НДС, наличными в Алматы при получении. Постоянным СТО — отсрочка платежа.' },
+    a: 'Kaspi (перевод по номеру, Kaspi QR, Kaspi Red в рассрочку 0–0–12 для физлиц), Halyk Bank, безналичный расчёт для юр.лиц с НДС, наличными в Алматы при получении. Постоянным СТО — отсрочка платежа.' },
   { q: 'Есть ли рассрочка Kaspi Red?',
     a: 'Да, на заказы от 30 000 ₸ — Kaspi Red на 3, 6 или 12 месяцев без переплаты. Оформление за 5 минут по номеру телефона. Ремкомплекты ГБЦ и поршневые комплекты часто берут именно так.' },
   { q: 'Можно ли подобрать запчасти, если я не знаю код двигателя?',
@@ -497,8 +454,8 @@ const C = {
   steelHi:  '#A89F97',
   body:     '#3A302B',
   bodyDk:   '#241F1B',
-  ember:    '#FF6B1A',
-  emberDim: '#B83F00',
+  ember:    '#2563EB',
+  emberDim: '#1E40AF',
   forge:    '#E63946',
   bone:     '#F5F1ED',
   ink:      '#0B0908',
@@ -622,8 +579,8 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
           <stop offset="1" stopColor="#A89F97"/>
         </linearGradient>
         <radialGradient id="emberGlow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#FF6B1A" stopOpacity="0.6"/>
-          <stop offset="1" stopColor="#FF6B1A" stopOpacity="0"/>
+          <stop offset="0" stopColor="#2563EB" stopOpacity="0.6"/>
+          <stop offset="1" stopColor="#2563EB" stopOpacity="0"/>
         </radialGradient>
         <filter id="hotGlow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="3" result="b"/>
@@ -1330,48 +1287,39 @@ function TrustStrip() {
 // Engines grid
 // ─────────────────────────────────────────────────────────────────────────────
 function EnginesGrid() {
-  const [filter, setFilter] = useStateS('all');
-  const filtered = ENGINES.filter(e => {
-    if (filter === 'all') return true;
-    if (filter === 'jap') return ['Toyota','Honda','Nissan','Subaru','Mazda','Mitsubishi'].includes(e.maker);
-    if (filter === 'kor') return e.maker.includes('Hyundai');
-    if (filter === 'stock') return e.stock;
-    return true;
-  });
+  // Группируем двигатели по марке — компактные плитки внутри секций по каждому бренду.
+  const grouped = MAKERS
+    .map(m => ({ maker: m, engines: ENGINES.filter(e => e.maker === m.name) }))
+    .filter(g => g.engines.length > 0);
 
   return (
-    <section id="engines" className="py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
-        <div>
-          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">02 / КАТАЛОГ</div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
-            Каталог по двигателям. <span className="text-bone-500">Не по типам деталей.</span>
-          </h2>
-          <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
-            Мастер мыслит кодом ДВС, а не названием детали. Выбираете двигатель — видите всё, что под него лежит на складе.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {[
-            {id:'all',   label:'Все'},
-            {id:'jap',   label:'Япония'},
-            {id:'kor',   label:'Корея'},
-            {id:'stock', label:'В наличии'},
-          ].map(f => (
-            <button key={f.id} onClick={() => setFilter(f.id)}
-              className={`px-4 py-2 font-mono text-sm border transition ${
-                filter === f.id
-                  ? 'bg-ember-500 text-ink-900 border-ember-500'
-                  : 'border-ink-600 text-bone-300 hover:border-ember-500'
-              }`}>
-              {f.label}
-            </button>
-          ))}
-        </div>
+    <section id="engines" className="py-14 md:py-24 px-4 md:px-10 max-w-[1440px] mx-auto">
+      <div className="mb-8 md:mb-10">
+        <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">02 / КАТАЛОГ</div>
+        <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
+          Каталог по двигателям. <span className="text-bone-500">Не по типам деталей.</span>
+        </h2>
+        <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
+          Мастер мыслит кодом ДВС, а не названием детали. Выбираете двигатель — видите всё, что под него лежит на складе.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-ink-600">
-        {filtered.map(e => <EngineCard key={e.code} engine={e}/>)}
+      <div className="space-y-8 md:space-y-10">
+        {grouped.map(({ maker, engines }) => (
+          <div key={maker.name}>
+            <div className="flex items-center gap-3 md:gap-4 mb-4 pb-3 border-b border-ink-600">
+              <img src={maker.logo} alt={maker.name}
+                className="w-10 h-10 md:w-12 md:h-12 object-contain bg-bone-50 rounded p-1.5 flex-shrink-0"/>
+              <div className="font-display font-semibold text-xl md:text-2xl">{maker.name}</div>
+              <div className="font-mono text-[10px] md:text-xs text-bone-500 tracking-widest">
+                {engines.length} {engines.length === 1 ? 'мотор' : engines.length < 5 ? 'мотора' : 'моторов'}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-ink-600">
+              {engines.map(e => <EngineCard key={e.code} engine={e}/>)}
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -1379,34 +1327,21 @@ function EnginesGrid() {
 
 function EngineCard({ engine }) {
   return (
-    <div className="bg-ink-850 hover:bg-ink-800 p-6 md:p-7 transition group cursor-pointer relative">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="font-mono text-[10px] text-bone-500 tracking-widest mb-1.5">{engine.maker.toUpperCase()} · {engine.vol}</div>
-          <div className="font-display font-bold text-3xl md:text-4xl tracking-tight group-hover:text-ember-500 transition">
-            {engine.code}
-          </div>
+    <div className="bg-ink-850 hover:bg-ink-800 p-4 md:p-5 transition group cursor-pointer relative">
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="font-display font-bold text-xl md:text-2xl tracking-tight group-hover:text-ember-500 transition whitespace-nowrap">
+          {engine.code}
         </div>
-        <div className={`flex items-center gap-1.5 px-2 py-1 font-mono text-[10px] tracking-wider ${
+        <div className={`flex-shrink-0 flex items-center gap-1 px-1.5 py-0.5 font-mono text-[9px] tracking-wider ${
           engine.stock ? 'bg-ember-500/10 text-ember-500 border border-ember-500/40'
                       : 'bg-ink-700 text-bone-500 border border-ink-600'
         }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${engine.stock ? 'bg-ember-500' : 'bg-bone-500'}`}/>
-          {engine.stock ? 'В НАЛИЧИИ' : 'ПОД ЗАКАЗ'}
+          <span className={`w-1 h-1 rounded-full ${engine.stock ? 'bg-ember-500' : 'bg-bone-500'}`}/>
+          {engine.stock ? 'НАЛИЧ.' : 'ЗАКАЗ'}
         </div>
       </div>
-      <div className="text-sm text-bone-300 leading-relaxed mb-1">
-        <span className="text-bone-500">Авто: </span>{engine.cars}
-      </div>
-      <div className="text-sm text-bone-300 leading-relaxed mb-5">
-        <span className="text-bone-500">Меняют: </span>{engine.common}
-      </div>
-      <div className="flex items-center justify-between pt-4 border-t border-ink-600">
-        <span className="font-mono text-xs text-bone-500 group-hover:text-ember-500 transition">ЧТО ЕСТЬ В НАЛИЧИИ</span>
-        <IconArrowRight size={16} className="text-bone-500 group-hover:text-ember-500 group-hover:translate-x-1 transition"/>
-      </div>
-      {/* corner marker */}
-      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-ember-500 opacity-0 group-hover:opacity-100 transition"/>
+      <div className="font-mono text-[10px] text-bone-500 tracking-wider mb-2">{engine.vol}</div>
+      <div className="text-xs text-bone-300 leading-snug line-clamp-2">{engine.cars}</div>
     </div>
   );
 }
@@ -1415,64 +1350,37 @@ function EngineCard({ engine }) {
 // Brands strip
 // ─────────────────────────────────────────────────────────────────────────────
 function BrandsSection() {
-  const [active, setActive] = useStateS(BRANDS[0]);
+  // Slug → файл логотипа в assets/parts-brands/. Файлы пользователь добавит позже,
+  // сейчас рендерим имя бренда как fallback (надёжно через onError на img).
+  const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   return (
-    <section id="brands" className="py-14 md:py-28 bg-ink-850 border-y border-ink-600">
+    <section id="brands" className="py-14 md:py-20 bg-ink-850 border-y border-ink-600">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="mb-8 md:mb-10">
+        <div className="mb-6 md:mb-8">
           <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">03 / БРЕНДЫ</div>
           <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-3xl">
-            Только то, чем комплектуют конвейер.
+            Бренды запчастей
           </h2>
-          <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
-            Никаких безымянных коробок из-под станка. OEM-поставщики и проверенные альтернативы — всё.
-          </p>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-ink-600">
-          {/* left: brand list */}
-          <div className="lg:col-span-1 bg-ink-850 divide-y divide-ink-600">
-            {BRANDS.map(b => (
-              <button key={b.name} onClick={() => setActive(b)}
-                className={`w-full text-left px-6 py-4 flex items-center justify-between transition ${
-                  active.name === b.name ? 'bg-ink-700 border-l-2 border-ember-500' : 'border-l-2 border-transparent hover:bg-ink-800'
-                }`}>
-                <div>
-                  <div className="font-display font-semibold text-lg tracking-tight">{b.name}</div>
-                  <div className="font-mono text-[10px] text-bone-500 tracking-wider mt-0.5">{b.country.toUpperCase()}</div>
-                </div>
-                <IconChevronRight size={16} className={active.name === b.name ? 'text-ember-500' : 'text-bone-500'}/>
-              </button>
-            ))}
-          </div>
-
-          {/* right: detail */}
-          <div className="lg:col-span-2 bg-ink-900 p-6 md:p-12 relative overflow-hidden">
-            {/* huge wordmark */}
-            <div className="absolute -bottom-4 md:-bottom-8 -right-2 md:-right-4 font-display font-bold text-[110px] sm:text-[160px] md:text-[260px] leading-none text-ink-700 select-none pointer-events-none whitespace-nowrap">
-              {active.name.toLowerCase()}
+      {/* Карусель: горизонтальный скролл, плитки одинакового размера */}
+      <div className="overflow-x-auto thin-scroll">
+        <div className="flex gap-3 md:gap-5 px-4 md:px-10 pb-3 max-w-[1440px] mx-auto" style={{ minWidth: 'max-content' }}>
+          {BRANDS.map(b => (
+            <div key={b.name}
+              className="flex-shrink-0 w-32 h-20 md:w-44 md:h-28 bg-bone-50 border border-ink-600 flex items-center justify-center px-3 transition hover:border-ember-500">
+              <img
+                src={`assets/parts-brands/${slug(b.name)}.png`}
+                alt={b.name}
+                className="max-w-full max-h-full object-contain"
+                onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'block'; }}
+              />
+              <span className="hidden font-display font-bold text-lg md:text-2xl text-ink-900 text-center">
+                {b.name}
+              </span>
             </div>
-            <div className="relative">
-              <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-2 md:mb-3">SUPPLIER · {active.country.toUpperCase()}</div>
-              <div className="font-display font-bold text-4xl sm:text-5xl md:text-7xl tracking-tight mb-4 md:mb-6">{active.name}</div>
-              <p className="text-bone-100 text-base md:text-xl leading-relaxed max-w-xl">{active.desc}</p>
-
-              <div className="mt-8 grid grid-cols-3 gap-4 max-w-md">
-                <div className="border-l border-ember-500 pl-3">
-                  <div className="font-mono text-[10px] text-bone-500">OEM</div>
-                  <div className="font-display font-semibold mt-1">Да</div>
-                </div>
-                <div className="border-l border-ink-600 pl-3">
-                  <div className="font-mono text-[10px] text-bone-500">ГАРАНТИЯ</div>
-                  <div className="font-display font-semibold mt-1">12 мес</div>
-                </div>
-                <div className="border-l border-ink-600 pl-3">
-                  <div className="font-mono text-[10px] text-bone-500">НА СКЛАДЕ</div>
-                  <div className="font-display font-semibold mt-1">∞</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1570,9 +1478,9 @@ function ArticleCard({ article, index }) {
     // Diagnosis: gauge
     <svg viewBox="0 0 200 120" className="w-full h-full">
       <path d="M 30 95 A 70 70 0 0 1 170 95" stroke="#3A302B" strokeWidth="2" fill="none"/>
-      <path d="M 30 95 A 70 70 0 0 1 130 30" stroke="#FF6B1A" strokeWidth="3" fill="none"/>
+      <path d="M 30 95 A 70 70 0 0 1 130 30" stroke="#2563EB" strokeWidth="3" fill="none"/>
       <line x1="100" y1="95" x2="140" y2="50" stroke="#F5F1ED" strokeWidth="2.5" strokeLinecap="round"/>
-      <circle cx="100" cy="95" r="5" fill="#FF6B1A"/>
+      <circle cx="100" cy="95" r="5" fill="#2563EB"/>
       {[0,1,2,3,4,5,6,7,8].map(i => {
         const a = -180 + i*22.5;
         const r = a*Math.PI/180;
@@ -1584,9 +1492,9 @@ function ArticleCard({ article, index }) {
     <svg viewBox="0 0 200 120" className="w-full h-full">
       {['STD','0.25','0.50','0.75'].map((s, i) => (
         <g key={i} transform={`translate(${30 + i*45}, 30)`}>
-          <circle r="20" fill="none" stroke={i===1 ? '#FF6B1A' : '#3A302B'} strokeWidth="2"/>
-          <circle r={16 - i*1.5} fill="none" stroke={i===1 ? '#FF6B1A' : '#5A5249'} strokeWidth="1"/>
-          <text y="42" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="10" fill={i===1 ? '#FF6B1A' : '#8A807A'}>{s}</text>
+          <circle r="20" fill="none" stroke={i===1 ? '#2563EB' : '#3A302B'} strokeWidth="2"/>
+          <circle r={16 - i*1.5} fill="none" stroke={i===1 ? '#2563EB' : '#5A5249'} strokeWidth="1"/>
+          <text y="42" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="10" fill={i===1 ? '#2563EB' : '#8A807A'}>{s}</text>
         </g>
       ))}
       <line x1="20" y1="80" x2="180" y2="80" stroke="#3A302B" strokeWidth="1"/>
@@ -1594,7 +1502,7 @@ function ArticleCard({ article, index }) {
     </svg>,
     // Brand comparison: bars
     <svg viewBox="0 0 200 120" className="w-full h-full">
-      {[{l:'Teikin', v:95, c:'#FF6B1A'},{l:'OEM', v:88, c:'#A89F97'},{l:'Anlg.', v:62, c:'#5A5249'}].map((b, i) => (
+      {[{l:'Teikin', v:95, c:'#2563EB'},{l:'OEM', v:88, c:'#A89F97'},{l:'Anlg.', v:62, c:'#5A5249'}].map((b, i) => (
         <g key={i} transform={`translate(${30 + i*55}, 0)`}>
           <rect x="0" y={100 - b.v} width="32" height={b.v} fill={b.c}/>
           <text x="16" y="115" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="9" fill="#8A807A">{b.l}</text>
@@ -1605,8 +1513,8 @@ function ArticleCard({ article, index }) {
     <svg viewBox="0 0 200 120" className="w-full h-full">
       {['Прокладка ГБЦ','Сальники','Маслосъёмные','Болты ГБЦ','Прокладка клапанной'].map((t, i) => (
         <g key={i} transform={`translate(20, ${15 + i*18})`}>
-          <rect width="10" height="10" fill="none" stroke={i<3 ? '#FF6B1A' : '#5A5249'} strokeWidth="1.5"/>
-          {i<3 && <path d="M 2 5 L 4 8 L 9 2" stroke="#FF6B1A" strokeWidth="1.5" fill="none"/>}
+          <rect width="10" height="10" fill="none" stroke={i<3 ? '#2563EB' : '#5A5249'} strokeWidth="1.5"/>
+          {i<3 && <path d="M 2 5 L 4 8 L 9 2" stroke="#2563EB" strokeWidth="1.5" fill="none"/>}
           <text x="18" y="9" fontFamily="JetBrains Mono" fontSize="9" fill={i<3 ? '#F5F1ED' : '#5A5249'}>{t}</text>
         </g>
       ))}
@@ -1662,7 +1570,7 @@ function BrandMark({ size = 40, compact = false }) {
         src="assets/logo.png"
         alt="MY AVTO"
         style={{ height: size, width: 'auto' }}
-        className="object-contain drop-shadow-[0_0_12px_rgba(255,107,26,0.25)]"
+        className="object-contain drop-shadow-[0_0_12px_rgba(37,99,235,0.25)]"
       />
       {!compact && (
         <div className="hidden sm:block leading-none">
@@ -1802,7 +1710,7 @@ function Footer() {
               <div>{CONTACTS.legalName}</div>
               {CONTACTS.bin && <div>{CONTACTS.bin}</div>}
               <div>Менеджер: {CONTACTS.manager}</div>
-              <div>Оплата: Kaspi, Halyk, Forte</div>
+              <div>Оплата: Kaspi, Halyk</div>
               <div>Расчёт с НДС, ЭСФ</div>
               <div className="pt-2"><a href="#" className="hover:text-ember-500 transition">Договор оферты →</a></div>
               <div><a href="#" className="hover:text-ember-500 transition">Политика обработки ПДН →</a></div>
@@ -1916,7 +1824,7 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
     <section className="relative overflow-hidden grain">
       {/* ambient ember glow */}
       <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-25 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #FF6B1A 0%, transparent 60%)' }}/>
+        style={{ background: 'radial-gradient(circle, #2563EB 0%, transparent 60%)' }}/>
       <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full opacity-20 pointer-events-none"
         style={{ background: 'radial-gradient(circle, #E63946 0%, transparent 60%)' }}/>
 
@@ -2024,7 +1932,7 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
             {/* prado photo header */}
             <div className="relative mb-4 bg-gradient-to-br from-ink-850 to-ink-900 border border-ink-600 overflow-hidden">
               <div className="absolute inset-0 opacity-20"
-                style={{ background: 'radial-gradient(circle at 70% 50%, #FF6B1A 0%, transparent 60%)' }}/>
+                style={{ background: 'radial-gradient(circle at 70% 50%, #2563EB 0%, transparent 60%)' }}/>
               <div className="relative flex items-center gap-3 p-3">
                 <img src="assets/photos/prado.png" alt="Toyota Land Cruiser Prado" className="h-14 md:h-20 object-contain flex-shrink-0"/>
                 <div className="flex-1 min-w-0">
