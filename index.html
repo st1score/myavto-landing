@@ -192,6 +192,8 @@ const BRANDS = [
   { name: 'Riken' },
   { name: 'IZUMI' },
   { name: 'Taiho' },
+  { name: 'NDC' },
+  { name: 'ND' },
   { name: 'NM' },
   { name: 'TP' },
   { name: 'NPW' },
@@ -1499,8 +1501,14 @@ function EnginesGrid() {
                 {engines.length} {engines.length === 1 ? 'мотор' : engines.length < 5 ? 'мотора' : 'моторов'}
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-ink-600">
-              {engines.map(e => <EngineCard key={e.code} engine={e}/>)}
+            <div className="overflow-x-auto thin-scroll -mx-4 md:mx-0">
+              <div className="flex gap-3 px-4 md:px-0 pb-2" style={{ minWidth: 'max-content' }}>
+                {engines.map(e => (
+                  <div key={e.code} className="w-[240px] md:w-[260px] flex-shrink-0">
+                    <EngineCard engine={e}/>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -1511,7 +1519,7 @@ function EnginesGrid() {
 
 function EngineCard({ engine }) {
   return (
-    <div className="bg-ink-850 hover:bg-ink-800 p-4 md:p-5 transition group cursor-pointer relative">
+    <div className="bg-ink-850 hover:bg-ink-800 hover:border-ember-500 border border-ink-600 p-4 md:p-5 transition group cursor-pointer relative h-full">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="font-display font-bold text-xl md:text-2xl tracking-tight group-hover:text-ember-500 transition whitespace-nowrap">
           {engine.code}
@@ -1993,11 +2001,37 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
               </a>
             </div>
 
-            {/* compact contact line */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-bone-300 max-w-xl">
-              <a href={`tel:${CONTACTS.phoneE164}`} className="font-mono text-bone-100 hover:text-ember-500 transition">{CONTACTS.phoneDisplay}</a>
-              <span className="flex items-center gap-1.5"><IconMapPin size={14} className="text-ember-500"/>{CONTACTS.addressShort}</span>
-              <span className="flex items-center gap-1.5"><IconClock size={14} className="text-ember-500"/>{CONTACTS.hours}</span>
+            {/* contact card — выделенная табличка */}
+            <div className="max-w-xl border border-ink-600 bg-ink-850 divide-y divide-ink-600">
+              <a href={`tel:${CONTACTS.phoneE164}`}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-ink-800 transition group">
+                <div className="w-9 h-9 flex items-center justify-center bg-ember-500/10 border border-ember-500/40 text-ember-500 flex-shrink-0">
+                  <IconPhone size={16}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] uppercase tracking-wider text-bone-500">Телефон</div>
+                  <div className="font-mono text-base text-bone-100 group-hover:text-ember-500 transition">{CONTACTS.phoneDisplay}</div>
+                </div>
+              </a>
+              <a href="https://2gis.kz/almaty/search/CarCity" target="_blank" rel="noopener"
+                className="flex items-center gap-3 px-4 py-3 hover:bg-ink-800 transition">
+                <div className="w-9 h-9 flex items-center justify-center bg-ember-500/10 border border-ember-500/40 text-ember-500 flex-shrink-0">
+                  <IconMapPin size={16}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] uppercase tracking-wider text-bone-500">Адрес</div>
+                  <div className="text-base text-bone-100">{CONTACTS.address}</div>
+                </div>
+              </a>
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div className="w-9 h-9 flex items-center justify-center bg-ember-500/10 border border-ember-500/40 text-ember-500 flex-shrink-0">
+                  <IconClock size={16}/>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] uppercase tracking-wider text-bone-500">Режим работы</div>
+                  <div className="text-base text-bone-100">{CONTACTS.hours}</div>
+                </div>
+              </div>
             </div>
           </div>
 
