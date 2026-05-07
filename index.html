@@ -135,27 +135,27 @@
 
 const ENGINES = [
   // Toyota — бензин
-  { code: '2AZ-FE', maker: 'Toyota', vol: '2.4L', cars: 'Camry, RAV4, Highlander, Estima, Alphard', common: 'Поршни, кольца, вкладыши, цепь ГРМ', stock: true },
-  { code: '1MZ-FE', maker: 'Toyota', vol: '3.0L V6', cars: 'Camry, Harrier, Highlander, ES300', common: 'Вкладыши, кольца, прокладки ГБЦ', stock: true },
-  { code: '2GR-FE', maker: 'Toyota', vol: '3.5L V6', cars: 'Camry V6, RAV4, Highlander, Lexus RX350', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
-  { code: '1GR-FE', maker: 'Toyota', vol: '4.0L V6', cars: 'Land Cruiser Prado 120/150, Hilux, FJ Cruiser', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: true },
+  { code: '2AZ-FE', maker: 'Toyota', vol: '2.4L', cars: 'Camry, RAV4, Highlander, Estima, Alphard', common: 'поршни · кольца · вкладыши', stock: true },
+  { code: '1MZ-FE', maker: 'Toyota', vol: '3.0L V6', cars: 'Camry, Harrier, Highlander, ES300', common: 'вкладыши · прокладка ГБЦ', stock: true },
+  { code: '2GR-FE', maker: 'Toyota', vol: '3.5L V6', cars: 'Camry V6, RAV4, Highlander, Lexus RX350', common: 'вкладыши · цепь ГРМ', stock: true },
+  { code: '1GR-FE', maker: 'Toyota', vol: '4.0L V6', cars: 'Land Cruiser Prado 120/150, Hilux, FJ Cruiser', common: 'поршни · вкладыши · ремкомплект', stock: true },
   // Toyota — дизель
-  { code: '1KZ-TE', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Hilux Surf, Prado 90/95, Land Cruiser 70', common: 'Поршни, кольца, прокладка ГБЦ, вкладыши', stock: true },
-  { code: '1KD-FTV', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Land Cruiser Prado 120/150, Hilux, Fortuner', common: 'Поршни, ремкомплект, форсунки (под заказ)', stock: true },
-  { code: '1HD-FTE', maker: 'Toyota', vol: '4.2L Diesel', cars: 'Land Cruiser 100, 105', common: 'Поршни, вкладыши, ремкомплект ГБЦ', stock: true },
+  { code: '1KZ-TE', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Hilux Surf, Prado 90/95, Land Cruiser 70', common: 'поршни · кольца · вкладыши', stock: true },
+  { code: '1KD-FTV', maker: 'Toyota', vol: '3.0L Diesel', cars: 'Land Cruiser Prado 120/150, Hilux, Fortuner', common: 'поршни · ремкомплект ГБЦ', stock: true },
+  { code: '1HD-FTE', maker: 'Toyota', vol: '4.2L Diesel', cars: 'Land Cruiser 100, 105', common: 'поршни · вкладыши', stock: true },
 
   // Nissan
-  { code: 'VQ35-DE', maker: 'Nissan', vol: '3.5L V6', cars: 'Murano, Teana J32, 350Z, Pathfinder', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
-  { code: 'VQ40-DE', maker: 'Nissan', vol: '4.0L V6', cars: 'Pathfinder R51, Navara D40, Frontier, Xterra', common: 'Вкладыши, цепь ГРМ, прокладки ГБЦ', stock: true },
-  { code: 'QR25-DE', maker: 'Nissan', vol: '2.5L', cars: 'X-Trail T31, Teana, Altima, Rogue', common: 'Цепь ГРМ, вкладыши, кольца', stock: true },
-  { code: 'TD27',    maker: 'Nissan', vol: '2.7L Diesel', cars: 'Terrano, Mistral, Datsun, Caravan, Patrol Y60', common: 'Поршни, ремкомплект ГБЦ, форсунки', stock: true },
-  { code: 'RD28',    maker: 'Nissan', vol: '2.8L Diesel R6', cars: 'Patrol Y60/Y61, Laurel, Skyline R32', common: 'Поршни, прокладки ГБЦ, вкладыши', stock: true },
+  { code: 'VQ35-DE', maker: 'Nissan', vol: '3.5L V6', cars: 'Murano, Teana J32, 350Z, Pathfinder', common: 'вкладыши · цепь ГРМ', stock: true },
+  { code: 'VQ40-DE', maker: 'Nissan', vol: '4.0L V6', cars: 'Pathfinder R51, Navara D40, Frontier, Xterra', common: 'вкладыши · цепь ГРМ', stock: true },
+  { code: 'QR25-DE', maker: 'Nissan', vol: '2.5L', cars: 'X-Trail T31, Teana, Altima, Rogue', common: 'цепь ГРМ · вкладыши', stock: true },
+  { code: 'TD27',    maker: 'Nissan', vol: '2.7L Diesel', cars: 'Terrano, Mistral, Datsun, Caravan, Patrol Y60', common: 'поршни · ремкомплект ГБЦ', stock: true },
+  { code: 'RD28',    maker: 'Nissan', vol: '2.8L Diesel R6', cars: 'Patrol Y60/Y61, Laurel, Skyline R32', common: 'поршни · вкладыши', stock: true },
 
   // Mitsubishi
-  { code: '6G72',  maker: 'Mitsubishi', vol: '3.0L V6', cars: 'Pajero, Montero Sport, Galant', common: 'Поршни, вкладыши, прокладки', stock: true },
-  { code: '4B12',  maker: 'Mitsubishi', vol: '2.4L', cars: 'Outlander XL, Lancer X', common: 'Цепь ГРМ, вкладыши', stock: true },
-  { code: '4M40',  maker: 'Mitsubishi', vol: '2.8L Diesel', cars: 'Pajero II/III, Delica, Canter', common: 'Поршни, кольца, ремкомплект ГБЦ', stock: true },
-  { code: '4D56',  maker: 'Mitsubishi', vol: '2.5L Diesel', cars: 'Pajero Sport, L200, Delica, Galloper', common: 'Поршни, кольца, ГБЦ (под заказ)', stock: true },
+  { code: '6G72',  maker: 'Mitsubishi', vol: '3.0L V6', cars: 'Pajero, Montero Sport, Galant', common: 'поршни · вкладыши', stock: true },
+  { code: '4B12',  maker: 'Mitsubishi', vol: '2.4L', cars: 'Outlander XL, Lancer X', common: 'цепь ГРМ · вкладыши', stock: true },
+  { code: '4M40',  maker: 'Mitsubishi', vol: '2.8L Diesel', cars: 'Pajero II/III, Delica, Canter', common: 'поршни · ремкомплект ГБЦ', stock: true },
+  { code: '4D56',  maker: 'Mitsubishi', vol: '2.5L Diesel', cars: 'Pajero Sport, L200, Delica, Galloper', common: 'поршни · кольца', stock: true },
 ];
 
 // Все марки доступны в форме подбора. Раздел «Каталог» дополнительно
@@ -187,24 +187,16 @@ const PART_TYPES = [
 const SIZES = ['STD', '0.25', '0.50', '0.75', 'не знаю'];
 
 const BRANDS = [
-  { name: 'Teikin', country: 'Япония', specialty: 'Поршневые комплекты',
-    desc: 'Поршневые комплекты OEM-уровня. Конвейерный поставщик Toyota, Honda, Mitsubishi. Поршень + кольца + палец + стопоры в одной упаковке.' },
-  { name: 'NPR',    country: 'Япония', specialty: 'Поршневые кольца',
-    desc: 'Поршневые кольца №1 в мире. Заводская комплектация на большинстве японских ДВС. Хром-молибденовое и PVD покрытие.' },
-  { name: 'Riken',  country: 'Япония', specialty: 'Поршневые кольца',
-    desc: 'Прямой конкурент NPR. Оригинальный поставщик Honda, Subaru, Suzuki. Часто идут на конвейер вместо NPR.' },
-  { name: 'IZUMI',  country: 'Япония', specialty: 'Поршневые кольца',
-    desc: 'Поршневые кольца для японских и корейских ДВС. Известны как поставщик на дизели Mitsubishi и Hyundai.' },
-  { name: 'Taiho',  country: 'Япония', specialty: 'Вкладыши',
-    desc: 'Вкладыши коренные и шатунные. Конвейерный поставщик Toyota, Mitsubishi. Триметаллические — для турбомоторов и дизелей.' },
-  { name: 'NDC',    country: 'Япония', specialty: 'Вкладыши',
-    desc: 'Биметаллические и триметаллические вкладыши. Прямая альтернатива Taiho по тем же ремонтным размерам.' },
-  { name: 'ND',     country: 'Япония', specialty: 'Вкладыши, втулки',
-    desc: 'Nippon Dia Metal — вкладыши, втулки, упорные полукольца. Конвейерные поставки для Nissan и Subaru.' },
-  { name: 'NM',     country: 'Япония', specialty: 'Вкладыши',
-    desc: 'Вкладыши под японские и корейские ДВС. Доступная альтернатива Taiho/NDC при том же качестве.' },
-  { name: 'NOK',    country: 'Япония', specialty: 'Сальники, колпачки',
-    desc: 'Сальники коленвала, маслосъёмные колпачки, прокладки клапанной крышки. Заводской стандарт для Toyota, Honda, Nissan.' },
+  { name: 'Teikin' },
+  { name: 'NPR' },
+  { name: 'Riken' },
+  { name: 'IZUMI' },
+  { name: 'Taiho' },
+  { name: 'NM' },
+  { name: 'TP' },
+  { name: 'NPW' },
+  { name: 'GMB' },
+  { name: 'Rocky' },
 ];
 
 const ARTICLES = [
@@ -1492,7 +1484,7 @@ function EnginesGrid() {
     <section id="engines" className="py-14 md:py-24 px-4 md:px-10 max-w-[1440px] mx-auto">
       <div className="mb-8 md:mb-10 text-center">
         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight">
-          Двигатели в наличии
+          Запчасти на эти двигатели в наличии
         </h2>
       </div>
 
@@ -1533,7 +1525,8 @@ function EngineCard({ engine }) {
         </div>
       </div>
       <div className="font-mono text-[10px] text-bone-500 tracking-wider mb-2">{engine.vol}</div>
-      <div className="text-xs text-bone-300 leading-snug line-clamp-2">{engine.cars}</div>
+      <div className="text-sm text-bone-100 leading-snug mb-2 line-clamp-2">{engine.cars}</div>
+      <div className="text-[11px] text-bone-500 leading-snug">{engine.common}</div>
     </div>
   );
 }
