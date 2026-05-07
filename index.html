@@ -158,10 +158,19 @@ const ENGINES = [
   { code: '4D56',  maker: 'Mitsubishi', vol: '2.5L Diesel', cars: 'Pajero Sport, L200, Delica, Galloper', common: 'Поршни, кольца, ГБЦ (под заказ)', stock: true },
 ];
 
+// Все марки доступны в форме подбора. Раздел «Каталог» дополнительно
+// фильтруется по тому, какие двигатели есть в ENGINES — пустые группы
+// автоматически скрываются.
 const MAKERS = [
   { name: 'Toyota',     logo: 'assets/brands/toyota.png',     codes: ['2AZ-FE', '1MZ-FE', '2GR-FE', '1GR-FE', '1KZ-TE', '1KD-FTV', '1HD-FTE'] },
+  { name: 'Honda',      logo: 'assets/brands/honda.png',      codes: ['K24', 'K20', 'R20A', 'J35', 'L15'] },
   { name: 'Nissan',     logo: 'assets/brands/nissan.png',     codes: ['VQ35-DE', 'VQ40-DE', 'QR25-DE', 'TD27', 'RD28'] },
+  { name: 'Subaru',     logo: 'assets/brands/subaru.png',     codes: ['EJ20', 'EJ25', 'FB20'] },
+  { name: 'Mazda',      logo: 'assets/brands/mazda.png',      codes: ['LF', 'L3'] },
   { name: 'Mitsubishi', logo: 'assets/brands/mitsubishi.png', codes: ['6G72', '4B12', '4M40', '4D56'] },
+  { name: 'Suzuki',     logo: 'assets/brands/suzuki.png',     codes: ['Под заказ'] },
+  { name: 'Hyundai',    logo: 'assets/brands/hyundai.png',    codes: ['G4KE', 'G4KD', 'G4FC', 'G4FA', 'D4CB', 'D4HB', 'D4EA'] },
+  { name: 'Kia',        logo: 'assets/brands/kia.png',        codes: ['G4KE', 'G4FC', 'D4CB', 'D4HB'] },
 ];
 
 const PART_TYPES = [
@@ -541,8 +550,28 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
   // animation timing
   const T = (delay, dur=0.6) => ({ duration: dur, delay, ease: [0.22, 1, 0.36, 1] });
 
-  // The piston is centered around x=200, drawn in cross-section.
-  // Coordinate system 0..420 wide, 0..560 tall. Piston body sits roughly y=80..280.
+  // 4-stroke cycle state
+  const [running, setRunning] = React.useState(false);
+  const [phase, setPhase] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setPhase(p => (p + 1) % 4), 1100);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const PHASES = [
+    { id: 'intake',      ru: 'ВПУСК',   dir: '▼' },
+    { id: 'compression', ru: 'СЖАТИЕ',  dir: '▲' },
+    { id: 'power',       ru: 'РАБОЧИЙ', dir: '▼' },
+    { id: 'exhaust',     ru: 'ВЫПУСК',  dir: '▲' },
+  ];
+  const intakeOpen  = running && phase === 0;
+  const exhaustOpen = running && phase === 3;
+  const combusting  = running && phase === 2;
+  const compressing = running && phase === 1;
+  // piston travel: TDC at y=0 (rest), BDC at y=22 (down)
+  const pistonY = !running ? 0 : (phase === 0 || phase === 2) ? 22 : 0;
 
   const isLit = (id) => activeId === id || hoverId === id;
   const dim   = (id) => activeId && activeId !== id ? 0.35 : 1;
@@ -582,6 +611,26 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
           <stop offset="0" stopColor="#2563EB" stopOpacity="0.6"/>
           <stop offset="1" stopColor="#2563EB" stopOpacity="0"/>
         </radialGradient>
+        <radialGradient id="combustionGlow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#FFE89C" stopOpacity="0.95"/>
+          <stop offset="0.45" stopColor="#FF7A1F" stopOpacity="0.65"/>
+          <stop offset="1" stopColor="#FF7A1F" stopOpacity="0"/>
+        </radialGradient>
+        <linearGradient id="valveGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#A89F97"/>
+          <stop offset="0.5" stopColor="#3A302B"/>
+          <stop offset="1" stopColor="#A89F97"/>
+        </linearGradient>
+        <linearGradient id="headGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#3A302B"/>
+          <stop offset="0.55" stopColor="#5A5249"/>
+          <stop offset="1" stopColor="#241F1B"/>
+        </linearGradient>
+        <linearGradient id="plugBody" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="#241F1B"/>
+          <stop offset="0.5" stopColor="#A89F97"/>
+          <stop offset="1" stopColor="#241F1B"/>
+        </linearGradient>
         <filter id="hotGlow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="3" result="b"/>
           <feMerge>
@@ -601,6 +650,106 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
 
       {/* center axis line */}
       <line x1="200" y1="20" x2="200" y2="580" stroke="#3A302B" strokeWidth="0.5" strokeDasharray="3 4"/>
+
+      {/* ============ CYLINDER HEAD + VALVES + SPARK PLUG ============ */}
+      <M.g initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={T(0.05, 0.7)}>
+        {/* head body */}
+        <path d="M 88 22 L 312 22 Q 320 22 320 30 L 320 60 Q 320 68 312 68 L 88 68 Q 80 68 80 60 L 80 30 Q 80 22 88 22 Z"
+          fill="url(#headGrad)" stroke="#1F1A17" strokeWidth="1"/>
+        {/* coolant passages */}
+        {[110, 142, 178, 222, 258, 290].map(x => (
+          <circle key={x} cx={x} cy={36} r="3.2" fill="#0B0908" stroke="#3A302B" strokeWidth="0.5"/>
+        ))}
+        {/* head bolts */}
+        {[88, 312].map(x => (
+          <g key={x}>
+            <circle cx={x} cy={62} r="3" fill="#1F1A17" stroke="#5A5249" strokeWidth="0.6"/>
+            <line x1={x-2} y1={62} x2={x+2} y2={62} stroke="#5A5249" strokeWidth="0.5"/>
+            <line x1={x} y1={60} x2={x} y2={64} stroke="#5A5249" strokeWidth="0.5"/>
+          </g>
+        ))}
+        {/* combustion chamber recess (between cylinder walls, into head bottom) */}
+        <path d="M 125 68 Q 125 50 145 50 L 255 50 Q 275 50 275 68 Z"
+          fill="#0B0908" stroke="#3A302B" strokeWidth="0.6"/>
+        <text x="320" y="20" fontFamily="JetBrains Mono, monospace" fontSize="8" fill="#5A5249" textAnchor="end">CYLINDER HEAD</text>
+      </M.g>
+
+      {/* COMBUSTION GLOW (between piston crown and head, top of chamber) */}
+      <M.ellipse cx="200" cy="62" rx="55"
+        fill="url(#combustionGlow)" pointerEvents="none"
+        animate={{
+          opacity: combusting ? [0.35, 1, 0.85] : compressing ? [0, 0.25, 0.15] : 0,
+          ry: combusting ? [6, 14, 10] : 5
+        }}
+        transition={{ duration: combusting ? 0.55 : 1, repeat: combusting ? Infinity : 0, repeatType: 'reverse' }}
+      />
+
+      {/* INTAKE VALVE (left, opens during intake phase) */}
+      <text x="155" y="18" fontFamily="JetBrains Mono, monospace" fontSize="7"
+        fill={intakeOpen ? C.ember : '#5A5249'} fontWeight="700" textAnchor="middle">IN</text>
+      <M.g
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        transition={T(0.3, 0.5)}
+      >
+        <M.g animate={{ y: intakeOpen ? 9 : 0 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
+          {/* spring coils */}
+          <path d="M 148 24 L 162 27 L 148 30 L 162 33 L 148 36 L 162 39"
+            fill="none" stroke="#5A5249" strokeWidth="0.6" opacity="0.7"/>
+          {/* stem */}
+          <rect x="153" y="26" width="4" height="36" fill="url(#valveGrad)" stroke="#1F1A17" strokeWidth="0.4"/>
+          {/* valve head */}
+          <ellipse cx="155" cy="65" rx="14" ry="3.2"
+            fill={intakeOpen ? '#5C8FFF' : '#5A5249'}
+            stroke="#1F1A17" strokeWidth="0.6"/>
+        </M.g>
+      </M.g>
+
+      {/* EXHAUST VALVE (right, opens during exhaust phase) */}
+      <text x="245" y="18" fontFamily="JetBrains Mono, monospace" fontSize="7"
+        fill={exhaustOpen ? '#FF7A1F' : '#5A5249'} fontWeight="700" textAnchor="middle">EX</text>
+      <M.g
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        transition={T(0.4, 0.5)}
+      >
+        <M.g animate={{ y: exhaustOpen ? 9 : 0 }} transition={{ duration: 0.4, ease: 'easeOut' }}>
+          <path d="M 238 24 L 252 27 L 238 30 L 252 33 L 238 36 L 252 39"
+            fill="none" stroke="#5A5249" strokeWidth="0.6" opacity="0.7"/>
+          <rect x="243" y="26" width="4" height="36" fill="url(#valveGrad)" stroke="#1F1A17" strokeWidth="0.4"/>
+          <ellipse cx="245" cy="65" rx="14" ry="3.2"
+            fill={exhaustOpen ? '#FF7A1F' : '#5A5249'}
+            stroke="#1F1A17" strokeWidth="0.6"/>
+        </M.g>
+      </M.g>
+
+      {/* SPARK PLUG (centered, top of head) */}
+      <M.g initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={T(0.55, 0.5)}>
+        {/* hex top */}
+        <rect x="190" y="2" width="20" height="6" fill="#5A5249" stroke="#1F1A17" strokeWidth="0.5"/>
+        <line x1="190" y1="5" x2="210" y2="5" stroke="#1F1A17" strokeWidth="0.4" opacity="0.5"/>
+        {/* ceramic insulator */}
+        <path d="M 193 8 L 207 8 L 205 24 L 195 24 Z" fill="#F5F1ED" stroke="#3A302B" strokeWidth="0.5"/>
+        {/* threaded shank */}
+        <rect x="195" y="24" width="10" height="22" fill="url(#plugBody)" stroke="#1F1A17" strokeWidth="0.5"/>
+        {[27, 31, 35, 39, 43].map(y => (
+          <line key={y} x1="195" y1={y} x2="205" y2={y} stroke="#1F1A17" strokeWidth="0.35" opacity="0.7"/>
+        ))}
+        {/* electrode + ground strap (hangs into chamber) */}
+        <rect x="198" y="46" width="4" height="6" fill="#5A5249"/>
+        <path d="M 198 52 L 196 52 L 196 56 L 200 56" fill="none" stroke="#5A5249" strokeWidth="0.9"/>
+      </M.g>
+
+      {/* SPARK ANIMATION (only during power phase) */}
+      {combusting && (
+        <M.g
+          animate={{ opacity: [0, 1, 0, 1, 0] }}
+          transition={{ duration: 0.55, repeat: Infinity }}
+          pointerEvents="none"
+        >
+          <line x1="200" y1="55" x2="198" y2="58" stroke="#FFE89C" strokeWidth="1.4"/>
+          <line x1="200" y1="55" x2="202" y2="58" stroke="#FFE89C" strokeWidth="1.4"/>
+          <circle cx="199" cy="58" r="2.2" fill="#FFE89C" opacity="0.85"/>
+        </M.g>
+      )}
 
       {/* ============ CYLINDER BLOCK CUTAWAY (контекст: гильза + блок) ============ */}
       <M.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={T(0.2, 0.8)}>
@@ -637,6 +786,9 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
         <path d="M 60 80 L 50 80 L 50 280 L 60 280"/>
         <text x="40" y="184" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#5A5249" textAnchor="middle" transform="rotate(-90 40 184)">PISTON ASSY</text>
       </g>
+
+      {/* ============ PISTON ASSEMBLY (slides up/down during 4-stroke cycle) ============ */}
+      <M.g animate={{ y: pistonY }} transition={{ duration: 0.55, ease: 'easeInOut' }}>
 
       {/* ============ PISTON BODY (skirt + crown) ============ */}
       <M.g
@@ -767,6 +919,8 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
         </Hot>
       </M.g>
 
+      </M.g>{/* /piston assembly slide group */}
+
       {/* ============ CONNECTING ROD ============ */}
       <M.g
         initial={{ y: 200, opacity: 0 }}
@@ -888,14 +1042,59 @@ function PistonDiagram({ activeId, hoverId, onSelect, onHover }) {
 
       {/* Engineering callouts */}
       <g fontFamily="JetBrains Mono, monospace" fontSize="8" fill="#5A5249">
-        <text x="20" y="20">FIG. 01 / PISTON · ROD ASSEMBLY</text>
-        <text x="20" y="32">SECTION VIEW</text>
+        <text x="20" y="20">FIG. 01 / 4-STROKE CYCLE</text>
+        <text x="20" y="32" fill={running ? C.ember : '#5A5249'}>
+          {running ? `${(phase + 1).toString().padStart(2,'0')} · ${PHASES[phase].ru} ${PHASES[phase].dir}` : 'PRESS PLAY ▸'}
+        </text>
         <text x="380" y="20" textAnchor="end">SCALE 1:1</text>
         <text x="380" y="32" textAnchor="end">UNITS: mm</text>
-
-        <text x="20" y="540">REV. 04.26 · MY-AVTO</text>
-        <text x="380" y="540" textAnchor="end">CLICK PARTS FOR DETAIL ▸</text>
       </g>
+
+      {/* PLAY / PAUSE BUTTON */}
+      <g transform="translate(20, 528)" style={{ cursor: 'pointer' }}
+         onClick={(e) => { e.stopPropagation(); setRunning(r => !r); }}>
+        <rect width="84" height="22" rx="2"
+          fill={running ? C.ember : C.bodyDk}
+          stroke={C.ember} strokeWidth="1.2"/>
+        {running ? (
+          <g fill={C.ink}>
+            <rect x="11" y="6" width="3.5" height="10"/>
+            <rect x="17" y="6" width="3.5" height="10"/>
+          </g>
+        ) : (
+          <path d="M 11 6 L 11 16 L 21 11 Z" fill={C.ember}/>
+        )}
+        <text x="50" y="15" fontFamily="JetBrains Mono, monospace" fontSize="9" fontWeight="700"
+          fill={running ? C.ink : C.ember}>
+          {running ? 'PAUSE' : 'PLAY'}
+        </text>
+      </g>
+
+      {/* PHASE INDICATOR BAR */}
+      <g transform="translate(112, 528)">
+        {PHASES.map((p, i) => {
+          const lit = running && phase === i;
+          return (
+            <g key={p.id} transform={`translate(${i * 90}, 0)`} style={{ cursor: 'pointer' }}
+               onClick={() => { setPhase(i); setRunning(true); }}>
+              <rect width="84" height="22" rx="2"
+                fill={lit ? C.ember : 'transparent'}
+                stroke={lit ? C.ember : '#3A302B'} strokeWidth="1"/>
+              <text x="42" y="15" textAnchor="middle"
+                fontFamily="JetBrains Mono, monospace" fontSize="8.5" fontWeight="700"
+                fill={lit ? C.ink : '#5A5249'}>
+                {(i+1).toString().padStart(2,'0')} {p.ru}
+              </text>
+            </g>
+          );
+        })}
+      </g>
+      <text x="20" y="568" fontFamily="JetBrains Mono, monospace" fontSize="8" fill="#5A5249">
+        REV. 04.26 · MY-AVTO
+      </text>
+      <text x="540" y="568" fontFamily="JetBrains Mono, monospace" fontSize="8" fill="#5A5249" textAnchor="end">
+        CLICK PARTS FOR DETAIL ▸
+      </text>
 
       {/* corner ticks */}
       <g stroke="#3A302B" strokeWidth="0.8" fill="none">
@@ -941,16 +1140,25 @@ function EnginePickerForm() {
 
   const submit = (e) => {
     e.preventDefault();
-    const payload = {
-      endpoint: 'POST /api/leads',
-      maker: maker?.name,
-      engineCode: code,
-      parts,
-      size,
-      phone,
-      ts: new Date().toISOString(),
-    };
-    console.log('[MY AVTO] Lead submitted:', payload);
+    // Собираем заявку и отправляем через WhatsApp клиента — он попадает в чат
+    // с менеджером с уже заполненным сообщением, нажимает «Отправить» и заявка
+    // приходит мне в WhatsApp. Никакого бэкенда не нужно.
+    const partLabels = parts
+      .map(id => PART_TYPES.find(p => p.id === id)?.label)
+      .filter(Boolean)
+      .join(', ') || '—';
+    const lines = [
+      'Здравствуйте! Подбор запчастей с сайта MY AVTO:',
+      '',
+      `• Авто: ${maker?.name || '—'}`,
+      `• Двигатель: ${code || '—'}`,
+      `• Что нужно: ${partLabels}`,
+      `• Размер: ${size || '—'}`,
+      `• Телефон: +7${phone}`,
+    ];
+    const text = encodeURIComponent(lines.join('\n'));
+    const phoneTo = CONTACTS.phoneE164.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneTo}?text=${text}`, '_blank', 'noopener');
     setSubmitted(true);
   };
 
@@ -958,24 +1166,22 @@ function EnginePickerForm() {
     return (
       <div className="bg-ink-850 border border-ink-600 p-10 md:p-14 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 mb-6 bg-ember-500 text-ink-900">
-          <IconCheck size={28} sw={2.5}/>
+          <IconWhatsApp size={28}/>
         </div>
-        <h3 className="font-display text-3xl md:text-4xl mb-3">Заявка принята</h3>
+        <h3 className="font-display text-3xl md:text-4xl mb-3">Откройте WhatsApp</h3>
         <p className="text-bone-300 max-w-lg mx-auto mb-8">
-          Свяжемся в течение 15 минут в рабочее время. В нерабочее — утром следующего дня.
-          Параллельно проверяем наличие на складе и у поставщиков.
+          Сообщение с вашими данными уже подготовлено в WhatsApp — нажмите «Отправить»,
+          и менеджер свяжется в течение 15 минут в рабочее время.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="#" className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-ember-500 text-ink-900 font-medium hover:bg-ember-600 transition">
-            <IconMessage size={16}/> Telegram «Наличие для мастеров»
+          <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-ember-500 text-ink-900 font-medium hover:bg-ember-600 transition">
+            <IconWhatsApp size={16}/> Открыть WhatsApp ещё раз
           </a>
           <button onClick={() => { setSubmitted(false); setMaker(null); setCode(''); setParts([]); setPhone(''); }}
             className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-ink-600 hover:border-ember-500 transition">
             Новая заявка
           </button>
-        </div>
-        <div className="mt-8 pt-6 border-t border-ink-600 font-mono text-xs text-bone-500">
-          REQ #{Math.random().toString(36).slice(2,8).toUpperCase()} · ЗАПИСАН В ОЧЕРЕДЬ МАСТЕРА
         </div>
       </div>
     );
@@ -1135,16 +1341,26 @@ function PartnerForm() {
 
   const submit = (e) => {
     e.preventDefault();
-    console.log('[MY AVTO] Partner application:', { ...data, endpoint: 'POST /api/partners' });
+    const lines = [
+      'Здравствуйте! Хотим стать партнёром MY AVTO:',
+      '',
+      `• Компания: ${data.company || '—'}`,
+      `• Контакт: ${data.name || '—'}`,
+      `• Телефон: ${data.phone || '—'}`,
+      `• Капиталок в месяц: ${data.volume}`,
+    ];
+    const text = encodeURIComponent(lines.join('\n'));
+    const phoneTo = CONTACTS.phoneE164.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneTo}?text=${text}`, '_blank', 'noopener');
     setSubmitted(true);
   };
 
   if (submitted) {
     return (
       <div className="border border-ember-500 bg-ember-500/5 p-6 text-center">
-        <IconCheck size={28} className="text-ember-500 mx-auto mb-2" sw={2}/>
-        <div className="font-display text-lg">Заявка партнёра отправлена</div>
-        <div className="text-sm text-bone-300 mt-1">Менеджер B2B свяжется в рабочее время.</div>
+        <IconWhatsApp size={28} className="mx-auto mb-2"/>
+        <div className="font-display text-lg">Откройте WhatsApp</div>
+        <div className="text-sm text-bone-300 mt-1">Сообщение готово — нажмите «Отправить» в WhatsApp.</div>
       </div>
     );
   }
@@ -1392,53 +1608,42 @@ function BrandsSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 function B2BSection() {
   const perks = [
-    { icon: IconClock,  title: 'Отсрочка платежа',           desc: '7–30 дней по согласованию для постоянных партнёров' },
-    { icon: IconBox,    title: 'Персональные цены',          desc: 'Тариф мастера. Не для розничных клиентов' },
-    { icon: IconTruck,  title: 'Доставка курьером 2 ч',      desc: 'Приоритет для СТО — везём в очередь к капиталке' },
-    { icon: IconBolt,   title: 'Бонусная программа мастеров',desc: 'За каждый ремкомплект — баллы. Тратятся как деньги' },
+    { icon: IconClock,  title: 'Отсрочка 7–30 дней' },
+    { icon: IconBox,    title: 'Персональные цены' },
+    { icon: IconTruck,  title: 'Доставка 2 ч' },
+    { icon: IconBolt,   title: 'Бонусы мастерам' },
   ];
   return (
-    <section id="b2b" className="py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
+    <section id="b2b" className="py-10 md:py-14 px-4 md:px-10 max-w-[1440px] mx-auto">
       <div className="grid lg:grid-cols-2 gap-px bg-ink-600">
-        {/* Left: pitch + perks */}
-        <div className="bg-ink-900 p-6 md:p-12">
-          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">04 / B2B</div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] mb-4">
-            Работаете в моторном цехе или у вас СТО?
+        {/* Left: compact pitch + perks tiles */}
+        <div className="bg-ink-900 p-5 md:p-7">
+          <div className="font-mono text-[10px] text-ember-500 tracking-widest mb-2">04 / B2B</div>
+          <h2 className="font-display text-xl md:text-2xl font-semibold leading-tight mb-2">
+            СТО или моторный цех?
           </h2>
-          <p className="text-bone-300 text-base md:text-lg mb-8 md:mb-10 max-w-md">
-            Отдельный канал, отдельные условия, отдельный менеджер, который разбирается в номенклатуре не хуже вашего мастера.
+          <p className="text-bone-300 text-sm mb-5">
+            Отдельные условия, отдельный менеджер.
           </p>
-          <div className="grid sm:grid-cols-2 gap-x-6 gap-y-8">
+          <div className="grid grid-cols-2 gap-2">
             {perks.map((p, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-ember-500/10 border border-ember-500/40 flex items-center justify-center text-ember-500">
-                  <p.icon size={18}/>
+              <div key={i} className="flex items-center gap-2 p-2.5 bg-ink-850 border border-ink-600">
+                <div className="flex-shrink-0 w-7 h-7 bg-ember-500/10 border border-ember-500/40 flex items-center justify-center text-ember-500">
+                  <p.icon size={14}/>
                 </div>
-                <div>
-                  <div className="font-display font-semibold mb-1">{p.title}</div>
-                  <div className="text-sm text-bone-300 leading-snug">{p.desc}</div>
-                </div>
+                <div className="font-display text-xs md:text-sm font-medium leading-tight">{p.title}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Right: form */}
-        <div className="bg-ink-850 p-8 md:p-12">
-          <div className="font-mono text-xs text-bone-500 tracking-widest mb-3">PARTNER FORM</div>
-          <div className="font-display text-2xl md:text-3xl font-semibold mb-6 leading-tight">
+        <div className="bg-ink-850 p-5 md:p-7">
+          <div className="font-mono text-[10px] text-bone-500 tracking-widest mb-2">PARTNER FORM</div>
+          <div className="font-display text-lg md:text-xl font-semibold mb-4">
             Стать партнёром
           </div>
           <PartnerForm/>
-
-          <div className="mt-8 pt-6 border-t border-ink-600 flex items-center gap-4 text-sm text-bone-300">
-            <div className="w-10 h-10 bg-ember-500 text-ink-900 flex items-center justify-center font-display font-bold">A</div>
-            <div>
-              <div className="text-bone-100">Менеджер по работе с СТО</div>
-              <div className="font-mono text-xs text-bone-500">ПОДБОР ПО VIN · ОТСРОЧКА · ОПТОВЫЕ ЦЕНЫ</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -1450,21 +1655,21 @@ function B2BSection() {
 // ─────────────────────────────────────────────────────────────────────────────
 function ArticlesSection() {
   return (
-    <section className="py-14 md:py-28 bg-ink-850 border-y border-ink-600">
+    <section className="py-10 md:py-14 bg-ink-850 border-y border-ink-600">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 md:mb-10">
+        <div className="flex items-end justify-between gap-4 mb-5 md:mb-6">
           <div>
-            <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">05 / БАЗА ЗНАНИЙ</div>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
-              Полезное для специалистов.
+            <div className="font-mono text-[10px] text-ember-500 tracking-widest mb-2">05 / БАЗА ЗНАНИЙ</div>
+            <h2 className="font-display text-xl md:text-2xl font-semibold leading-tight">
+              Полезное для специалистов
             </h2>
           </div>
-          <a href="#" className="font-mono text-xs text-bone-300 hover:text-ember-500 transition flex items-center gap-2">
-            ВСЕ МАТЕРИАЛЫ <IconArrowRight size={14}/>
+          <a href="#" className="font-mono text-[10px] md:text-xs text-bone-300 hover:text-ember-500 transition flex items-center gap-1.5 whitespace-nowrap">
+            ВСЕ <IconArrowRight size={12}/>
           </a>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-ink-600">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-ink-600">
           {ARTICLES.map((a, i) => <ArticleCard key={i} article={a} index={i}/>)}
         </div>
       </div>
@@ -1522,13 +1727,12 @@ function ArticleCard({ article, index }) {
   ];
 
   return (
-    <a href="#" className="group bg-ink-850 hover:bg-ink-800 p-6 transition block">
-      <div className="aspect-[5/3] bg-ink-900 border border-ink-600 mb-5 overflow-hidden">
+    <a href="#" className="group bg-ink-850 hover:bg-ink-800 p-3 md:p-4 transition block">
+      <div className="aspect-[5/3] bg-ink-900 border border-ink-600 mb-3 overflow-hidden">
         {visuals[index]}
       </div>
-      <div className="font-mono text-[10px] text-ember-500 tracking-widest mb-2">{article.tag.toUpperCase()} · {article.read.toUpperCase()}</div>
-      <div className="font-display font-semibold text-lg leading-tight mb-2 group-hover:text-ember-500 transition">{article.title}</div>
-      <div className="text-sm text-bone-300 leading-snug">{article.desc}</div>
+      <div className="font-mono text-[9px] md:text-[10px] text-ember-500 tracking-widest mb-1.5">{article.tag.toUpperCase()} · {article.read.toUpperCase()}</div>
+      <div className="font-display font-semibold text-sm md:text-base leading-tight group-hover:text-ember-500 transition">{article.title}</div>
     </a>
   );
 }
