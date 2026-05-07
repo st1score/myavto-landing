@@ -1189,19 +1189,10 @@ function EnginePickerForm() {
 
   return (
     <form onSubmit={submit} className="bg-ink-850 border border-ink-600">
-      {/* Step header */}
-      <div className="flex items-center justify-between border-b border-ink-600 px-6 py-4 bg-ink-800">
-        <div className="font-mono text-xs text-bone-500 tracking-wider">FORM / ПОДБОР · 4 ШАГА</div>
-        <div className="font-mono text-xs text-ember-500">~ 90 СЕК</div>
-      </div>
-
       <div className="p-6 md:p-8 space-y-8">
         {/* Step 1: maker */}
         <div>
-          <div className="flex items-baseline justify-between mb-3">
-            <label className="font-mono text-xs text-bone-500 tracking-wider">01 · ПРОИЗВОДИТЕЛЬ</label>
-            {maker && <span className="font-mono text-xs text-ember-500">{maker.name.toUpperCase()}</span>}
-          </div>
+          <label className="block text-sm text-bone-300 mb-3">Марка авто</label>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
             {MAKERS.map(m => {
               const on = maker?.name === m.name;
@@ -1230,10 +1221,7 @@ function EnginePickerForm() {
 
         {/* Step 2: code */}
         <div className="relative">
-          <div className="flex items-baseline justify-between mb-3">
-            <label className="font-mono text-xs text-bone-500 tracking-wider">02 · КОД ДВИГАТЕЛЯ</label>
-            <span className="font-mono text-xs text-bone-500">или VIN</span>
-          </div>
+          <label className="block text-sm text-bone-300 mb-3">Код двигателя или VIN</label>
           <div className="relative">
             <input
               type="text"
@@ -1260,10 +1248,7 @@ function EnginePickerForm() {
 
         {/* Step 3: parts */}
         <div>
-          <div className="flex items-baseline justify-between mb-3">
-            <label className="font-mono text-xs text-bone-500 tracking-wider">03 · ЧТО НУЖНО</label>
-            <span className="font-mono text-xs text-bone-500">{parts.length} выбрано</span>
-          </div>
+          <label className="block text-sm text-bone-300 mb-3">Что нужно</label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {PART_TYPES.map(p => {
               const on = parts.includes(p.id);
@@ -1287,7 +1272,7 @@ function EnginePickerForm() {
 
         {/* Step 3b: size */}
         <div>
-          <label className="font-mono text-xs text-bone-500 tracking-wider mb-3 block">03B · РЕМОНТНЫЙ РАЗМЕР</label>
+          <label className="block text-sm text-bone-300 mb-3">Ремонтный размер</label>
           <div className="flex flex-wrap gap-2">
             {SIZES.map(s => (
               <button type="button" key={s} onClick={() => setSize(s)}
@@ -1302,7 +1287,7 @@ function EnginePickerForm() {
 
         {/* Step 4: phone */}
         <div>
-          <label className="font-mono text-xs text-bone-500 tracking-wider mb-3 block">04 · WHATSAPP / ТЕЛЕФОН</label>
+          <label className="block text-sm text-bone-300 mb-3">Телефон / WhatsApp</label>
           <div className="flex gap-2">
             <div className="px-4 py-3.5 bg-ink-900 border border-ink-600 font-mono text-bone-300">+7</div>
             <input
@@ -1320,12 +1305,9 @@ function EnginePickerForm() {
         <div className="pt-2">
           <button type="submit"
             className="group w-full bg-ember-500 hover:bg-ember-600 text-ink-900 font-display font-semibold text-lg py-4 transition flex items-center justify-center gap-3 ember-pulse">
-            Получить наличие и цену
+            Отправить
             <IconArrowRight size={20} sw={2} className="group-hover:translate-x-1 transition"/>
           </button>
-          <p className="mt-3 text-xs text-bone-500 font-mono text-center">
-            ОТВЕТ В ТЕЧЕНИЕ 15 МИН · WHATSAPP / ЗВОНОК
-          </p>
         </div>
       </div>
     </form>
@@ -1455,12 +1437,10 @@ function NavBar() {
     <nav className="sticky top-0 z-40 bg-ink-900/90 backdrop-blur-md border-b border-ink-600">
       <div className="max-w-[1440px] mx-auto px-3 md:px-10 h-14 md:h-16 flex items-center justify-between gap-2 md:gap-3">
         <a href="#" className="flex-shrink-0 min-w-0"><BrandMark size={32} compact/></a>
-        <div className="hidden lg:flex items-center gap-7 text-sm">
-          <a href="#picker"   className="text-bone-300 hover:text-ember-500 transition">Подбор</a>
-          <a href="#engines"  className="text-bone-300 hover:text-ember-500 transition">Двигатели</a>
-          <a href="#brands"   className="text-bone-300 hover:text-ember-500 transition">Бренды</a>
-          <a href="#b2b"      className="text-bone-300 hover:text-ember-500 transition">Для СТО</a>
-          <a href="#faq"      className="text-bone-300 hover:text-ember-500 transition">FAQ</a>
+        <div className="hidden lg:flex items-center gap-8 text-sm">
+          <a href="#picker"  className="text-bone-300 hover:text-ember-500 transition">Подбор</a>
+          <a href="#engines" className="text-bone-300 hover:text-ember-500 transition">Двигатели</a>
+          <a href="#brands"  className="text-bone-300 hover:text-ember-500 transition">Бренды</a>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
@@ -1510,14 +1490,10 @@ function EnginesGrid() {
 
   return (
     <section id="engines" className="py-14 md:py-24 px-4 md:px-10 max-w-[1440px] mx-auto">
-      <div className="mb-8 md:mb-10">
-        <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">02 / КАТАЛОГ</div>
-        <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-2xl">
-          Каталог по двигателям. <span className="text-bone-500">Не по типам деталей.</span>
+      <div className="mb-8 md:mb-10 text-center">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight">
+          Двигатели в наличии
         </h2>
-        <p className="mt-4 text-bone-300 max-w-xl text-sm md:text-base">
-          Мастер мыслит кодом ДВС, а не названием детали. Выбираете двигатель — видите всё, что под него лежит на складе.
-        </p>
       </div>
 
       <div className="space-y-8 md:space-y-10">
@@ -1572,10 +1548,9 @@ function BrandsSection() {
   return (
     <section id="brands" className="py-14 md:py-20 bg-ink-850 border-y border-ink-600">
       <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="mb-6 md:mb-8">
-          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">03 / БРЕНДЫ</div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] max-w-3xl">
-            Бренды запчастей
+        <div className="mb-6 md:mb-8 text-center">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight">
+            Бренды
           </h2>
         </div>
       </div>
@@ -1848,83 +1823,48 @@ function SocialTile({ href, img, label, sub }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="bg-ink-850 border-t border-ink-600 pt-12 md:pt-16 pb-24 md:pb-8">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-10">
-        <div className="grid lg:grid-cols-12 gap-8 md:gap-10 mb-10 md:mb-12 pb-10 md:pb-12 border-b border-ink-600">
+    <footer id="contacts" className="bg-ink-850 border-t border-ink-600 pt-12 md:pt-16 pb-24 md:pb-10">
+      <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+        <div className="grid md:grid-cols-3 gap-8 md:gap-10 mb-10 pb-10 border-b border-ink-600">
+
           {/* Brand */}
-          <div className="lg:col-span-4">
-            <BrandMark size={44}/>
-            <p className="text-bone-300 max-w-xs leading-relaxed mt-5 text-sm md:text-base">
-              Внутренние запчасти двигателя для капитального ремонта японских авто. Поршни, кольца, вкладыши, прокладки, ремкомплекты ГБЦ.
-            </p>
-            <div className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 border border-forge-500/40 bg-forge-500/5">
-              <span className="w-1.5 h-1.5 rounded-full bg-forge-500"/>
-              <span className="font-mono text-[10px] text-forge-500 tracking-widest">БАМПЕРЫ · ФАРЫ · КУЗОВЩИНУ — НЕ ПРОДАЁМ</span>
-            </div>
+          <div>
+            <BrandMark size={40}/>
+            <div className="mt-4 text-sm text-bone-300">{CONTACTS.address}</div>
+            <div className="text-sm text-bone-300">{CONTACTS.hours}</div>
           </div>
 
           {/* Contacts */}
-          <div className="lg:col-span-3">
-            <div className="font-mono text-xs text-bone-500 tracking-widest mb-4">КОНТАКТЫ</div>
-            <ul className="space-y-3">
+          <div>
+            <div className="text-xs text-bone-500 mb-3">Связь</div>
+            <ul className="space-y-2.5">
+              <li><a href={`tel:${CONTACTS.phoneE164}`} className="font-mono text-bone-100 hover:text-ember-500 transition">{CONTACTS.phoneDisplay}</a></li>
               <li><a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
-                className="flex items-center gap-3 text-bone-100 hover:text-ember-500 transition">
-                <IconWhatsApp size={20}/>
-                <span>WhatsApp <span className="font-mono">{CONTACTS.phoneDisplay}</span></span>
+                className="inline-flex items-center gap-2 text-bone-100 hover:text-ember-500 transition">
+                <IconWhatsApp size={18}/> WhatsApp
               </a></li>
-              <li><a href={`tel:${CONTACTS.phoneE164}`}
-                className="flex items-center gap-3 text-bone-100 hover:text-ember-500 transition font-mono">
-                <span className="w-5 h-5 rounded-full bg-ember-500 flex items-center justify-center text-ink-900 flex-shrink-0">
-                  <IconPhone size={11} sw={2.2}/>
-                </span>
-                {CONTACTS.phoneDisplay} · {CONTACTS.manager}
+              <li><a href={CONTACTS.telegram} target="_blank" rel="noopener"
+                className="inline-flex items-center gap-2 text-bone-100 hover:text-ember-500 transition">
+                <IconTelegram size={18}/> Telegram
               </a></li>
-              <li className="flex items-start gap-3 text-bone-300">
-                <IconMapPin size={18} className="mt-0.5 flex-shrink-0 text-ember-500"/>
-                <span>{CONTACTS.address}</span>
-              </li>
-              <li className="flex items-center gap-3 text-bone-300">
-                <IconClock size={18} className="text-ember-500"/>
-                <span>{CONTACTS.hours}</span>
-              </li>
             </ul>
           </div>
 
-          {/* Channels */}
-          <div className="lg:col-span-3">
-            <div className="font-mono text-xs text-bone-500 tracking-widest mb-4">СОЦСЕТИ И КАНАЛЫ</div>
-            <div className="grid grid-cols-1 gap-2">
-              <SocialTile href={CONTACTS.whatsapp}  img="assets/social/whatsapp.png"  label="WhatsApp"       sub={`${CONTACTS.phoneDisplay} · ОТВЕТ ЗА 15 МИН`}/>
-              <SocialTile href={CONTACTS.telegram}  img="assets/social/telegram.png"  label="Telegram-канал" sub={`${CONTACTS.telegramHandle} · НАЛИЧИЕ И ЦЕНЫ`}/>
-              <SocialTile href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"      sub={`${CONTACTS.instagramHandle} · ФОТО СО СКЛАДА`}/>
-              <SocialTile href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"         sub={`${CONTACTS.tiktokHandle} · РАЗБОРЫ ДВС`}/>
-            </div>
-            <div className="font-mono text-xs text-bone-500 tracking-widest mt-5 mb-3">МАРКЕТПЛЕЙСЫ</div>
-            <div className="grid grid-cols-1 gap-2">
-              <SocialTile href={CONTACTS.kaspi}  img="assets/social/kaspi.png"  label="Kaspi Магазин"   sub="ОПЛАТА · РАССРОЧКА 0–0–12"/>
-              <SocialTile href={CONTACTS.kolesa} img="assets/social/kolesa.png" label="Kolesa.kz"       sub="ВСЕ АКТИВНЫЕ ОБЪЯВЛЕНИЯ"/>
-              <SocialTile href={CONTACTS.olx}    img="assets/social/olx.png"    label="OLX.kz"          sub="ПРАЙС И ОТЗЫВЫ"/>
-            </div>
-          </div>
-
-          {/* Legal */}
-          <div className="lg:col-span-2">
-            <div className="font-mono text-xs text-bone-500 tracking-widest mb-4">ЮР. ДАННЫЕ</div>
-            <div className="font-mono text-xs text-bone-300 space-y-1.5 leading-relaxed">
-              <div>{CONTACTS.legalName}</div>
-              {CONTACTS.bin && <div>{CONTACTS.bin}</div>}
-              <div>Менеджер: {CONTACTS.manager}</div>
-              <div>Оплата: Kaspi, Halyk</div>
-              <div>Расчёт с НДС, ЭСФ</div>
-              <div className="pt-2"><a href="#" className="hover:text-ember-500 transition">Договор оферты →</a></div>
-              <div><a href="#" className="hover:text-ember-500 transition">Политика обработки ПДН →</a></div>
+          {/* Social */}
+          <div>
+            <div className="text-xs text-bone-500 mb-3">Мы в сети</div>
+            <div className="flex flex-wrap gap-3">
+              <SocialBubble href={CONTACTS.whatsapp}  img="assets/social/whatsapp.png"  label="WhatsApp"/>
+              <SocialBubble href={CONTACTS.telegram}  img="assets/social/telegram.png"  label="Telegram"/>
+              <SocialBubble href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"/>
+              <SocialBubble href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"/>
+              <SocialBubble href={CONTACTS.kaspi}     img="assets/social/kaspi.png"     label="Kaspi"/>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between gap-4 font-mono text-xs text-bone-500">
-          <div>© 2020–{new Date().getFullYear()} MY AVTO · АЛМАТЫ · ВСЕ ПРАВА ЗАЩИЩЕНЫ</div>
-          <div>ВНУТРЯНКА ДВС · ПОДБОР · ДОСТАВКА ПО РК</div>
+        <div className="font-mono text-xs text-bone-500 text-center">
+          © {new Date().getFullYear()} MY AVTO · Алматы
         </div>
       </div>
     </footer>
@@ -2038,118 +1978,38 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
       <div className="relative max-w-[1440px] mx-auto px-4 md:px-10 pt-8 md:pt-20 pb-12 md:pb-16">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
-          {/* LEFT: copy */}
+          {/* LEFT: copy — minimal */}
           <div className="lg:col-span-7 lg:pt-8 min-w-0">
-            {/* tag */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-6 md:mb-8 font-mono text-[10px] md:text-xs tracking-widest">
-              <span className="inline-flex items-center gap-2 text-ember-500">
-                <span className="w-1.5 h-1.5 bg-ember-500 rounded-full ember-pulse"/>
-                CARCITY · 3 ЯРУС · 135В
-              </span>
-              <span className="text-bone-500">/</span>
-              <span className="text-bone-300">ЯПОНСКИЕ АВТО · ВНУТРЯНКА ДВС</span>
-            </div>
-
-            <h1 className="font-display font-semibold text-[2.25rem] sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] md:leading-[0.95] tracking-tight mb-5 md:mb-6 break-words">
-              Запчасти по двигателю<br/>
-              <span className="text-ember-500">на японские авто</span><br/>
-              <span className="text-bone-500 text-[1.6rem] sm:text-3xl md:text-5xl lg:text-6xl block mt-2">для капитального ремонта</span>
+            <h1 className="font-display font-semibold text-[2.5rem] sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.02] md:leading-[0.95] tracking-tight mb-6 break-words">
+              Запчасти<br/>
+              <span className="text-ember-500">на японские авто</span>
             </h1>
 
-            <p className="text-base md:text-xl text-bone-300 max-w-2xl leading-relaxed mb-6 md:mb-8">
-              Поршни, кольца, вкладыши, прокладки ГБЦ, ремкомплекты, сальники, цепи ГРМ.
-              Бренды <span className="text-bone-100 font-medium">Teikin, NPR, Riken, Taiho, NDC, NOK, IZUMI</span>.
-              Алматы — курьером за 2 ч, по всему Казахстану — Казпочта, СДЭК, автобусом.
-              Оплата Kaspi, рассрочка 0–0–12.
+            <p className="text-base md:text-lg text-bone-300 max-w-xl mb-8">
+              Внутрянка двигателя — поршни, кольца, вкладыши. Алматы, доставка по РК.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <a href="#picker" className="group inline-flex items-center justify-center gap-2 bg-ember-500 hover:bg-ember-600 text-ink-900 font-display font-semibold text-base md:text-lg px-5 md:px-7 py-3.5 md:py-4 transition shadow-ember">
-                Подобрать по двигателю
+            <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              <a href="#picker" className="group inline-flex items-center justify-center gap-2 bg-ember-500 hover:bg-ember-600 text-ink-900 font-display font-semibold text-base md:text-lg px-7 py-4 transition shadow-ember">
+                Подобрать
                 <IconArrowRight size={18} sw={2} className="group-hover:translate-x-1 transition"/>
               </a>
               <a href={CONTACTS.whatsapp} target="_blank" rel="noopener"
-                className="inline-flex items-center justify-center gap-2 border border-ink-500 hover:border-ember-500 text-bone-100 font-display font-medium text-base md:text-lg px-5 md:px-7 py-3.5 md:py-4 transition">
-                <IconWhatsApp size={20}/> Написать в WhatsApp
+                className="inline-flex items-center justify-center gap-2 border border-ink-500 hover:border-ember-500 text-bone-100 font-display font-medium text-base md:text-lg px-7 py-4 transition">
+                <IconWhatsApp size={20}/> WhatsApp
               </a>
             </div>
 
-            {/* contact card — реальный менеджер */}
-            <a href={`tel:${CONTACTS.phoneE164}`} className="flex items-center gap-3 md:gap-4 mb-5 md:mb-6 p-3 md:p-4 bg-ink-850 border border-ink-600 max-w-2xl active:border-ember-500 transition">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-ember-500/15 border border-ember-500 flex items-center justify-center font-display font-semibold text-ember-500 text-lg md:text-xl flex-shrink-0">М</div>
-              <div className="flex-1 min-w-0">
-                <div className="font-display font-semibold text-base md:text-lg text-bone-100">{CONTACTS.manager}</div>
-                <div className="font-mono text-[10px] md:text-xs text-bone-500 tracking-wider">МЕНЕДЖЕР · ПОДБОР</div>
-                <div className="font-mono text-sm md:hidden text-ember-500 mt-1">{CONTACTS.phoneDisplay}</div>
-              </div>
-              <span className="hidden sm:block font-mono text-bone-100 hover:text-ember-500 transition whitespace-nowrap">
-                {CONTACTS.phoneDisplay}
-              </span>
-            </a>
-
-            {/* адрес и часы — для мобилы важно */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6 max-w-2xl text-sm">
-              <a href="https://2gis.kz/almaty/search/CarCity" target="_blank" rel="noopener"
-                 className="flex items-start gap-2 p-3 bg-ink-850 border border-ink-600 hover:border-ember-500 transition">
-                <IconMapPin size={16} className="text-ember-500 mt-0.5 flex-shrink-0"/>
-                <span className="text-bone-100 leading-snug">{CONTACTS.address}</span>
-              </a>
-              <div className="flex items-start gap-2 p-3 bg-ink-850 border border-ink-600">
-                <IconClock size={16} className="text-ember-500 mt-0.5 flex-shrink-0"/>
-                <span className="text-bone-100 leading-snug">{CONTACTS.hours}</span>
-              </div>
-            </div>
-
-            {/* мини-полоса каналов под CTA — единый стиль с подписями */}
-            <div className="mb-8 md:mb-10">
-              <div className="font-mono text-[10px] tracking-widest text-bone-500 mb-2.5">МЫ ВЕЗДЕ — ПИШИ В УДОБНЫЙ КАНАЛ:</div>
-              <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 max-w-2xl">
-                <SocialBubble href={CONTACTS.whatsapp}  img="assets/social/whatsapp.png"  label="WhatsApp"/>
-                <SocialBubble href={CONTACTS.telegram}  img="assets/social/telegram.png"  label="Telegram"/>
-                <SocialBubble href={CONTACTS.instagram} img="assets/social/instagram.png" label="Instagram"/>
-                <SocialBubble href={CONTACTS.tiktok}    img="assets/social/tiktok.png"    label="TikTok"/>
-                <SocialBubble href={CONTACTS.kaspi}     img="assets/social/kaspi.png"     label="Kaspi"/>
-                <SocialBubble href={CONTACTS.kolesa}    img="assets/social/kolesa.png"    label="Kolesa"/>
-                <SocialBubble href={CONTACTS.olx}       img="assets/social/olx.png"       label="OLX"/>
-              </div>
-            </div>
-
-            {/* trust badges */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-2xl">
-              <div className="border-l-2 border-ember-500 pl-3 md:pl-4">
-                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">5+ лет</div>
-                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">на рынке моторных комплектующих</div>
-              </div>
-              <div className="border-l-2 border-bone-500 pl-3 md:pl-4">
-                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">Только OEM</div>
-                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">и проверенные альтернативы</div>
-              </div>
-              <div className="border-l-2 border-bone-500 pl-3 md:pl-4">
-                <div className="font-display font-semibold text-lg md:text-2xl leading-tight">СТО до 30 дн.</div>
-                <div className="text-xs md:text-sm text-bone-300 leading-snug mt-0.5">отсрочка по согласованию</div>
-              </div>
+            {/* compact contact line */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-bone-300 max-w-xl">
+              <a href={`tel:${CONTACTS.phoneE164}`} className="font-mono text-bone-100 hover:text-ember-500 transition">{CONTACTS.phoneDisplay}</a>
+              <span className="flex items-center gap-1.5"><IconMapPin size={14} className="text-ember-500"/>{CONTACTS.addressShort}</span>
+              <span className="flex items-center gap-1.5"><IconClock size={14} className="text-ember-500"/>{CONTACTS.hours}</span>
             </div>
           </div>
 
           {/* RIGHT: piston diagram */}
           <div className="lg:col-span-5 relative min-w-0">
-            {/* prado photo header */}
-            <div className="relative mb-4 bg-gradient-to-br from-ink-850 to-ink-900 border border-ink-600 overflow-hidden">
-              <div className="absolute inset-0 opacity-20"
-                style={{ background: 'radial-gradient(circle at 70% 50%, #2563EB 0%, transparent 60%)' }}/>
-              <div className="relative flex items-center gap-3 p-3">
-                <img src="assets/photos/prado.png" alt="Toyota Land Cruiser Prado" className="h-14 md:h-20 object-contain flex-shrink-0"/>
-                <div className="flex-1 min-w-0">
-                  <div className="font-mono text-[9px] md:text-[10px] text-bone-500 tracking-widest">СПЕЦИАЛИЗАЦИЯ</div>
-                  <div className="font-display font-semibold text-sm md:text-base text-bone-100 leading-tight">Запчасти по двигателю<br/>на японские авто</div>
-                </div>
-              </div>
-              <div className="border-t border-ink-600 px-3 py-2 flex items-center gap-2 text-[11px] md:text-xs text-bone-300">
-                <IconMapPin size={14} className="text-ember-500 flex-shrink-0"/>
-                <span className="truncate">{CONTACTS.address}</span>
-              </div>
-            </div>
-
             <div className="relative bg-ink-900/60 border border-ink-600 backdrop-blur-sm">
               {/* header bar */}
               <div className="flex items-center justify-between border-b border-ink-600 px-3 md:px-4 py-2.5">
@@ -2266,28 +2126,6 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
         </div>
       </div>
 
-      {/* Filter line — сразу отсекаем не-ЦА */}
-      <div className="relative border-t border-ink-600 bg-ink-900/60">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 py-3 md:py-4 font-mono text-[10px] md:text-xs space-y-2">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="text-ember-500 tracking-widest">ПРОДАЁМ:</span>
-            <span className="text-bone-100">поршни</span>
-            <span className="text-bone-100">кольца</span>
-            <span className="text-bone-100">вкладыши</span>
-            <span className="text-bone-100">прокладки ГБЦ</span>
-            <span className="text-bone-100">ремкомплекты</span>
-            <span className="text-bone-100">сальники</span>
-            <span className="text-bone-100">цепи ГРМ</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="text-forge-500 tracking-widest">НЕ ПРОДАЁМ:</span>
-            <span className="text-bone-500 line-through">бамперы</span>
-            <span className="text-bone-500 line-through">фары</span>
-            <span className="text-bone-500 line-through">кузовщину</span>
-            <span className="text-bone-500 line-through">расходники</span>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
@@ -2297,47 +2135,13 @@ function Hero({ activeId, hoverId, onSelectPart, onHoverPart }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function PickerSection() {
   return (
-    <section id="picker" className="relative py-14 md:py-28 px-4 md:px-10 max-w-[1440px] mx-auto">
-      <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
-        <div className="lg:col-span-5 lg:sticky lg:top-24 self-start">
-          <div className="font-mono text-[10px] md:text-xs text-ember-500 tracking-widest mb-3">01 / ПОДБОР</div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.05] mb-5 md:mb-6">
-            Дайте код двигателя — <span className="text-ember-500">остальное соберём.</span>
-          </h2>
-          <p className="text-bone-300 text-base md:text-lg leading-relaxed mb-6 md:mb-8">
-            Не нужно подбирать каждую деталь отдельно. Вы говорите код ДВС и что меняете — мы собираем спецификацию,
-            проверяем наличие, считаем цену по вашему ценнику (мастер / СТО / розница).
-          </p>
-          <ul className="space-y-3 mb-8">
-            {[
-              'Подбор по VIN или коду ДВС',
-              'Размер уточняем по фото шейки или замерам',
-              'Сразу пишем что в наличии в Алматы, что под заказ',
-              'Цена согласуется в WhatsApp за 15 минут',
-            ].map((t, i) => (
-              <li key={i} className="flex gap-3">
-                <div className="flex-shrink-0 w-5 h-5 mt-0.5 bg-ember-500 text-ink-900 flex items-center justify-center">
-                  <IconCheck size={12} sw={3}/>
-                </div>
-                <span className="text-bone-100">{t}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="bg-ink-850 border border-ink-600 p-5 flex items-start gap-4">
-            <div className="w-10 h-10 bg-ember-500/10 border border-ember-500/40 text-ember-500 flex items-center justify-center flex-shrink-0">
-              <IconWrench size={18}/>
-            </div>
-            <div>
-              <div className="font-display font-semibold mb-1">Не знаете код?</div>
-              <div className="text-sm text-bone-300 leading-snug">Пришлите VIN или фото шильдика на блоке — определим код двигателя за 2 минуты.</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-7">
-          <EnginePickerForm/>
-        </div>
+    <section id="picker" className="relative py-14 md:py-24 px-4 md:px-10 max-w-[1100px] mx-auto">
+      <div className="mb-8 md:mb-10 text-center">
+        <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold leading-tight">
+          Подбор по двигателю
+        </h2>
       </div>
+      <EnginePickerForm/>
     </section>
   );
 }
@@ -2383,13 +2187,9 @@ function App() {
         onSelectPart={onSelectPart}
         onHoverPart={onHoverPart}
       />
-      <TrustStrip/>
       <PickerSection/>
       <EnginesGrid/>
       <BrandsSection/>
-      <B2BSection/>
-      <ArticlesSection/>
-      <FAQSection/>
       <Footer/>
       <PartDetailPanel partId={activeId} onClose={() => setActiveId(null)}/>
       <MobileStickyCTA/>
