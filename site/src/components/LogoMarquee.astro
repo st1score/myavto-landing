@@ -16,7 +16,9 @@ const doubled = [...logos, ...logos];
     {title && <h2 class="reveal">{title}</h2>}
     {subtitle && <p class="muted reveal reveal-delay-1">{subtitle}</p>}
   </div>
-  <div class="marquee" style={`--speed: ${speed}s`}>
+
+  <!-- Десктоп: бесконечная маркиза -->
+  <div class="marquee desktop-only" style={`--speed: ${speed}s`}>
     <div class="marquee-track">
       {doubled.map((l) => (
         l.href ? (
@@ -30,6 +32,21 @@ const doubled = [...logos, ...logos];
         )
       ))}
     </div>
+  </div>
+
+  <!-- Мобила: статичная сетка 3×N, все логотипы видны сразу -->
+  <div class="container logos-grid mobile-only">
+    {logos.map((l) => (
+      l.href ? (
+        <a href={l.href} class="logo-cell" aria-label={l.name}>
+          <img src={l.src} alt={l.name} loading="lazy" />
+        </a>
+      ) : (
+        <div class="logo-cell" aria-label={l.name}>
+          <img src={l.src} alt={l.name} loading="lazy" />
+        </div>
+      )
+    ))}
   </div>
 </section>
 
@@ -57,20 +74,55 @@ const doubled = [...logos, ...logos];
     animation: marquee var(--speed, 40s) linear infinite;
   }
   @media (max-width: 900px) {
-    /* В 1.6 раза медленнее на планшетах */
+    /* На планшетах оставляем маркизу, но в 1.6 раза медленнее */
     .marquee-track { animation-duration: calc(var(--speed, 40s) * 1.6); }
   }
   @media (max-width: 640px) {
-    /* В 2.2 раза медленнее на мобиле + меньше элементы */
-    .marquee-track {
-      animation-duration: calc(var(--speed, 40s) * 2.2);
-      gap: 32px;
-    }
-    .marquee-item { width: 80px; height: 44px; }
     .marquee-section { padding: 32px 0; }
     .marquee-head { margin-bottom: 20px; }
     .marquee-head h2 { font-size: 1.2rem; }
   }
+
+  /* Переключение desktop/mobile вариантов */
+  .desktop-only { display: block; }
+  .mobile-only { display: none; }
+  @media (max-width: 640px) {
+    .desktop-only { display: none; }
+    .mobile-only { display: grid; }
+  }
+
+  /* Сетка логотипов на мобиле */
+  .logos-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding-top: 8px;
+  }
+  .logo-cell {
+    aspect-ratio: 16 / 9;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: transform var(--t-fast), border-color var(--t-fast);
+  }
+  .marquee-section.dark .logo-cell {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.08);
+  }
+  .logo-cell img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .marquee-section.dark .logo-cell img {
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.08));
+  }
+  .logo-cell:active { transform: scale(0.96); border-color: var(--c-red); }
   .marquee:hover .marquee-track { animation-play-state: paused; }
   @keyframes marquee {
     from { transform: translateX(0); }

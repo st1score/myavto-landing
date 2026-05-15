@@ -11,14 +11,6 @@ import SocialIcon from './SocialIcon.astro';
     <SocialIcon name="phone" />
     <span>Позвонить</span>
   </a>
-  <a href={CONTACTS.kaspi} target="_blank" rel="noopener noreferrer" class="cta-tile cta-kaspi" aria-label="Kaspi магазин">
-    <span class="kaspi-logo">K</span>
-    <span>Kaspi</span>
-  </a>
-  <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" class="cta-tile cta-tg" aria-label="Telegram">
-    <SocialIcon name="telegram" />
-    <span>Telegram</span>
-  </a>
 </div>
 
 <style>
@@ -35,41 +27,29 @@ import SocialIcon from './SocialIcon.astro';
     box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
   }
   @media (max-width: 900px) {
-    .sticky-cta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .sticky-cta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
     /* Когда открыто бургер-меню — прячем sticky bar */
     body.menu-open .sticky-cta { display: none; }
     /* Отступ для контента, чтобы последняя секция не пряталась под баром */
-    body { padding-bottom: 64px; }
+    body { padding-bottom: 72px; }
   }
   .cta-tile {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 8px 4px;
-    border-radius: 10px;
-    background: transparent;
-    color: var(--c-text);
-    font-size: .68rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background var(--t-fast);
-    min-height: 56px;
-  }
-  .cta-tile :global(svg) { width: 22px; height: 22px; }
-  .cta-tile:active { background: var(--c-bg-soft); }
-  .cta-wa :global(svg) { color: #25d366; }
-  .cta-call :global(svg) { color: var(--c-red); }
-  .cta-tg :global(svg) { color: #0088cc; }
-  .kaspi-logo {
-    display: inline-flex;
-    align-items: center; justify-content: center;
-    width: 22px; height: 22px;
-    background: #f14336;
+    gap: 8px;
+    padding: 12px 8px;
+    border-radius: 12px;
     color: #fff;
-    border-radius: 6px;
-    font-weight: 800;
-    font-size: 14px;
+    font-size: .92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform var(--t-fast), opacity var(--t-fast);
+    min-height: 48px;
   }
+  .cta-tile :global(svg) { width: 18px; height: 18px; }
+  .cta-tile:active { transform: scale(0.97); opacity: 0.9; }
+  .cta-wa { background: #25d366; }
+  .cta-call { background: var(--c-red); }
 </style>

@@ -11,7 +11,7 @@ import {
 } from '../../../../lib/db';
 import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../../../lib/slugs';
 import { categoryLabel, brandDisplay, insertTypeLabel } from '../../../../lib/labels';
-import { calcRetailKzt, formatKzt, getUsdRate } from '../../../../lib/pricing';
+// Цены временно скрыты — выводим только характеристики, размеры и артикулы.
 
 export async function getStaticPaths() {
   const engines = await getEngines();
@@ -38,58 +38,42 @@ export async function getStaticPaths() {
 const { engine, categoryCode } = Astro.props;
 const catLabel = categoryLabel[categoryCode];
 
-const [variants, stock, numbers, attrs, usdRate] = await Promise.all([
+const [variants, numbers, attrs] = await Promise.all([
   getVariantSizes(engine.engine_code, categoryCode),
-  getStock(engine.engine_code, categoryCode),
   getPartNumbers(engine.engine_code, categoryCode),
   getAttributes(engine.engine_code, categoryCode),
-  getUsdRate(),
 ]);
 
 const attrMap = Object.fromEntries(
   attrs.map((a) => [a.attribute_code, a.value_text ?? a.value_number ?? a.value_integer])
 );
 
-type Row = {
+// Группируем варианты: бренд → тип вставки → набор доступных размеров (без цен/остатков)
+type Variant = {
   brand: string;
   insertType: string;
-  variant: string;
-  sizes: Map<string, { price: number | null; stockQty: number }>;
+  sizes: Set<string>;
 };
-
-const rows = new Map<string, Row>();
-const stockKey = (b: string, it: string, s: string) => `${b}|${it}|${s}`;
-const stockSum = new Map<string, number>();
-for (const st of stock) {
-  const k = stockKey(st.brand_name, st.insert_type, st.size_code);
-  stockSum.set(k, (stockSum.get(k) ?? 0) + st.qty);
-}
-
+const variantMap = new Map<string, Variant>();
 for (const v of variants) {
-  const key = `${v.brand_name}|${v.insert_type}|${v.variant_name}`;
-  if (!rows.has(key)) {
-    rows.set(key, {
-      brand: v.brand_name,
-      insertType: v.insert_type,
-      variant: v.variant_name,
-      sizes: new Map(),
-    });
+  const key = `${v.brand_name}|${v.insert_type}`;
+  if (!variantMap.has(key)) {
+    variantMap.set(key, { brand: v.brand_name, insertType: v.insert_type, sizes: new Set() });
   }
-  const row = rows.get(key)!;
-  row.sizes.set(v.size_code, {
-    price: v.purchase_price ? calcRetailKzt(Number(v.purchase_price), usdRate) : null,
-    stockQty: stockSum.get(stockKey(v.brand_name, v.insert_type, v.size_code)) ?? 0,
-  });
+  variantMap.get(key)!.sizes.add(v.size_code);
 }
+const variantList = [...variantMap.values()].sort(
+  (a, b) => a.brand.localeCompare(b.brand) || a.insertType.localeCompare(b.insertType)
+);
 
-const rowsList = [...rows.values()].sort((a, b) => {
-  const aHas = [...a.sizes.values()].some((s) => s.price !== null);
-  const bHas = [...b.sizes.values()].some((s) => s.price !== null);
-  if (aHas !== bHas) return aHas ? -1 : 1;
-  return a.brand.localeCompare(b.brand) || a.insertType.localeCompare(b.insertType);
-});
+// Все размеры, которые встречаются у этого двигателя
+const allSizes = new Set<string>();
+for (const v of variantList) for (const s of v.sizes) allSizes.add(s);
+const sizesOrder = ['STD', '0.25', '0.50', '0.75', '1.00'];
+const availableSizes = sizesOrder.filter((s) => allSizes.has(s));
 
-const sizeCodes = ['STD', '0.25', '0.50', '0.75', '1.00'];
+// Брендов запчастей под этот двигатель
+const partsBrandList = [...new Set(variantList.map((v) => v.brand))];
 
 const oemNumbers = numbers.filter((n) => n.number_type === 'oem' || n.number_type === 'alt_oem');
 const tknNumbers = numbers.filter((n) => n.number_type === 'teikin');
@@ -98,37 +82,13 @@ const catalogNumbers = numbers.filter((n) => n.number_type.startsWith('catalog_'
 const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
 const engSl = engineSlug(engine.engine_code);
 
-const hasAnyPrice = rowsList.some((r) => [...r.sizes.values()].some((s) => s.price !== null));
-const allPrices: number[] = [];
-for (const r of rowsList) for (const s of r.sizes.values()) if (s.price !== null) allPrices.push(s.price);
-const lowPrice = allPrices.length ? Math.min(...allPrices) : null;
-const highPrice = allPrices.length ? Math.max(...allPrices) : null;
-const totalStock = [...stockSum.values()].reduce((a, b) => a + b, 0);
-
-const productJsonLd = hasAnyPrice
-  ? {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: `${catLabel} для ${engine.brand_name} ${engine.engine_code}`,
-      description: `${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}.`,
-      brand: { '@type': 'Brand', name: engine.brand_name },
-      offers: {
-        '@type': 'AggregateOffer',
-        priceCurrency: 'KZT',
-        lowPrice,
-        highPrice,
-        offerCount: allPrices.length,
-        availability: 'https://schema.org/InStock',
-      },
-    }
-  : null;
+const productJsonLd = null;
 ---
 
 <Base
-  title={`${catLabel} для ${engine.brand_name} ${engine.engine_code} | Цены, наличие — MY AVTO Алматы`}
-  description={`${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}. ${rowsList.length} вариантов, бренды TEIKIN, IZUMI, NPR, RIK. Все ремонтные размеры. ${hasAnyPrice ? `Цены от ${formatKzt(lowPrice!)}.` : ''} Наличие в Алматы.`}
+  title={`${catLabel} для ${engine.brand_name} ${engine.engine_code} — характеристики и артикулы | MY AVTO Алматы`}
+  description={`${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}. Характеристики, бренды (${partsBrandList.join(', ') || 'TEIKIN, NPR, IZUMI'}), все ремонтные размеры, каталожные номера. Цены — по запросу в WhatsApp.`}
   keywords={`${engine.engine_code} ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} ${engine.engine_code} Алматы, ${engine.brand_name} ${engine.engine_code} капиталка, ${engine.engine_code} TEIKIN, ${engine.engine_code} NPR`}
-  jsonLd={productJsonLd ?? undefined}
 >
   <!-- Hero header — dark slice -->
   <div class="page-hero">
@@ -154,124 +114,100 @@ const productJsonLd = hasAnyPrice
           <span class="accent-text">для {engine.brand_name} {engine.engine_code}</span>
         </h1>
         <p class="ph-lead">
-          {rowsList.length} {rowsList.length === 1 ? 'вариант' : 'вариантов'} от разных брендов · все ремонтные размеры
-          {hasAnyPrice && ` · от ${formatKzt(lowPrice!)} за шт.`}
+          {variantList.length > 0
+            ? `${partsBrandList.length} ${partsBrandList.length === 1 ? 'бренд' : 'брендов'} · ${availableSizes.length} ${availableSizes.length === 1 ? 'размер' : 'размеров'}: ${availableSizes.join(', ')}`
+            : 'Уточните наличие и цену в WhatsApp.'}
         </p>
-        {hasAnyPrice && (
-          <div class="ph-meta">
-            {totalStock > 0 && (
-              <span class="ph-pill in-stock">
-                <span class="ph-dot"></span>{totalStock} шт в наличии
-              </span>
-            )}
-            <a href="https://wa.me/77015509377" class="btn">Узнать наличие</a>
-          </div>
-        )}
+        <div class="ph-meta">
+          <a href="https://wa.me/77015509377" class="btn">Узнать цену в WhatsApp</a>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="container">
-    {(attrMap.piston_spec_raw || attrMap.piston_diameter || attrMap.pin_diameter) && (
-      <section class="specs-strip reveal">
+    <section class="reveal">
+      <h2>Технические характеристики двигателя</h2>
+      <div class="specs-table">
+        <div class="spec-row">
+          <div class="spec-row-label">Марка авто</div>
+          <div class="spec-row-val">{engine.brand_name}</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-row-label">Код двигателя</div>
+          <div class="spec-row-val mono"><strong>{engine.engine_code}</strong></div>
+        </div>
+        {engine.volume_l && (
+          <div class="spec-row">
+            <div class="spec-row-label">Объём двигателя</div>
+            <div class="spec-row-val">{engine.volume_l} л</div>
+          </div>
+        )}
+        {engine.cylinder_count && (
+          <div class="spec-row">
+            <div class="spec-row-label">Количество цилиндров</div>
+            <div class="spec-row-val">{engine.cylinder_count}</div>
+          </div>
+        )}
+        {engine.valve_count && (
+          <div class="spec-row">
+            <div class="spec-row-label">Клапанов</div>
+            <div class="spec-row-val">{engine.valve_count}</div>
+          </div>
+        )}
+        <div class="spec-row">
+          <div class="spec-row-label">Тип топлива</div>
+          <div class="spec-row-val">{engine.is_diesel ? 'Дизель' : 'Бензин'}</div>
+        </div>
         {attrMap.piston_diameter && (
-          <div class="spec-item">
-            <div class="spec-label">Диаметр поршня</div>
-            <div class="spec-val">Ø {attrMap.piston_diameter} мм</div>
+          <div class="spec-row">
+            <div class="spec-row-label">Диаметр поршня</div>
+            <div class="spec-row-val">Ø {attrMap.piston_diameter} мм</div>
           </div>
         )}
         {attrMap.pin_diameter && (
-          <div class="spec-item">
-            <div class="spec-label">Диаметр пальца</div>
-            <div class="spec-val">Ø {attrMap.pin_diameter} мм</div>
+          <div class="spec-row">
+            <div class="spec-row-label">Диаметр пальца</div>
+            <div class="spec-row-val">Ø {attrMap.pin_diameter} мм</div>
           </div>
         )}
         {attrMap.piston_spec_raw && (
-          <div class="spec-item">
-            <div class="spec-label">Спецификация</div>
-            <div class="spec-val mono">{attrMap.piston_spec_raw}</div>
+          <div class="spec-row">
+            <div class="spec-row-label">Спецификация поршня</div>
+            <div class="spec-row-val mono">{attrMap.piston_spec_raw}</div>
           </div>
         )}
+      </div>
+    </section>
+
+    {variantList.length > 0 && (
+      <section class="reveal">
+        <h2>Доступные бренды и размеры</h2>
+        <p class="muted">
+          Под этот двигатель подходят {catLabel.toLowerCase()} следующих брендов.
+          Цена и точное наличие — по запросу.
+        </p>
+        <div class="variants-grid">
+          {variantList.map((v) => (
+            <div class="variant-card">
+              <div class="variant-head">
+                <strong class="variant-brand">{brandDisplay(v.brand)}</strong>
+                <span class="badge">{insertTypeLabel[v.insertType] ?? v.insertType}</span>
+              </div>
+              <div class="variant-sizes">
+                {sizesOrder.filter((s) => v.sizes.has(s)).map((s) => (
+                  <span class="size-chip">{s}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p class="price-note muted small">
+          STD — стандартный заводской размер. 0.25 / 0.50 / 0.75 / 1.00 — ремонтные размеры
+          (диаметр после расточки больше штатного на соответствующую величину в мм).
+        </p>
       </section>
     )}
-
-    <section class="reveal">
-      <h2>Варианты в наличии</h2>
-      {rowsList.length === 0 ? (
-        <div class="empty">
-          <p class="muted">Данные временно недоступны. Уточните наличие по WhatsApp.</p>
-          <a href="https://wa.me/77015509377" class="btn">Связаться</a>
-        </div>
-      ) : (
-        <>
-          <!-- Desktop / tablet таблица -->
-          <div class="table-wrap desktop-only">
-            <table class="price-table">
-              <thead>
-                <tr>
-                  <th>Бренд</th>
-                  <th>Тип</th>
-                  {sizeCodes.map((s) => <th>{s}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {rowsList.map((r) => (
-                  <tr>
-                    <td><strong>{brandDisplay(r.brand)}</strong></td>
-                    <td><span class="badge">{insertTypeLabel[r.insertType] ?? r.insertType}</span></td>
-                    {sizeCodes.map((s) => {
-                      const cell = r.sizes.get(s);
-                      if (!cell) return <td class="empty-cell">—</td>;
-                      return (
-                        <td>
-                          {cell.price !== null && <div class="price">{formatKzt(cell.price)}</div>}
-                          {cell.stockQty > 0 && <div class="badge in-stock small-stock">✓ {cell.stockQty} шт</div>}
-                          {cell.price === null && cell.stockQty === 0 && <span class="faint small">под заказ</span>}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Mobile карточки -->
-          <div class="mobile-only mobile-cards">
-            {rowsList.map((r) => (
-              <div class="mc-card">
-                <div class="mc-head">
-                  <strong class="mc-brand">{brandDisplay(r.brand)}</strong>
-                  <span class="badge">{insertTypeLabel[r.insertType] ?? r.insertType}</span>
-                </div>
-                <div class="mc-sizes">
-                  {sizeCodes.map((s) => {
-                    const cell = r.sizes.get(s);
-                    return (
-                      <div class={`mc-size${!cell || (cell.price === null && cell.stockQty === 0) ? ' is-empty' : ''}`}>
-                        <span class="mc-size-label">{s}</span>
-                        {cell && cell.price !== null ? (
-                          <span class="price mc-price">{formatKzt(cell.price)}</span>
-                        ) : (
-                          <span class="faint small">{cell ? 'под заказ' : '—'}</span>
-                        )}
-                        {cell && cell.stockQty > 0 && (
-                          <span class="badge in-stock small-stock">✓ {cell.stockQty}</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-      <p class="price-note muted small">
-        Цены указаны за <strong>1 шт</strong>. Комплект на двигатель — обычно 4–6 шт (по числу цилиндров).
-        Курс USD обновляется ежедневно. Точное наличие уточняйте по WhatsApp.
-      </p>
-    </section>
 
     {(oemNumbers.length > 0 || tknNumbers.length > 0 || catalogNumbers.length > 0) && (
       <section class="reveal">
@@ -300,16 +236,19 @@ const productJsonLd = hasAnyPrice
     )}
 
     <section class="reveal">
-      <h2>Что важно знать</h2>
+      <h2>Что важно знать о двигателе {engine.engine_code}</h2>
       <p>
-        При капитальном ремонте двигателя <strong>{engine.brand_name} {engine.engine_code}</strong>
-        {' '}{catLabel.toLowerCase()} подбираются под фактический размер расточки цилиндров.
-        Стандартный размер (STD) — для новых блоков без расточки, ремонтные размеры
-        (0.25, 0.50, 0.75, 1.00 мм) — после расточки на соответствующую величину.
+        Двигатель <strong>{engine.brand_name} {engine.engine_code}</strong>
+        {engine.volume_l && <> объёмом {engine.volume_l} л</>}
+        {engine.cylinder_count && <>, {engine.cylinder_count}-цилиндровый</>}
+        {engine.is_diesel ? ' (дизель).' : ' (бензин).'}
+        При капитальном ремонте {catLabel.toLowerCase()} подбираются под фактический
+        размер расточки цилиндров.
       </p>
       <p>
-        Продаём поштучно и комплектом. В наличии запчасти основных японских брендов:
-        TEIKIN, IZUMI, NPR, RIK, TP, ND. Оригинальные запчасти {engine.brand_name} — под заказ.
+        Бренды запчастей под этот двигатель в нашем каталоге:
+        {' '}<strong>{partsBrandList.length > 0 ? partsBrandList.map(brandDisplay).join(', ') : 'TEIKIN, IZUMI, NPR, RIK, TP'}</strong>.
+        Оригинальные запчасти {engine.brand_name} — под заказ из Японии.
       </p>
     </section>
 
@@ -317,9 +256,9 @@ const productJsonLd = hasAnyPrice
       <div class="cta-box reveal">
         <div class="cta-glow"></div>
         <div class="cta-content">
-          <h2>Не нашли нужный размер?</h2>
-          <p>Напишите код двигателя и нужный размер — подберём.</p>
-          <a href="https://wa.me/77015509377" class="btn">Написать в WhatsApp</a>
+          <h2>Узнать цену и наличие</h2>
+          <p>Напишите код двигателя и нужный размер — пришлём цену и сроки в WhatsApp.</p>
+          <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20${encodeURIComponent(catLabel.toLowerCase())}%20на%20${engine.brand_name}%20${engine.engine_code}`} class="btn" target="_blank" rel="noopener noreferrer">Написать в WhatsApp</a>
         </div>
       </div>
     </section>
@@ -418,14 +357,63 @@ const productJsonLd = hasAnyPrice
   .spec-val { font-size: 1.1rem; font-weight: 700; }
   .spec-val.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .95rem; }
 
-  .empty-cell { color: var(--c-text-faint); text-align: center; }
-  .small-stock { font-size: .72rem; padding: 2px 8px; margin-top: 4px; }
   .price-note { margin: 16px 0 0; }
-  .empty {
-    text-align: center;
-    padding: 48px;
-    background: var(--c-bg-soft);
+
+  /* Specs table */
+  .specs-table {
+    background: #fff;
+    border: 1px solid var(--c-border);
     border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .spec-row:last-child { border-bottom: 0; }
+  .spec-row-label { color: var(--c-text-dim); font-size: .94rem; }
+  .spec-row-val { font-weight: 600; color: var(--c-text); }
+  .spec-row-val.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  @media (max-width: 540px) {
+    .spec-row { grid-template-columns: 1fr; gap: 4px; padding: 12px 16px; }
+    .spec-row-label { font-size: .82rem; }
+  }
+
+  /* Variant cards */
+  .variants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .variant-card {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 16px 18px;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  }
+  .variant-card:hover { border-color: var(--c-red); box-shadow: var(--shadow-sm); }
+  .variant-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .variant-brand { font-size: 1.05rem; }
+  .variant-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .size-chip {
+    display: inline-block;
+    padding: 5px 10px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: .82rem;
+    font-weight: 600;
   }
 
   .numbers-grid {

@@ -127,58 +127,6 @@ const brandLogoMap: Record<string, string> = {
   <!-- ENGINE PICKER FORM -->
   <EnginePickerForm />
 
-  <!-- BRANDS GRID -->
-  <section class="brands-section">
-    <div class="container">
-      <div class="section-title reveal">
-        <span class="eyebrow">Каталог</span>
-        <h2>По маркам авто</h2>
-        <p>Выберите марку — увидите все двигатели с поршнями и кольцами в наличии</p>
-      </div>
-      <div class="grid cols-2">
-        {brands.map((b, i) => (
-          <a href={`/${brandSlug[b.brand_name] ?? b.brand_name.toLowerCase()}/`} class={`card brand-card reveal reveal-delay-${i % 4}`}>
-            {brandLogoMap[b.brand_name] && (
-              <img class="brand-logo" src={brandLogoMap[b.brand_name]} alt={b.brand_name} loading="lazy" />
-            )}
-            <div class="brand-card-content">
-              <h3>{b.brand_name}</h3>
-              <div class="brand-card-num">{b.engine_count}</div>
-              <div class="muted small">двигателей в каталоге</div>
-            </div>
-            <span class="card-arrow">→</span>
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  {popularEngines.length > 0 && (
-    <section class="popular-section">
-      <div class="container">
-        <div class="section-title reveal">
-          <span class="eyebrow">Популярное</span>
-          <h2>Часто заказывают</h2>
-          <p>Самые востребованные двигатели — почти всегда в наличии</p>
-        </div>
-        <div class="grid cols-4">
-          {popularEngines.map((e, i) => (
-            <a href={engineUrl(e.brand_name, e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
-              <div class="muted small brand-tag">{e.brand_name}</div>
-              <h3>{e.engine_code}</h3>
-              <div class="muted small">
-                {e.volume_l && `${e.volume_l} л`}
-                {e.valve_count && ` · ${e.valve_count}V`}
-                {e.is_diesel && ' · Дизель'}
-              </div>
-              <span class="card-arrow">→</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
-
   <!-- PARTS BRANDS MARQUEE — DARK -->
   <LogoMarquee
     title="Бренды запчастей"
