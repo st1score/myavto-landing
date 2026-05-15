@@ -261,6 +261,10 @@ const SIZES = ['STD', '0.25', '0.50', '0.75', 'не знаю'];
       ];
       const text = encodeURIComponent(lines.join('\n'));
       const url = `https://wa.me/${phoneDigits}?text=${text}`;
+      // Track Google Ads conversion before opening WhatsApp
+      if (typeof (window as any).trackWhatsAppConversion === 'function') {
+        (window as any).trackWhatsAppConversion();
+      }
       window.open(url, '_blank', 'noopener');
 
       form.hidden = true;

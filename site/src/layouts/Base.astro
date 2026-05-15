@@ -73,6 +73,25 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'AW-18062973221');
+
+  // Global conversion tracking: catch all WhatsApp + tel: clicks
+  document.addEventListener('click', function(e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a');
+    if (!a) return;
+    var href = a.getAttribute('href') || '';
+    if (href.indexOf('wa.me') !== -1 || href.indexOf('api.whatsapp.com') !== -1 || href.indexOf('whatsapp://') !== -1) {
+      gtag('event', 'conversion', {'send_to': 'AW-18062973221/hTneCMP33q0cEKWyjKVD'});
+    } else if (href.indexOf('tel:') === 0) {
+      gtag('event', 'conversion', {'send_to': 'AW-18062973221/BF4qCMb33q0cEKWyjKVD'});
+    }
+  }, true);
+
+  // Also catch programmatic WhatsApp opens from EnginePickerForm
+  window.trackWhatsAppConversion = function() {
+    gtag('event', 'conversion', {'send_to': 'AW-18062973221/hTneCMP33q0cEKWyjKVD'});
+  };
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
