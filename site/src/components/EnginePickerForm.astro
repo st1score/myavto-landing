@@ -1,0 +1,542 @@
+---
+import { CONTACTS } from '../lib/contacts';
+import { getEngines } from '../lib/db';
+
+const engines = await getEngines();
+const allEngineCodes = engines.map((e) => e.engine_code);
+
+const MAKERS = [
+  { name: 'Toyota', logo: '/assets/brands/toyota.png' },
+  { name: 'Nissan', logo: '/assets/brands/nissan.png' },
+  { name: 'Mitsubishi', logo: '/assets/brands/mitsubishi.png' },
+  { name: 'Mazda', logo: '/assets/brands/mazda.png' },
+  { name: 'Honda', logo: '/assets/brands/honda.png' },
+  { name: 'Subaru', logo: '/assets/brands/subaru.png' },
+  { name: 'Suzuki', logo: '/assets/brands/suzuki.png' },
+  { name: 'Lexus', logo: '/assets/brands/toyota.png' },
+];
+
+const PART_TYPES = [
+  { id: 'pistons', label: 'Поршни' },
+  { id: 'rings', label: 'Поршневые кольца' },
+  { id: 'mainBear', label: 'Вкладыши коренные' },
+  { id: 'rodBear', label: 'Вкладыши шатунные' },
+  { id: 'headGasket', label: 'Прокладка ГБЦ' },
+  { id: 'headKit', label: 'Ремкомплект ГБЦ' },
+  { id: 'seals', label: 'Сальники' },
+  { id: 'timing', label: 'Цепь / ремень ГРМ' },
+];
+
+const SIZES = ['STD', '0.25', '0.50', '0.75', 'не знаю'];
+---
+
+<section class="picker-section" id="picker">
+  <div class="container">
+    <div class="picker-head reveal">
+      <span class="eyebrow">Подбор за 5 минут</span>
+      <h2>Подберите запчасти<br /><span class="accent-text">под ваш двигатель</span></h2>
+      <p>Выберите марку, код двигателя и нужные детали — мы соберём заявку и пришлём цены в WhatsApp.</p>
+    </div>
+
+    <form class="picker-form reveal" id="enginePickerForm" novalidate>
+      <!-- Step 1: maker -->
+      <div class="form-step">
+        <label class="step-label"><span class="step-num">1</span> Марка авто</label>
+        <div class="makers-grid" role="radiogroup" aria-label="Марка авто">
+          {MAKERS.map((m) => (
+            <button
+              type="button"
+              class="maker-btn"
+              data-maker={m.name}
+              role="radio"
+              aria-checked="false"
+            >
+              <span class="maker-logo-wrap">
+                <img src={m.logo} alt={m.name} loading="lazy" />
+              </span>
+              <span class="maker-name">{m.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 2: engine code -->
+      <div class="form-step">
+        <label class="step-label" for="engineCodeInput">
+          <span class="step-num">2</span> Код двигателя или VIN
+        </label>
+        <div class="autocomplete-wrap">
+          <input
+            type="text"
+            id="engineCodeInput"
+            name="engineCode"
+            placeholder="2AZ-FE, 1KZ, 4G63, EJ20..."
+            autocomplete="off"
+            class="text-input"
+          />
+          <div class="suggest-list" id="suggestList" hidden></div>
+        </div>
+        <p class="hint">Не знаете код? Напишите VIN или модель и год — поможем определить.</p>
+      </div>
+
+      <!-- Step 3: parts -->
+      <div class="form-step">
+        <label class="step-label">
+          <span class="step-num">3</span> Что нужно <span class="step-hint">(можно несколько)</span>
+        </label>
+        <div class="parts-grid" role="group" aria-label="Запчасти">
+          {PART_TYPES.map((p) => (
+            <label class="part-checkbox">
+              <input type="checkbox" name="parts" value={p.label} data-part-id={p.id} />
+              <span class="part-box"></span>
+              <span class="part-label">{p.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 4: size -->
+      <div class="form-step">
+        <label class="step-label"><span class="step-num">4</span> Ремонтный размер</label>
+        <div class="sizes-row" role="radiogroup" aria-label="Размер">
+          {SIZES.map((s, i) => (
+            <button
+              type="button"
+              class={`size-btn ${i === 0 ? 'active' : ''}`}
+              data-size={s}
+              role="radio"
+              aria-checked={i === 0 ? 'true' : 'false'}
+            >{s}</button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Step 5: phone -->
+      <div class="form-step">
+        <label class="step-label" for="phoneInput">
+          <span class="step-num">5</span> Ваш телефон
+        </label>
+        <div class="phone-wrap">
+          <span class="phone-prefix">+7</span>
+          <input
+            type="tel"
+            id="phoneInput"
+            name="phone"
+            placeholder="701 234 56 78"
+            inputmode="numeric"
+            maxlength="14"
+            class="text-input phone-input"
+          />
+        </div>
+        <p class="hint">Отправим заявку в WhatsApp — менеджер ответит в течение 15 минут.</p>
+      </div>
+
+      <button type="submit" class="btn btn-lg picker-submit">
+        Отправить заявку в WhatsApp
+      </button>
+      <p class="form-disclaimer">
+        Кнопка откроет WhatsApp с уже готовым сообщением. Никакой отправки данных без вашего согласия.
+      </p>
+    </form>
+
+    <!-- Success state -->
+    <div class="picker-success" id="pickerSuccess" hidden>
+      <div class="success-icon">✓</div>
+      <h3>Откройте WhatsApp</h3>
+      <p>
+        Сообщение с вашими данными уже подготовлено. Нажмите «Отправить» в WhatsApp,
+        и {CONTACTS.manager} ответит в течение 15 минут в рабочее время
+        ({CONTACTS.hoursShort}).
+      </p>
+      <div class="success-actions">
+        <a href={CONTACTS.whatsapp} target="_blank" rel="noopener noreferrer" class="btn">
+          Открыть WhatsApp ещё раз
+        </a>
+        <button type="button" class="btn btn-ghost" id="resetPicker">Новая заявка</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ allEngineCodes, phoneDigits: CONTACTS.phoneDigits }}>
+  const form = document.getElementById('enginePickerForm');
+  const success = document.getElementById('pickerSuccess');
+  if (form && success) {
+    let selectedMaker = null;
+    let selectedSize = 'STD';
+
+    // Maker selection
+    form.querySelectorAll('.maker-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        form.querySelectorAll('.maker-btn').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+        selectedMaker = btn.dataset.maker;
+      });
+    });
+
+    // Size selection
+    form.querySelectorAll('.size-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        form.querySelectorAll('.size-btn').forEach((b) => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-checked', 'true');
+        selectedSize = btn.dataset.size;
+      });
+    });
+
+    // Engine code autocomplete
+    const codeInput = document.getElementById('engineCodeInput');
+    const suggestList = document.getElementById('suggestList');
+    codeInput.addEventListener('input', (e) => {
+      const v = e.target.value.toUpperCase();
+      e.target.value = v;
+      if (v.length < 1) {
+        suggestList.hidden = true;
+        suggestList.innerHTML = '';
+        return;
+      }
+      const matches = allEngineCodes
+        .filter((c) => c.toUpperCase().startsWith(v))
+        .slice(0, 6);
+      if (matches.length === 0) {
+        suggestList.hidden = true;
+        suggestList.innerHTML = '';
+        return;
+      }
+      suggestList.innerHTML = matches
+        .map((c) => `<button type="button" class="suggest-item" data-code="${c}">${c}</button>`)
+        .join('');
+      suggestList.hidden = false;
+    });
+    suggestList.addEventListener('mousedown', (e) => {
+      const btn = e.target.closest('.suggest-item');
+      if (!btn) return;
+      e.preventDefault();
+      codeInput.value = btn.dataset.code;
+      suggestList.hidden = true;
+    });
+    codeInput.addEventListener('blur', () => {
+      setTimeout(() => { suggestList.hidden = true; }, 150);
+    });
+
+    // Phone formatting
+    const phoneInput = document.getElementById('phoneInput');
+    phoneInput.addEventListener('input', (e) => {
+      let d = e.target.value.replace(/\D/g, '').slice(0, 10);
+      let f = '';
+      if (d.length > 0) f = d.slice(0, 3);
+      if (d.length > 3) f += ' ' + d.slice(3, 6);
+      if (d.length > 6) f += ' ' + d.slice(6, 8);
+      if (d.length > 8) f += ' ' + d.slice(8, 10);
+      e.target.value = f;
+    });
+
+    // Submit → build WhatsApp message
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const code = codeInput.value.trim() || '—';
+      const partsChecked = [...form.querySelectorAll('input[name="parts"]:checked')].map(
+        (i) => i.value
+      );
+      const partsStr = partsChecked.length > 0 ? partsChecked.join(', ') : '—';
+      const phoneDigitsLocal = phoneInput.value.replace(/\D/g, '');
+      const phoneStr = phoneDigitsLocal ? '+7 ' + phoneInput.value : '—';
+
+      const lines = [
+        'Здравствуйте! Подбор запчастей с сайта MY AVTO:',
+        '',
+        '• Авто: ' + (selectedMaker || '—'),
+        '• Двигатель: ' + code,
+        '• Что нужно: ' + partsStr,
+        '• Размер: ' + (selectedSize || '—'),
+        '• Телефон: ' + phoneStr,
+      ];
+      const text = encodeURIComponent(lines.join('\n'));
+      const url = `https://wa.me/${phoneDigits}?text=${text}`;
+      window.open(url, '_blank', 'noopener');
+
+      form.hidden = true;
+      success.hidden = false;
+      success.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Reset
+    document.getElementById('resetPicker').addEventListener('click', () => {
+      form.reset();
+      form.querySelectorAll('.maker-btn.active, .size-btn.active').forEach((b) => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      form.querySelector('.size-btn[data-size="STD"]').classList.add('active');
+      form.querySelector('.size-btn[data-size="STD"]').setAttribute('aria-checked', 'true');
+      selectedMaker = null;
+      selectedSize = 'STD';
+      success.hidden = true;
+      form.hidden = false;
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+</script>
+
+<style>
+  .picker-section {
+    padding: 80px 0;
+    background: var(--c-bg-soft);
+  }
+  @media (max-width: 768px) { .picker-section { padding: 48px 0; } }
+
+  .picker-head { text-align: center; max-width: 720px; margin: 0 auto 48px; }
+  .picker-head .eyebrow {
+    display: inline-block;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c-red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .picker-head h2 { margin-bottom: 16px; }
+  .picker-head p { color: var(--c-text-dim); font-size: 1.05rem; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .picker-form {
+    max-width: 760px; margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 32px;
+    box-shadow: var(--shadow-sm);
+  }
+  @media (max-width: 640px) { .picker-form { padding: 20px 16px; } }
+
+  .form-step { margin-bottom: 28px; }
+  .step-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-weight: 600;
+    font-size: .98rem;
+    color: var(--c-text);
+  }
+  .step-num {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 24px; height: 24px;
+    background: var(--c-black);
+    color: #fff;
+    border-radius: 50%;
+    font-size: .78rem;
+    font-weight: 700;
+  }
+  .step-hint { font-weight: 400; color: var(--c-text-faint); font-size: .85rem; margin-left: 4px; }
+
+  /* MAKERS */
+  .makers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 640px) { .makers-grid { grid-template-columns: repeat(3, 1fr); } }
+  .maker-btn {
+    background: #fff;
+    border: 2px solid var(--c-border);
+    border-radius: 10px;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--t-fast);
+    min-height: 80px;
+  }
+  .maker-btn:hover { border-color: var(--c-red); transform: translateY(-2px); }
+  .maker-btn.active {
+    border-color: var(--c-red);
+    box-shadow: 0 0 0 3px rgba(229,9,20,0.15);
+  }
+  .maker-logo-wrap {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px;
+    background: #fafafa;
+    min-height: 50px;
+  }
+  .maker-logo-wrap img { max-height: 32px; max-width: 80%; object-fit: contain; }
+  .maker-name {
+    display: block;
+    padding: 6px 4px;
+    font-size: .78rem;
+    font-weight: 600;
+    text-align: center;
+    background: #fff;
+    color: var(--c-text);
+  }
+  .maker-btn.active .maker-name { background: var(--c-red); color: #fff; }
+
+  /* INPUT */
+  .text-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    background: #fff;
+    transition: border-color var(--t-fast);
+  }
+  .text-input:focus { outline: none; border-color: var(--c-red); box-shadow: 0 0 0 3px rgba(229,9,20,0.1); }
+
+  .autocomplete-wrap { position: relative; }
+  .suggest-list {
+    position: absolute;
+    top: calc(100% + 4px); left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    z-index: 20;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .suggest-item {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: .92rem;
+  }
+  .suggest-item:hover { background: var(--c-bg-soft); color: var(--c-red); }
+
+  .hint { font-size: .85rem; color: var(--c-text-faint); margin-top: 6px; }
+
+  /* PARTS */
+  .parts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  @media (min-width: 640px) { .parts-grid { grid-template-columns: repeat(4, 1fr); } }
+  .part-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--t-fast);
+    user-select: none;
+    font-size: .9rem;
+  }
+  .part-checkbox:hover { border-color: var(--c-red); }
+  .part-checkbox input { display: none; }
+  .part-box {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border: 2px solid var(--c-border);
+    border-radius: 4px;
+    transition: all var(--t-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .part-checkbox input:checked + .part-box {
+    background: var(--c-red);
+    border-color: var(--c-red);
+  }
+  .part-checkbox input:checked + .part-box::after {
+    content: '✓';
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .part-checkbox:has(input:checked) {
+    border-color: var(--c-red);
+    background: rgba(229,9,20,0.04);
+  }
+
+  /* SIZES */
+  .sizes-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .size-btn {
+    padding: 10px 18px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--t-fast);
+  }
+  .size-btn:hover { border-color: var(--c-red); }
+  .size-btn.active { background: var(--c-red); border-color: var(--c-red); color: #fff; }
+
+  /* PHONE */
+  .phone-wrap { display: flex; align-items: stretch; }
+  .phone-prefix {
+    display: inline-flex; align-items: center;
+    padding: 0 14px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .phone-input { border-radius: 0 8px 8px 0; }
+
+  /* SUBMIT */
+  .picker-submit {
+    width: 100%;
+    margin-top: 8px;
+    font-size: 1.05rem;
+    padding: 16px 24px;
+  }
+  .form-disclaimer {
+    text-align: center;
+    margin-top: 14px;
+    font-size: .82rem;
+    color: var(--c-text-faint);
+  }
+
+  /* SUCCESS */
+  .picker-success {
+    max-width: 600px; margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 48px 32px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .success-icon {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 64px; height: 64px;
+    background: #25d366;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 32px;
+    margin-bottom: 20px;
+  }
+  .picker-success h3 { font-size: 1.6rem; margin-bottom: 12px; }
+  .picker-success p { color: var(--c-text-dim); margin-bottom: 24px; }
+  .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+</style>

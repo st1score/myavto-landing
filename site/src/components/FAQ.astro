@@ -1,0 +1,138 @@
+---
+const FAQ_ITEMS = [
+  {
+    q: 'Сколько идёт доставка по Алматы и по Казахстану?',
+    a: 'По Алматы — курьером в течение 2 часов с момента подтверждения заказа. По регионам РК — Казпочта, СДЭК, Pony Express или автобусом-попуткой (для крупных городов): 1–3 дня. Астана, Шымкент, Караганда, Тараз, Актобе, Усть-Каменогорск, Атырау, Актау, Павлодар, Костанай, Кызылорда — отправка ежедневно.',
+  },
+  {
+    q: 'Какие способы оплаты вы принимаете?',
+    a: 'Kaspi (перевод по номеру, Kaspi QR, Kaspi Red в рассрочку 0–0–12 для физлиц), Halyk Bank, безналичный расчёт для юр.лиц с НДС, наличными в Алматы при получении. Постоянным СТО — отсрочка платежа.',
+  },
+  {
+    q: 'Есть ли рассрочка Kaspi Red?',
+    a: 'Да, на заказы от 30 000 ₸ — Kaspi Red на 3, 6 или 12 месяцев без переплаты. Оформление за 5 минут по номеру телефона. Ремкомплекты ГБЦ и поршневые комплекты часто берут именно так.',
+  },
+  {
+    q: 'Можно ли подобрать запчасти, если я не знаю код двигателя?',
+    a: 'Да. Дайте VIN или модель и год авто — наш специалист по подбору найдёт код двигателя за 2 минуты. Если двигатель свапнут — пришлите фото шильдика на блоке или маркировки на ГБЦ, этого достаточно.',
+  },
+  {
+    q: 'Даёте ли гарантию на запчасти?',
+    a: 'На оригинальные бренды (TEIKIN, NPR, Riken, Taiho, NDC, Daido) — официальная гарантия производителя. Заводской брак — обмен в течение 14 дней. Гарантия не покрывает износ от неправильной сборки или эксплуатации.',
+  },
+  {
+    q: 'Работаете с юр. лицами?',
+    a: 'Да. ТОО, ИП, безналичный расчёт, НДС, ЭСФ. Полный пакет закрывающих документов через СНТ/ЭСФ. Договор поставки заключаем после первого заказа или по запросу.',
+  },
+  {
+    q: 'Есть ли отсрочка для СТО и моторных цехов?',
+    a: 'Да, для проверенных СТО и моторных цехов — отсрочка от 7 до 30 дней. Условия обсуждаются индивидуально после 2–3 заказов. Также есть бонусная программа: % от суммы заказа возвращается мастеру баллами.',
+  },
+  {
+    q: 'Что делать, если нужной позиции нет в наличии?',
+    a: 'Привозим под заказ из Японии, Кореи, Дубая или Турции. Срок 7–21 день в зависимости от поставщика. На критичные позиции (вкладыши STD/0.25, прокладки ГБЦ на популярные ДВС) — 80% всегда в наличии на складе в Алматы.',
+  },
+];
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ_ITEMS.map((it) => ({
+    '@type': 'Question',
+    name: it.q,
+    acceptedAnswer: { '@type': 'Answer', text: it.a },
+  })),
+};
+---
+
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div class="faq-head reveal">
+      <span class="eyebrow">FAQ</span>
+      <h2>Частые вопросы</h2>
+      <p>Доставка, оплата, гарантия, подбор — всё что нужно знать перед заказом.</p>
+    </div>
+
+    <div class="faq-list">
+      {FAQ_ITEMS.map((item, i) => (
+        <details class="faq-item reveal" name="faq" open={i === 0}>
+          <summary>
+            <span>{item.q}</span>
+            <span class="faq-chev" aria-hidden="true">+</span>
+          </summary>
+          <div class="faq-answer">
+            <p>{item.a}</p>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+<style>
+  .faq-section { padding: 80px 0; }
+  @media (max-width: 768px) { .faq-section { padding: 48px 0; } }
+
+  .faq-head { text-align: center; max-width: 720px; margin: 0 auto 48px; }
+  .faq-head .eyebrow {
+    display: inline-block;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c-red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .faq-head h2 { margin-bottom: 16px; }
+  .faq-head p { color: var(--c-text-dim); }
+
+  .faq-list { max-width: 820px; margin: 0 auto; }
+  .faq-item {
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    margin-bottom: 12px;
+    background: #fff;
+    overflow: hidden;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  }
+  .faq-item[open] { border-color: var(--c-red); box-shadow: var(--shadow-sm); }
+  .faq-item summary {
+    padding: 20px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--c-text);
+    list-style: none;
+    user-select: none;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary:hover { color: var(--c-red); }
+  .faq-chev {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: var(--c-bg-soft);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--c-text);
+    transition: all var(--t-fast);
+  }
+  .faq-item[open] .faq-chev { background: var(--c-red); color: #fff; transform: rotate(45deg); }
+  .faq-answer {
+    padding: 0 24px 22px;
+    color: var(--c-text-dim);
+    line-height: 1.65;
+  }
+  .faq-answer p { margin: 0; }
+  @media (max-width: 640px) {
+    .faq-item summary { padding: 16px 18px; font-size: .95rem; }
+    .faq-answer { padding: 0 18px 18px; font-size: .94rem; }
+  }
+</style>

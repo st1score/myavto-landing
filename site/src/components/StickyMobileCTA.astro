@@ -1,0 +1,75 @@
+---
+import { CONTACTS } from '../lib/contacts';
+import SocialIcon from './SocialIcon.astro';
+---
+<div class="sticky-cta" id="stickyCTA" aria-label="Быстрые контакты">
+  <a href={CONTACTS.whatsapp} target="_blank" rel="noopener noreferrer" class="cta-tile cta-wa" aria-label="WhatsApp">
+    <SocialIcon name="whatsapp" />
+    <span>WhatsApp</span>
+  </a>
+  <a href={`tel:${CONTACTS.phoneE164}`} class="cta-tile cta-call" aria-label="Позвонить">
+    <SocialIcon name="phone" />
+    <span>Позвонить</span>
+  </a>
+  <a href={CONTACTS.kaspi} target="_blank" rel="noopener noreferrer" class="cta-tile cta-kaspi" aria-label="Kaspi магазин">
+    <span class="kaspi-logo">K</span>
+    <span>Kaspi</span>
+  </a>
+  <a href={CONTACTS.telegram} target="_blank" rel="noopener noreferrer" class="cta-tile cta-tg" aria-label="Telegram">
+    <SocialIcon name="telegram" />
+    <span>Telegram</span>
+  </a>
+</div>
+
+<style>
+  .sticky-cta {
+    display: none;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-top: 1px solid var(--c-border);
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
+  }
+  @media (max-width: 900px) {
+    .sticky-cta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    /* Когда открыто бургер-меню — прячем sticky bar */
+    body.menu-open .sticky-cta { display: none; }
+    /* Отступ для контента, чтобы последняя секция не пряталась под баром */
+    body { padding-bottom: 64px; }
+  }
+  .cta-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--c-text);
+    font-size: .68rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background var(--t-fast);
+    min-height: 56px;
+  }
+  .cta-tile :global(svg) { width: 22px; height: 22px; }
+  .cta-tile:active { background: var(--c-bg-soft); }
+  .cta-wa :global(svg) { color: #25d366; }
+  .cta-call :global(svg) { color: var(--c-red); }
+  .cta-tg :global(svg) { color: #0088cc; }
+  .kaspi-logo {
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 22px; height: 22px;
+    background: #f14336;
+    color: #fff;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 14px;
+  }
+</style>

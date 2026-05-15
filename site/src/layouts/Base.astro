@@ -1,6 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import StickyMobileCTA from '../components/StickyMobileCTA.astro';
 
 export interface Props {
   title: string;
@@ -391,6 +392,7 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   <slot />
 </main>
 <Footer />
+<StickyMobileCTA />
 
 <script>
   // Scroll-reveal через IntersectionObserver

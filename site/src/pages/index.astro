@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import LogoMarquee from '../components/LogoMarquee.astro';
+import EnginePickerForm from '../components/EnginePickerForm.astro';
+import FAQ from '../components/FAQ.astro';
 import { getEngines, getBrandStats } from '../lib/db';
 import { brandSlug } from '../lib/slugs';
 
@@ -86,7 +88,7 @@ const brandLogoMap: Record<string, string> = {
         и других японских авто. Прямые поставки от TEIKIN, IZUMI, NPR, RIK.
       </p>
       <div class="hero-cta reveal reveal-delay-3">
-        <a href="https://wa.me/77015509377" class="btn" target="_blank" rel="noopener">Найти запчасть</a>
+        <a href="#picker" class="btn">Подобрать запчасти</a>
         <a href="/zapchasti/porshni/" class="btn btn-ghost btn-on-dark">Открыть каталог</a>
       </div>
     </div>
@@ -121,6 +123,9 @@ const brandLogoMap: Record<string, string> = {
     logos={autoBrands}
     speed={50}
   />
+
+  <!-- ENGINE PICKER FORM -->
+  <EnginePickerForm />
 
   <!-- BRANDS GRID -->
   <section class="brands-section">
@@ -237,6 +242,9 @@ const brandLogoMap: Record<string, string> = {
       </div>
     </div>
   </section>
+
+  <!-- FAQ -->
+  <FAQ />
 
   <!-- CTA -->
   <section class="cta-section">
