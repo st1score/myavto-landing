@@ -93,23 +93,29 @@ const doubled = [...logos, ...logos];
 
   /* Сетка логотипов на мобиле */
   .logos-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    /* minmax(0, 1fr) — иначе 1fr разъезжается из-за intrinsic min-size */
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
     padding-top: 8px;
   }
+  @media (max-width: 340px) {
+    .logos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  }
   .logo-cell {
-    aspect-ratio: 16 / 9;
-    background: rgba(255,255,255,0.04);
+    height: 64px;
+    background: #fafafa;
     border: 1px solid var(--c-border);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px;
+    padding: 10px;
     transition: transform var(--t-fast), border-color var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
   }
   .marquee-section.dark .logo-cell {
-    background: rgba(255,255,255,0.05);
+    background: #fafafa;
     border-color: rgba(255,255,255,0.08);
   }
   .logo-cell img {
