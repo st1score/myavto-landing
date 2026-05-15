@@ -1,0 +1,133 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getEngines, getEnginePartsIndex } from '../../lib/db';
+import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../lib/slugs';
+import { categoryLabel } from '../../lib/labels';
+
+export async function getStaticPaths() {
+  return Object.values(categorySlug).map((slug) => ({ params: { category: slug } }));
+}
+
+const { category } = Astro.params;
+const categoryCode = categoryFromSlug[category!];
+const catLabel = categoryLabel[categoryCode];
+
+const [engines, partsIdx] = await Promise.all([getEngines(), getEnginePartsIndex()]);
+const enginesWithPart = new Set(
+  partsIdx.filter((p) => p.category_code === categoryCode).map((p) => p.engine_code)
+);
+const filtered = engines.filter((e) => enginesWithPart.has(e.engine_code));
+
+const byBrand = new Map<string, typeof filtered>();
+for (const e of filtered) {
+  if (!byBrand.has(e.brand_name)) byBrand.set(e.brand_name, []);
+  byBrand.get(e.brand_name)!.push(e);
+}
+const brandsOrdered = [...byBrand.entries()].sort((a, b) => b[1].length - a[1].length);
+
+function url(brand: string, code: string) {
+  return `/${brandSlug[brand]}/dvigateli/${engineSlug(code)}/${category}/`;
+}
+---
+
+<Base
+  title={`${catLabel} для японских авто в Алматы | Каталог по двигателям — MY AVTO`}
+  description={`Купить ${catLabel.toLowerCase()} в Алматы. Каталог для ${filtered.length} двигателей: Toyota, Nissan, Mitsubishi, Mazda. Бренды TEIKIN, IZUMI, NPR, RIK.`}
+  keywords={`${catLabel.toLowerCase()} Алматы, купить ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} японские авто, ${catLabel.toLowerCase()} TEIKIN`}
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: catLabel }]} />
+      <div class="ph-content reveal">
+        <span class="eyebrow eyebrow-light">Каталог</span>
+        <h1>{catLabel}<br /><span class="accent-text">для японских авто</span></h1>
+        <p class="ph-lead">
+          Каталог {catLabel.toLowerCase()} для <strong>{filtered.length} двигателей</strong> Toyota,
+          Nissan, Mitsubishi, Mazda. Все ремонтные размеры. Бренды: TEIKIN, IZUMI, NPR, RIK, TP, ND.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    {brandsOrdered.map(([brand, list]) => (
+      <section class="reveal">
+        <div class="section-head">
+          <h2>{brand}</h2>
+          <span class="badge">{list.length} {list.length === 1 ? 'двигатель' : 'двигателей'}</span>
+        </div>
+        <div class="grid cols-4">
+          {list.map((e, i) => (
+            <a href={url(e.brand_name, e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
+              <h3>{e.engine_code}</h3>
+              <p class="muted small">
+                {e.volume_l && `${e.volume_l} л`}
+                {e.is_diesel && ' · Дизель'}
+              </p>
+              <span class="card-arrow">→</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+    .ph-content { padding-top: 16px; }
+    .section-head { margin-bottom: 20px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 32px; max-width: 800px; }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.1rem; }
+  .eyebrow-light { color: #ff5760; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .section-head h2 { margin: 0; }
+  .engine-card { padding: 24px; position: relative; }
+  .engine-card h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+</style>

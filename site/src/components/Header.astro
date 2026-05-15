@@ -1,0 +1,248 @@
+---
+import { brandSlug } from '../lib/slugs';
+import Logo from './Logo.astro';
+const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
+---
+<header class="site-header" id="site-header">
+  <div class="container header-inner">
+    <Logo size={44} variant="light" />
+    <nav class="nav" aria-label="Главная навигация">
+      <a href="/zapchasti/porshni/">Поршни</a>
+      <a href="/zapchasti/koltsa-porshnevye/">Кольца</a>
+      <a href="/zapchasti/vkladyshi/">Вкладыши</a>
+      <a href="/brendy/">Бренды</a>
+      <details class="dropdown">
+        <summary>Марки <span class="chev">▾</span></summary>
+        <div class="dropdown-menu">
+          {brands.map((b) => (
+            <a href={`/${brandSlug[b]}/`}>{b}</a>
+          ))}
+        </div>
+      </details>
+      <a href="/dostavka/">Доставка</a>
+      <a href="/o-nas/">О нас</a>
+      <a href="/kontakty/">Контакты</a>
+    </nav>
+    <div class="header-actions">
+      <a href="tel:+77015509377" class="phone-link" aria-label="Позвонить">
+        <span class="phone-dot"></span>+7 701 550-93-77
+      </a>
+      <a href="https://wa.me/77015509377" class="btn btn-sm" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+    <button class="burger" id="burger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/zapchasti/porshni/">Поршни</a>
+    <a href="/zapchasti/koltsa-porshnevye/">Поршневые кольца</a>
+    <a href="/zapchasti/vkladyshi/">Вкладыши коленвала</a>
+    <a href="/brendy/">Бренды запчастей</a>
+    <div class="mobile-divider">Марки</div>
+    {brands.map((b) => <a href={`/${brandSlug[b]}/`}>{b}</a>)}
+    <div class="mobile-divider">Инфо</div>
+    <a href="/dostavka/">Доставка</a>
+    <a href="/o-nas/">О нас</a>
+    <a href="/kontakty/">Контакты</a>
+    <a href="https://wa.me/77015509377" class="btn" style="margin-top: 8px;">WhatsApp</a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid var(--c-border);
+    transition: background var(--t-fast), box-shadow var(--t-fast);
+  }
+  .site-header.scrolled {
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  /* На мобиле отключаем тяжёлый backdrop-filter — даём solid фон */
+  @media (max-width: 900px) {
+    .site-header {
+      background: #fff;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 24px;
+  }
+  @media (max-width: 640px) { .header-inner { padding: 14px 16px; gap: 16px; } }
+
+  :global(.site-header .myavto-logo) { flex-shrink: 0; }
+  @media (max-width: 640px) {
+    :global(.site-header .myavto-logo svg) { height: 36px; }
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    flex: 1;
+    justify-content: center;
+  }
+  .nav a, .nav summary {
+    color: var(--c-text);
+    font-size: .94rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .nav a:hover { color: var(--c-red); }
+
+  .dropdown { position: relative; }
+  .dropdown summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .dropdown summary::-webkit-details-marker { display: none; }
+  .chev { font-size: .7em; transition: transform var(--t-fast); }
+  .dropdown[open] .chev { transform: rotate(180deg); }
+  .dropdown[open] summary { color: var(--c-red); }
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .dropdown-menu a {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: .92rem;
+  }
+  .dropdown-menu a:hover { background: var(--c-bg-soft); color: var(--c-red); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: .92rem;
+    color: var(--c-text);
+  }
+  .phone-link:hover { color: var(--c-red); }
+  .phone-dot {
+    width: 8px; height: 8px;
+    background: var(--c-red);
+    border-radius: 50%;
+    animation: pulse 1.8s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(229,9,20, 0.5);
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229,9,20, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(229,9,20, 0); }
+  }
+
+  .burger {
+    display: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    width: 36px; height: 36px;
+    padding: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    align-items: center;
+  }
+  .burger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: var(--c-black);
+    border-radius: 2px;
+    transition: transform var(--t-fast), opacity var(--t-fast);
+  }
+  .burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .burger.open span:nth-child(2) { opacity: 0; }
+  .burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 16px 20px;
+    border-top: 1px solid var(--c-border);
+    background: #fff;
+    max-height: calc(100dvh - 70px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-menu a {
+    padding: 14px 4px;
+    font-size: 1.05rem;
+    font-weight: 500;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+  .mobile-menu.open { display: flex; }
+  body.menu-open { overflow: hidden; }
+  .mobile-divider {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    margin-top: 12px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 1100px) {
+    .header-actions .phone-link { display: none; }
+  }
+  @media (max-width: 900px) {
+    .nav { display: none; }
+    .burger { display: flex; }
+    .header-actions { display: none; }
+  }
+</style>
+
+<script>
+  const header = document.getElementById('site-header');
+  const onScroll = () => {
+    if (!header) return;
+    if (window.scrollY > 8) header.classList.add('scrolled');
+    else header.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const burger = document.getElementById('burger');
+  const menu = document.getElementById('mobile-menu');
+  function toggleMenu(force?: boolean) {
+    const isOpen = force ?? !burger?.classList.contains('open');
+    burger?.classList.toggle('open', isOpen);
+    menu?.classList.toggle('open', isOpen);
+    document.body.classList.toggle('menu-open', isOpen);
+  }
+  burger?.addEventListener('click', () => toggleMenu());
+  // Закрываем меню после клика на ссылку
+  menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => toggleMenu(false)));
+  // Закрываем по Esc
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleMenu(false); });
+</script>

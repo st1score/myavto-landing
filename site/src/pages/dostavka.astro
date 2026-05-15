@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base
+  title="Доставка и оплата | MY AVTO — запчасти в Алматы и по Казахстану"
+  description="Доставка запчастей по Алматы курьером в день заказа. По Казахстану — автобус, авиа, Kazpost, Indriver. Оплата Kaspi (в т.ч. рассрочка), безнал, наличные."
+>
+  <div class="container">
+    <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Доставка и оплата' }]} />
+    <h1>Доставка и оплата</h1>
+
+    <section>
+      <h2>Доставка по Алматы</h2>
+      <p>
+        Курьерская доставка в день заказа. При заказе до 14:00 — обычно доставляем в тот же день.
+        Стоимость доставки уточняйте у менеджера.
+      </p>
+      <p>Самовывоз: ТЦ «CarCity», 3 ярус, бутик 135В.</p>
+    </section>
+
+    <section>
+      <h2>Доставка по Казахстану</h2>
+      <ul>
+        <li><strong>Автобусом</strong> — для крупных городов, недорого, 1–2 дня</li>
+        <li><strong>Авиа (Air Astana, FlyArystan)</strong> — быстро, для срочных заказов</li>
+        <li><strong>Kazpost</strong> — для удалённых населённых пунктов</li>
+        <li><strong>Indriver / Яндекс Такси / InDrive</strong> — для близких городов</li>
+      </ul>
+      <p>Срок доставки в регионы — 1–5 дней в зависимости от способа.</p>
+    </section>
+
+    <section>
+      <h2>Оплата</h2>
+      <ul>
+        <li><strong>Kaspi</strong> — мгновенная оплата через QR или номер</li>
+        <li><strong>Kaspi рассрочка</strong> — на 3, 6 или 12 месяцев без переплат</li>
+        <li><strong>Безналичный расчёт</strong> — для юр. лиц</li>
+        <li><strong>Наличные</strong> — при самовывозе</li>
+      </ul>
+    </section>
+
+    <section>
+      <a href="https://wa.me/77015509377" class="btn">Уточнить условия в WhatsApp</a>
+    </section>
+  </div>
+</Base>

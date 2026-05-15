@@ -1,0 +1,299 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import { getEngines, getEnginePartsIndex, getPartNumbers, getAttributes } from '../../../../lib/db';
+import { brandSlug, engineSlug } from '../../../../lib/slugs';
+
+export async function getStaticPaths() {
+  const engines = await getEngines();
+  const partsIdx = await getEnginePartsIndex();
+  const byEngine = new Map<string, string[]>();
+  for (const p of partsIdx) {
+    const arr = byEngine.get(p.engine_code) ?? [];
+    arr.push(p.category_code);
+    byEngine.set(p.engine_code, arr);
+  }
+  return engines.map((e) => ({
+    params: {
+      brand: brandSlug[e.brand_name] ?? e.brand_name.toLowerCase(),
+      engine: engineSlug(e.engine_code),
+    },
+    props: { engine: e, categories: byEngine.get(e.engine_code) ?? [] },
+  }));
+}
+
+const { engine, categories } = Astro.props;
+
+const [pistonNumbers, ringNumbers, pistonAttrs] = await Promise.all([
+  getPartNumbers(engine.engine_code, 'PISTON'),
+  getPartNumbers(engine.engine_code, 'RING'),
+  getAttributes(engine.engine_code, 'PISTON'),
+]);
+
+const attrMap = Object.fromEntries(
+  pistonAttrs.map((a) => [a.attribute_code, a.value_text ?? a.value_number ?? a.value_integer])
+);
+
+const oemPistons = pistonNumbers.filter((n) => n.number_type === 'oem' || n.number_type === 'alt_oem');
+const tknPistons = pistonNumbers.filter((n) => n.number_type === 'teikin');
+const oemRings = ringNumbers.filter((n) => n.number_type === 'oem');
+
+const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
+const engSl = engineSlug(engine.engine_code);
+---
+
+<Base
+  title={`Запчасти для ${engine.brand_name} ${engine.engine_code} | Капиталка двигателя в Алматы — MY AVTO`}
+  description={`Поршни и поршневые кольца для двигателя ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}. Все ремонтные размеры. Наличие в Алматы. Доставка по Казахстану.`}
+  keywords={`${engine.engine_code} поршни, ${engine.engine_code} кольца, ${engine.brand_name} ${engine.engine_code} капиталка, ремкомплект ${engine.engine_code} Алматы`}
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[
+        { name: 'Главная', href: '/' },
+        { name: engine.brand_name, href: `/${brandSl}/` },
+        { name: engine.engine_code },
+      ]} />
+      <div class="ph-content reveal">
+        <div class="ph-tags">
+          <span class="ph-tag">{engine.brand_name}</span>
+          {engine.volume_l && <span class="ph-tag">{engine.volume_l} л</span>}
+          {engine.valve_count && <span class="ph-tag">{engine.valve_count}V</span>}
+          {engine.is_diesel && <span class="ph-tag">Дизель</span>}
+          {engine.cylinder_count && <span class="ph-tag">{engine.cylinder_count} цил.</span>}
+        </div>
+        <h1>
+          Двигатель<br />
+          <span class="accent-text">{engine.brand_name} {engine.engine_code}</span>
+        </h1>
+        <p class="ph-lead">
+          Запчасти для капитального ремонта: поршни в сборе и поршневые кольца.
+          Все ремонтные размеры — STD, 0.25, 0.50, 0.75, 1.00.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    {(attrMap.piston_diameter || attrMap.pin_diameter || attrMap.piston_spec_raw) && (
+      <section class="specs-strip reveal">
+        {engine.volume_l && <div class="spec-item"><div class="spec-label">Объём</div><div class="spec-val">{engine.volume_l} л</div></div>}
+        {engine.cylinder_count && <div class="spec-item"><div class="spec-label">Цилиндров</div><div class="spec-val">{engine.cylinder_count}</div></div>}
+        {engine.valve_count && <div class="spec-item"><div class="spec-label">Клапанов</div><div class="spec-val">{engine.valve_count}</div></div>}
+        <div class="spec-item"><div class="spec-label">Топливо</div><div class="spec-val">{engine.is_diesel ? 'Дизель' : 'Бензин'}</div></div>
+        {attrMap.piston_diameter && <div class="spec-item"><div class="spec-label">Ø поршня</div><div class="spec-val">{attrMap.piston_diameter} мм</div></div>}
+        {attrMap.pin_diameter && <div class="spec-item"><div class="spec-label">Ø пальца</div><div class="spec-val">{attrMap.pin_diameter} мм</div></div>}
+      </section>
+    )}
+    {engine.notes && <p class="muted notes reveal">{engine.notes}</p>}
+
+    {categories.length > 0 && (
+      <section class="reveal">
+        <h2>Запчасти в наличии</h2>
+        <div class="grid cols-2">
+          {categories.includes('PISTON') && (
+            <a href={`/${brandSl}/dvigateli/${engSl}/porshni/`} class="card big-card">
+              <div class="big-card-icon">🔧</div>
+              <h3>Поршни на {engine.engine_code}</h3>
+              <p class="muted">
+                Поршни в сборе. Бренды TEIKIN, IZUMI, ND, ART, оригинал.
+                Размеры STD / 0.25 / 0.50 / 0.75 / 1.00.
+              </p>
+              <span class="card-link">Посмотреть варианты <span class="arrow">→</span></span>
+            </a>
+          )}
+          {categories.includes('RING') && (
+            <a href={`/${brandSl}/dvigateli/${engSl}/koltsa-porshnevye/`} class="card big-card">
+              <div class="big-card-icon">⚙️</div>
+              <h3>Поршневые кольца на {engine.engine_code}</h3>
+              <p class="muted">
+                Комплекты поршневых колец. Бренды TP, RIK, NPR, оригинал.
+                Все ремонтные размеры.
+              </p>
+              <span class="card-link">Посмотреть варианты <span class="arrow">→</span></span>
+            </a>
+          )}
+        </div>
+      </section>
+    )}
+
+    {(oemPistons.length > 0 || tknPistons.length > 0 || oemRings.length > 0) && (
+      <section class="reveal">
+        <h2>Каталожные номера</h2>
+        <div class="numbers-grid">
+          {oemPistons.length > 0 && (
+            <div>
+              <div class="num-title">OEM номера поршней</div>
+              <div class="numbers">{oemPistons.map((n) => <span class="number">{n.number_value}</span>)}</div>
+            </div>
+          )}
+          {tknPistons.length > 0 && (
+            <div>
+              <div class="num-title">Номера TEIKIN</div>
+              <div class="numbers">{tknPistons.map((n) => <span class="number">TKN {n.number_value}</span>)}</div>
+            </div>
+          )}
+          {oemRings.length > 0 && (
+            <div>
+              <div class="num-title">OEM номера колец</div>
+              <div class="numbers">{oemRings.map((n) => <span class="number">{n.number_value}</span>)}</div>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <section class="cta-section">
+      <div class="cta-box reveal">
+        <div class="cta-glow"></div>
+        <div class="cta-content">
+          <h2>Не нашли нужный размер?</h2>
+          <p>Напишите номер двигателя — подберём поршни и кольца под капиталку.</p>
+          <a href="https://wa.me/77015509377" class="btn">Написать в WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+    .ph-content { padding-top: 16px; }
+    .big-card { padding: 24px; }
+    .big-card-icon { width: 48px; height: 48px; font-size: 1.4rem; margin-bottom: 14px; }
+    .specs-strip { grid-template-columns: 1fr 1fr; }
+    .spec-item { padding: 14px 16px; }
+    .spec-item:nth-child(2n) { border-right: 0; }
+    .cta-box { padding: 40px 24px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 24px; max-width: 800px; }
+  .ph-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .ph-tag {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: .78rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+  }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.1rem; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .specs-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .spec-item { padding: 20px 24px; border-right: 1px solid var(--c-border); }
+  .spec-item:last-child { border-right: 0; }
+  .spec-label {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .spec-val { font-size: 1.05rem; font-weight: 700; }
+  .notes { font-style: italic; margin: 0 0 48px; }
+
+  .big-card {
+    padding: 36px;
+    text-align: left;
+  }
+  .big-card-icon {
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+  .big-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 12px;
+  }
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--c-red);
+    font-weight: 600;
+    margin-top: 16px;
+  }
+  .card-link .arrow { transition: transform var(--t-fast); }
+  .big-card:hover .card-link .arrow { transform: translateX(4px); }
+
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+  }
+  .num-title {
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .cta-section { padding: 32px 0 0; }
+  .cta-box {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    border-radius: var(--r-xl);
+    padding: 64px 32px;
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .cta-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.4) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .cta-box h2 { color: #fff; }
+  .cta-box p { color: rgba(255,255,255,0.75); }
+</style>

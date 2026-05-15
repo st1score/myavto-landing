@@ -1,0 +1,107 @@
+---
+export interface Props {
+  variant?: 'light' | 'dark';
+  size?: number; // высота в px
+  spin?: boolean;
+  compact?: boolean; // для мобилки — текст + меньшая шестерня
+}
+const { variant = 'light', size = 48, spin = true } = Astro.props;
+
+// Реалистичная 18-зубая шестерня (как на оригинальном лого)
+const TEETH = 18;
+const SECTOR = (Math.PI * 2) / TEETH;
+const TOOTH_TOP = SECTOR * 0.46;
+const BEVEL = SECTOR * 0.05;
+const R_OUTER = 100;
+const R_INNER = 80;
+
+type P = [number, number];
+const pts: P[] = [];
+for (let i = 0; i < TEETH; i++) {
+  const cx = i * SECTOR - Math.PI / 2;
+  pts.push([cx - SECTOR/2 + BEVEL, R_INNER]);
+  pts.push([cx - TOOTH_TOP/2, R_OUTER]);
+  pts.push([cx + TOOTH_TOP/2, R_OUTER]);
+  pts.push([cx + SECTOR/2 - BEVEL, R_INNER]);
+}
+const gearPath = pts.map(([a, r], i) => {
+  const x = Math.cos(a) * r;
+  const y = Math.sin(a) * r;
+  return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+}).join(' ') + ' Z';
+
+// 3 спицы (отверстия), 120° друг от друга — чтобы вращение было видно
+const SPOKES = 3;
+const spokeAngle = (Math.PI * 2) / SPOKES;
+const spokeDist = 55;
+const spokeRadius = 12;
+const spokes = Array.from({ length: SPOKES }, (_, i) => {
+  const a = i * spokeAngle - Math.PI / 2;
+  return { cx: Math.cos(a) * spokeDist, cy: Math.sin(a) * spokeDist };
+});
+
+const isLight = variant === 'light';
+const textBlack = isLight ? '#0a0a0a' : '#ffffff';
+const gearBody = isLight ? '#0a0a0a' : '#ffffff';
+const holeColor = isLight ? '#ffffff' : '#0a0a0a';
+---
+<a href="/" class="myavto-logo" aria-label="MY AVTO — главная" style={`--logo-h: ${size}px`}>
+  <svg viewBox="0 0 880 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+    <!-- TEXT — MYAVTO -->
+    <g font-family="'Inter', -apple-system, sans-serif" font-weight="900" font-style="italic" letter-spacing="-5">
+      <text x="20" y="148" font-size="160" fill={textBlack}>MY</text>
+      <text x="245" y="148" font-size="160" fill="#E50914">AVTO</text>
+    </g>
+
+    <!-- GEAR — справа, с гарантированным отступом от букв -->
+    <g transform="translate(770, 100)">
+      <g class={spin ? 'gear-spin' : ''}>
+        <!-- мягкая тень -->
+        <path d={gearPath} fill="rgba(0,0,0,0.22)" transform="translate(3, 5)"/>
+        <!-- корпус шестерни -->
+        <path d={gearPath} fill={gearBody}/>
+        <!-- внутренняя красная окантовка -->
+        <circle r="62" fill="none" stroke="#E50914" stroke-width="10"/>
+        <!-- спицы (отверстия) — делают вращение видимым -->
+        {spokes.map(s => (
+          <circle cx={s.cx} cy={s.cy} r={spokeRadius} fill={holeColor}/>
+        ))}
+        <!-- центральная втулка -->
+        <circle r="20" fill={holeColor}/>
+        <circle r="6" fill="#E50914"/>
+      </g>
+    </g>
+  </svg>
+</a>
+
+<style>
+  .myavto-logo {
+    display: inline-flex;
+    line-height: 0;
+    transition: transform var(--t-fast);
+    text-decoration: none;
+  }
+  .myavto-logo:hover { transform: scale(1.03); }
+  .myavto-logo svg {
+    height: var(--logo-h, 48px);
+    width: auto;
+    display: block;
+  }
+
+  .gear-spin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: gear-rotate 14s linear infinite;
+    will-change: transform;
+  }
+  .myavto-logo:hover .gear-spin {
+    animation-duration: 2.5s;
+  }
+  @keyframes gear-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gear-spin { animation: none; }
+  }
+</style>

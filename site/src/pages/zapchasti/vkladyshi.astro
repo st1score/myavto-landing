@@ -1,0 +1,261 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getEngines } from '../../lib/db';
+
+const engines = await getEngines();
+const byBrand = new Map<string, typeof engines>();
+for (const e of engines) {
+  if (!byBrand.has(e.brand_name)) byBrand.set(e.brand_name, []);
+  byBrand.get(e.brand_name)!.push(e);
+}
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Какие бренды вкладышей вы продаёте?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Daido (ND), Taiho, NDC, NPR — оригинальные японские бренды. Подбираем под код двигателя за 2 минуты.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Какие ремонтные размеры вкладышей есть?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'STD (стандарт), 0.25, 0.50, 0.75 — для большинства популярных двигателей. Некоторые имеют 1.00. Уточняйте по коду двигателя.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Чем отличаются коренные и шатунные вкладыши?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Коренные вкладыши устанавливаются между коленвалом и блоком цилиндров (опорные). Шатунные — между шатуном и шейкой коленвала. При капремонте меняются обе пары.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Можно ли подобрать вкладыши без кода двигателя?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Да, по VIN автомобиля или по модели и году выпуска. Если двигатель свапнут — пришлите фото шильдика на блоке.',
+      },
+    },
+  ],
+};
+---
+<Base
+  title="Вкладыши коленвала и шатунные для японских авто в Алматы | MY AVTO"
+  description="Купить вкладыши коленвала (коренные, шатунные) для Toyota, Nissan, Mitsubishi, Mazda. Бренды Daido, Taiho, NDC. Все ремонтные размеры. Алматы, доставка по РК."
+  keywords="вкладыши коленвала Алматы, шатунные вкладыши, коренные вкладыши, вкладыши Toyota, Daido, Taiho, NDC, вкладыши купить"
+  jsonLd={faqJsonLd}
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Вкладыши коленвала' }]} />
+      <div class="ph-content reveal">
+        <span class="eyebrow eyebrow-light">Каталог</span>
+        <h1>Вкладыши коленвала<br /><span class="accent-text">для японских авто</span></h1>
+        <p class="ph-lead">
+          Коренные и шатунные вкладыши для <strong>{engines.length} двигателей</strong> Toyota,
+          Nissan, Mitsubishi, Mazda. Все ремонтные размеры (STD, 0.25, 0.50, 0.75).
+          Бренды: <strong>Daido (ND), Taiho, NDC, NPR</strong>.
+        </p>
+        <div class="hero-cta-block">
+          <a href="https://wa.me/77015509377?text=Здравствуйте,%20нужны%20вкладыши%20на%20двигатель" class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+            Подобрать в WhatsApp
+          </a>
+          <a href="tel:+77015509377" class="btn btn-lg btn-outline-light">
+            +7 701 550-93-77
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <section class="reveal">
+      <h2>Какие вкладыши мы поставляем</h2>
+      <div class="grid cols-3">
+        <div class="card info-card">
+          <h3>Коренные вкладыши</h3>
+          <p class="muted">
+            Опорные вкладыши коленвала, устанавливаются между коленвалом и блоком цилиндров.
+            Воспринимают основную нагрузку при работе двигателя.
+          </p>
+        </div>
+        <div class="card info-card">
+          <h3>Шатунные вкладыши</h3>
+          <p class="muted">
+            Устанавливаются в нижнюю головку шатуна. При капремонте меняются всегда вместе
+            с коренными — это парная работа.
+          </p>
+        </div>
+        <div class="card info-card">
+          <h3>Упорные полукольца</h3>
+          <p class="muted">
+            Ограничивают осевое перемещение коленвала. Поставляем комплектами вместе
+            с вкладышами или отдельно.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <h2>Бренды вкладышей</h2>
+      <div class="grid cols-4 brand-grid">
+        <a href="/brendy/nd/" class="card brand-card">
+          <h3>Daido / ND</h3>
+          <p class="muted small">Оригинальный поставщик Toyota, Honda, Nissan</p>
+        </a>
+        <a href="/brendy/taiho/" class="card brand-card">
+          <h3>Taiho</h3>
+          <p class="muted small">Японский премиум, OEM качество</p>
+        </a>
+        <a href="/brendy/ndc/" class="card brand-card">
+          <h3>NDC</h3>
+          <p class="muted small">Качественные вкладыши Mitsubishi, Nissan</p>
+        </a>
+        <a href="/brendy/npr/" class="card brand-card">
+          <h3>NPR</h3>
+          <p class="muted small">Полная линейка по всем японцам</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="reveal">
+      <h2>Ремонтные размеры</h2>
+      <p>
+        Размер вкладыша подбирается по фактическому диаметру шеек коленвала после шлифовки:
+      </p>
+      <ul class="size-list">
+        <li><strong>STD</strong> — стандартный заводской размер, новый коленвал</li>
+        <li><strong>0.25 (–0.25 мм)</strong> — после первой шлифовки</li>
+        <li><strong>0.50 (–0.50 мм)</strong> — после второй шлифовки</li>
+        <li><strong>0.75 (–0.75 мм)</strong> — третья шлифовка, ближе к пределу</li>
+        <li><strong>1.00 (–1.00 мм)</strong> — для некоторых двигателей, последний размер</li>
+      </ul>
+      <p>
+        Если не знаете размер — мы поможем с подбором по коду двигателя. В большинстве случаев при
+        капремонте берут <strong>STD или 0.25</strong>, после серьёзной шлифовки — 0.50 и больше.
+      </p>
+    </section>
+
+    <section class="reveal">
+      <h2>Двигатели в каталоге</h2>
+      <p class="muted">
+        Все эти двигатели мы обслуживаем по поршням и кольцам. Вкладыши — под заказ или
+        уточняйте наличие в WhatsApp.
+      </p>
+      {[...byBrand.entries()].sort((a, b) => b[1].length - a[1].length).map(([brand, list]) => (
+        <div class="engine-block">
+          <h3>{brand} <span class="badge">{list.length}</span></h3>
+          <div class="engine-tags">
+            {list.slice(0, 24).map((e) => (
+              <span class="engine-tag">{e.engine_code}</span>
+            ))}
+            {list.length > 24 && <span class="engine-tag muted">+{list.length - 24}</span>}
+          </div>
+        </div>
+      ))}
+    </section>
+
+    <section class="cta-block reveal">
+      <h2>Не нашли свой двигатель?</h2>
+      <p class="muted">
+        Напишите код двигателя в WhatsApp — подберём за 5 минут. Если у нас нет в наличии —
+        привезём из Японии за 7–14 дней.
+      </p>
+      <a href="https://wa.me/77015509377?text=Здравствуйте,%20нужны%20вкладыши%20на%20двигатель" class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+        Написать в WhatsApp
+      </a>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 32px; max-width: 800px; }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.1rem; margin-bottom: 28px; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .eyebrow-light { color: #ff5760; }
+  .hero-cta-block { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-outline-light {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+  }
+  .btn-outline-light:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+
+  section { margin-bottom: 56px; }
+  .info-card { padding: 24px; }
+  .brand-card { padding: 20px; text-align: center; }
+  .brand-card h3 { font-size: 1.1rem; margin-bottom: 4px; }
+  .size-list { line-height: 2; padding-left: 20px; }
+
+  .engine-block { margin-bottom: 28px; }
+  .engine-block h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .engine-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .engine-tag {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 6px;
+    font-size: .85rem;
+    font-weight: 500;
+  }
+  .engine-tag.muted { background: transparent; color: var(--c-text-faint); }
+
+  .cta-block {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--c-bg-soft);
+    border-radius: var(--r-md);
+    margin-top: 64px;
+  }
+  .cta-block h2 { margin-bottom: 12px; }
+  .cta-block p { margin-bottom: 24px; }
+</style>

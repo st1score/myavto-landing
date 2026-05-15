@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+---
+<Base
+  title="Контакты MY AVTO | Запчасти для двигателей в Алматы — CarCity, бутик 135В"
+  description="Адрес: Алматы, ТЦ CarCity, 3 ярус, бутик 135В. Телефон/WhatsApp: +7 (701) 550-93-77. Время работы: Пн–Сб 9:00–17:00, Вс 11:00–16:00."
+>
+  <div class="container">
+    <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Контакты' }]} />
+    <h1>Контакты</h1>
+
+    <div class="grid cols-2">
+      <div class="card big">
+        <h3>📍 Адрес</h3>
+        <p><strong>г. Алматы</strong></p>
+        <p>ТЦ «CarCity», 3 ярус, бутик 135В</p>
+      </div>
+
+      <div class="card big">
+        <h3>📞 Телефон / WhatsApp</h3>
+        <p><a href="tel:+77015509377"><strong>+7 (701) 550-93-77</strong></a></p>
+        <p><a href="https://wa.me/77015509377" target="_blank" rel="noopener" class="btn btn-secondary">Написать в WhatsApp</a></p>
+      </div>
+
+      <div class="card big">
+        <h3>🕒 Время работы</h3>
+        <p>Понедельник – Суббота: <strong>9:00 – 17:00</strong></p>
+        <p>Воскресенье: <strong>11:00 – 16:00</strong></p>
+      </div>
+
+      <div class="card big">
+        <h3>💳 Способы оплаты</h3>
+        <p>Kaspi (в т.ч. рассрочка)</p>
+        <p>Безналичный расчёт</p>
+        <p>Наличные при самовывозе</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>Социальные сети</h2>
+      <p>
+        <a href="https://www.instagram.com/myavto.kz_" target="_blank" rel="noopener">Instagram</a> ·
+        <a href="https://www.tiktok.com/@myavto.kz" target="_blank" rel="noopener">TikTok</a>
+      </p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .card.big { padding: 24px; }
+</style>

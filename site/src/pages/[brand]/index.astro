@@ -1,0 +1,164 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getEngines } from '../../lib/db';
+import { brandSlug } from '../../lib/slugs';
+
+export async function getStaticPaths() {
+  const engines = await getEngines();
+  const brands = [...new Set(engines.map((e) => e.brand_name))];
+  return brands.map((brand) => ({
+    params: { brand: brandSlug[brand] ?? brand.toLowerCase() },
+    props: { brand, engines: engines.filter((e) => e.brand_name === brand) },
+  }));
+}
+
+const { brand, engines } = Astro.props;
+
+function engineUrl(code: string) {
+  return `/${brandSlug[brand]}/dvigateli/${code.toLowerCase().replace(/[\/\s]+/g, '-')}/`;
+}
+
+const petrol = engines.filter((e) => !e.is_diesel);
+const diesel = engines.filter((e) => e.is_diesel);
+---
+
+<Base
+  title={`Запчасти для двигателей ${brand} в Алматы | Поршни и кольца — MY AVTO`}
+  description={`Запчасти для капитального ремонта двигателей ${brand}: поршни, поршневые кольца, ремкомплекты. ${engines.length} двигателей в каталоге. Наличие в Алматы, доставка по Казахстану.`}
+  keywords={`запчасти ${brand} Алматы, поршни ${brand}, кольца поршневые ${brand}, капиталка двигателя ${brand}`}
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: brand }]} />
+      <div class="ph-content reveal">
+        <span class="eyebrow eyebrow-light">Каталог</span>
+        <h1>Запчасти для<br /><span class="accent-text">двигателей {brand}</span></h1>
+        <p class="ph-lead">
+          <strong>{engines.length} двигателей {brand}</strong> с поршнями и кольцами.
+          Бренды: TEIKIN, IZUMI, NPR, RIK, TP, ND, оригинал. Все ремонтные размеры —
+          STD, 0.25, 0.50, 0.75, 1.00.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    {petrol.length > 0 && (
+      <section class="reveal">
+        <div class="section-head">
+          <h2>Бензиновые двигатели</h2>
+          <span class="badge">{petrol.length} {petrol.length === 1 ? 'модель' : 'моделей'}</span>
+        </div>
+        <div class="grid cols-4">
+          {petrol.map((e, i) => (
+            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
+              <h3>{e.engine_code}</h3>
+              <p class="muted small">
+                {e.volume_l && `${e.volume_l} л`}
+                {e.valve_count && ` · ${e.valve_count}V`}
+                {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
+              </p>
+              <span class="card-arrow">→</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {diesel.length > 0 && (
+      <section class="reveal">
+        <div class="section-head">
+          <h2>Дизельные двигатели</h2>
+          <span class="badge">{diesel.length} {diesel.length === 1 ? 'модель' : 'моделей'}</span>
+        </div>
+        <div class="grid cols-4">
+          {diesel.map((e, i) => (
+            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
+              <h3>{e.engine_code}</h3>
+              <p class="muted small">{e.volume_l && `${e.volume_l} л`} · Дизель</p>
+              <span class="card-arrow">→</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="info-section reveal">
+      <h2>О запчастях {brand}</h2>
+      <p>
+        Мы поставляем запчасти для капитального ремонта двигателей {brand} в Алматы с 2010 года.
+        В наличии — поршни в сборе, поршневые кольца, ремкомплекты для всех популярных моторов.
+      </p>
+      <p>
+        Работаем с проверенными японскими брендами: <strong>TEIKIN</strong> (основной aftermarket),
+        <strong>IZUMI</strong>, <strong>ND</strong>, а также с производителями колец
+        <strong>NPR</strong>, <strong>RIK</strong>, <strong>TP</strong>. Под заказ — оригинальные
+        запчасти {brand}.
+      </p>
+      <a href="https://wa.me/77015509377" class="btn">Связаться в WhatsApp</a>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+    .ph-content { padding-top: 16px; }
+    .section-head { margin-bottom: 20px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 32px; max-width: 800px; }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.1rem; }
+  .eyebrow-light { color: #ff5760; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .section-head h2 { margin: 0; }
+  .engine-card {
+    padding: 24px;
+    position: relative;
+  }
+  .engine-card h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .info-section { max-width: 800px; }
+</style>

@@ -1,0 +1,176 @@
+---
+import SocialIcon from './SocialIcon.astro';
+import Logo from './Logo.astro';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="footer-glow"></div>
+  <div class="container footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <Logo size={56} variant="dark" />
+        </div>
+        <p class="muted">Запчасти для капитального ремонта двигателя японских автомобилей. Алматы, ТЦ CarCity.</p>
+        <div class="socials">
+          <a href="https://wa.me/77015509377" aria-label="WhatsApp" target="_blank" rel="noopener" class="social wa">
+            <SocialIcon name="whatsapp" />
+          </a>
+          <a href="https://www.instagram.com/myavto.kz_" aria-label="Instagram" target="_blank" rel="noopener" class="social ig">
+            <SocialIcon name="instagram" />
+          </a>
+          <a href="https://www.tiktok.com/@myavto.kz" aria-label="TikTok" target="_blank" rel="noopener" class="social tt">
+            <SocialIcon name="tiktok" />
+          </a>
+          <a href="tel:+77015509377" aria-label="Позвонить" class="social ph">
+            <SocialIcon name="phone" />
+          </a>
+        </div>
+      </div>
+      <div>
+        <h4>Каталог</h4>
+        <ul>
+          <li><a href="/zapchasti/porshni/">Поршни</a></li>
+          <li><a href="/zapchasti/koltsa-porshnevye/">Поршневые кольца</a></li>
+          <li><a href="/zapchasti/vkladyshi/">Вкладыши коленвала</a></li>
+          <li><a href="/brendy/">Бренды запчастей</a></li>
+          <li><a href="/toyota/">Toyota</a></li>
+          <li><a href="/nissan/">Nissan</a></li>
+          <li><a href="/mitsubishi/">Mitsubishi</a></li>
+          <li><a href="/mazda/">Mazda</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Информация</h4>
+        <ul>
+          <li><a href="/o-nas/">О компании</a></li>
+          <li><a href="/dostavka/">Доставка и оплата</a></li>
+          <li><a href="/garantiya/">Гарантия и возврат</a></li>
+          <li><a href="/kontakty/">Контакты</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <ul class="contact-list">
+          <li>📍 Алматы, ТЦ «CarCity»<br><span class="muted small">3 ярус, бутик 135В</span></li>
+          <li>📞 <a href="tel:+77015509377">+7 (701) 550-93-77</a></li>
+          <li>💬 <a href="https://wa.me/77015509377" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li class="muted small">Пн–Сб: 9:00–17:00 · Вс: 11:00–16:00</li>
+        </ul>
+        <div class="payment-badges">
+          <img src="/assets/social/kaspi.png" alt="Kaspi" height="28" />
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="muted small">© {year} MY AVTO. Все права защищены.</span>
+      <span class="muted small">Запчасти для капиталки двигателя в Алматы</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 80px 0 32px;
+    margin-top: 80px;
+    overflow: hidden;
+  }
+  .footer-glow {
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.25) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  @media (max-width: 768px) {
+    .footer-glow { width: 400px; height: 220px; top: -120px; }
+    .site-footer { padding: 56px 0 24px; margin-top: 48px; }
+  }
+  .footer-inner { position: relative; z-index: 1; }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+    gap: 48px;
+    margin-bottom: 56px;
+  }
+  @media (max-width: 900px) {
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  }
+  @media (max-width: 540px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  }
+  .site-footer h4 {
+    color: #fff;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 18px;
+    font-weight: 600;
+  }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; }
+  .site-footer li { margin-bottom: 10px; }
+  .site-footer a { color: rgba(255,255,255,0.7); }
+  .site-footer a:hover { color: var(--c-red); }
+  .site-footer .muted { color: rgba(255,255,255,0.55); }
+  .site-footer p { color: rgba(255,255,255,0.7); }
+
+  .footer-logo {
+    display: block;
+    margin-bottom: 18px;
+  }
+  .footer-brand p { max-width: 320px; font-size: .94rem; }
+
+  .socials { display: flex; gap: 10px; margin-top: 20px; }
+  .social {
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: #fff !important;
+    transition: all var(--t-fast);
+  }
+  .social :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .social:hover {
+    transform: translateY(-3px) scale(1.05);
+    border-color: transparent;
+  }
+  .social.wa:hover { background: #25d366; }
+  .social.ig:hover {
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  }
+  .social.tt:hover { background: #000; border-color: rgba(255,255,255,0.3); }
+  .social.ph:hover { background: var(--c-red); }
+
+  .contact-list li { line-height: 1.5; }
+
+  .payment-badges {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 20px;
+  }
+  .payment-badges img {
+    filter: brightness(1.3) saturate(0.8);
+    opacity: 0.85;
+    transition: opacity var(--t-fast);
+  }
+  .payment-badges img:hover { opacity: 1; }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+</style>

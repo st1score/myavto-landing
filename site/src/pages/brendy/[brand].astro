@@ -1,0 +1,270 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getEnginesByPartsBrand } from '../../lib/db';
+import { partsBrands, partsBrandSlugs } from '../../lib/parts-brands';
+import { brandSlug, engineSlug } from '../../lib/slugs';
+import { categorySlug } from '../../lib/slugs';
+
+export async function getStaticPaths() {
+  return partsBrandSlugs.map((slug) => ({ params: { brand: slug } }));
+}
+
+const { brand } = Astro.params;
+const info = partsBrands[brand!];
+
+const engines = await getEnginesByPartsBrand(info.dbName);
+
+// Группируем: engine_code -> { brand_name, categories: Set }
+const grouped = new Map<string, { brand_name: string; categories: Set<string> }>();
+for (const e of engines) {
+  if (!grouped.has(e.engine_code)) {
+    grouped.set(e.engine_code, { brand_name: e.brand_name, categories: new Set() });
+  }
+  grouped.get(e.engine_code)!.categories.add(e.category_code);
+}
+
+// По автомаркам
+const byAutoBrand = new Map<string, { engine_code: string; categories: Set<string> }[]>();
+for (const [engineCode, data] of grouped) {
+  if (!byAutoBrand.has(data.brand_name)) byAutoBrand.set(data.brand_name, []);
+  byAutoBrand.get(data.brand_name)!.push({ engine_code: engineCode, categories: data.categories });
+}
+const autoBrandsOrdered = [...byAutoBrand.entries()].sort((a, b) => b[1].length - a[1].length);
+
+function engineUrl(autoBrand: string, code: string, catCode?: string) {
+  const aSlug = brandSlug[autoBrand] ?? autoBrand.toLowerCase();
+  const eSlug = engineSlug(code);
+  const cSlug = catCode ? categorySlug[catCode] : null;
+  return cSlug
+    ? `/${aSlug}/dvigateli/${eSlug}/${cSlug}/`
+    : `/${aSlug}/dvigateli/${eSlug}/`;
+}
+
+const totalEngines = grouped.size;
+
+const orgJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Brand',
+  name: info.display,
+  description: info.description,
+  ...(info.logo ? { logo: 'https://my-avto.kz' + info.logo } : {}),
+  ...(info.country ? { countryOfOrigin: info.country } : {}),
+};
+---
+<Base
+  title={`${info.display} в Алматы | Купить ${info.categories[0].toLowerCase()} ${info.display} — MY AVTO`}
+  description={`${info.tagline}. Купить ${info.display} в Алматы для ${totalEngines || 'японских'} двигателей. Оригинал из Японии, все ремонтные размеры. Доставка по РК.`}
+  keywords={`${info.display} Алматы, ${info.display} купить, ${info.display} оригинал, ${info.categories.join(' ').toLowerCase()} ${info.display}`}
+  jsonLd={orgJsonLd}
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Бренды', href: '/brendy/' }, { name: info.display }]} />
+      <div class="ph-content reveal">
+        <span class="eyebrow eyebrow-light">Бренд запчастей</span>
+        <h1>{info.display}<br /><span class="accent-text">{info.tagline}</span></h1>
+        <p class="ph-lead">{info.description}</p>
+        <div class="brand-meta">
+          <div class="meta-item">
+            <span class="meta-label">Страна</span>
+            <span class="meta-value">{info.country}</span>
+          </div>
+          {info.founded && (
+            <div class="meta-item">
+              <span class="meta-label">Основан</span>
+              <span class="meta-value">{info.founded}</span>
+            </div>
+          )}
+          {totalEngines > 0 && (
+            <div class="meta-item">
+              <span class="meta-label">У нас в каталоге</span>
+              <span class="meta-value">{totalEngines} двигателей</span>
+            </div>
+          )}
+        </div>
+        <div class="hero-cta-block">
+          <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20запчасти%20${info.display}`} class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+            Подобрать в WhatsApp
+          </a>
+          <a href="tel:+77015509377" class="btn btn-lg btn-outline-light">
+            +7 701 550-93-77
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <section class="reveal">
+      <h2>Что мы продаём от {info.display}</h2>
+      <div class="grid cols-3">
+        {info.categories.map((cat) => (
+          <div class="card info-card">
+            <h3>{cat}</h3>
+            <p class="muted">Оригинальные {cat.toLowerCase()} {info.display}, все ремонтные размеры в наличии или под заказ.</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="reveal">
+      <h2>Почему {info.display}</h2>
+      <ul class="highlights">
+        {info.highlights.map((h) => <li>{h}</li>)}
+      </ul>
+    </section>
+
+    {totalEngines > 0 && (
+      <section class="reveal">
+        <h2>Двигатели с {info.display} в нашем каталоге</h2>
+        <p class="muted">{totalEngines} двигателей с запчастями {info.display}. Кликните чтобы перейти на страницу двигателя с ценами.</p>
+        {autoBrandsOrdered.map(([autoBrand, list]) => (
+          <div class="engine-block">
+            <h3>{autoBrand} <span class="badge">{list.length}</span></h3>
+            <div class="engine-grid">
+              {list.map((e) => (
+                <a href={engineUrl(autoBrand, e.engine_code)} class="engine-tile">
+                  <span class="engine-code">{e.engine_code}</span>
+                  <span class="engine-cats">
+                    {[...e.categories].map((c) => {
+                      if (c === 'PISTON') return 'Поршни';
+                      if (c === 'RING') return 'Кольца';
+                      return c;
+                    }).join(' · ')}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+    )}
+
+    {totalEngines === 0 && (
+      <section class="reveal">
+        <h2>Доступно под заказ</h2>
+        <p>
+          Запчасти {info.display} мы привозим под заказ из Японии. Срок 7–14 дней.
+          Напишите код вашего двигателя в WhatsApp — подскажем цену и наличие.
+        </p>
+      </section>
+    )}
+
+    <section class="cta-block reveal">
+      <h2>Подобрать {info.display} под ваш двигатель</h2>
+      <p class="muted">
+        Напишите в WhatsApp код двигателя или модель и год авто — найдём за 5 минут.
+      </p>
+      <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20запчасти%20${info.display}`} class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+        Написать в WhatsApp
+      </a>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 32px; max-width: 820px; }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.05rem; margin-bottom: 28px; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 0.7em;
+    font-weight: 600;
+  }
+  .eyebrow-light { color: #ff5760; }
+
+  .brand-meta {
+    display: flex; flex-wrap: wrap; gap: 24px;
+    margin: 24px 0 32px;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-size: .75rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-value { font-weight: 600; color: #fff; font-size: 1.05rem; }
+
+  .hero-cta-block { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-outline-light {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+  }
+  .btn-outline-light:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+
+  section { margin-bottom: 56px; }
+  .info-card { padding: 24px; }
+  .highlights { line-height: 2; padding-left: 20px; }
+  .highlights li { margin-bottom: 4px; }
+
+  .engine-block { margin-bottom: 36px; }
+  .engine-block h3 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .engine-tile {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 12px 14px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    color: var(--c-text);
+    transition: all var(--t-fast);
+  }
+  .engine-tile:hover {
+    border-color: var(--c-red);
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  .engine-code { font-weight: 700; font-size: .95rem; }
+  .engine-cats { font-size: .75rem; color: var(--c-text-faint); }
+
+  .cta-block {
+    text-align: center;
+    padding: 48px 24px;
+    background: var(--c-bg-soft);
+    border-radius: var(--r-md);
+    margin-top: 64px;
+  }
+  .cta-block h2 { margin-bottom: 12px; }
+  .cta-block p { margin-bottom: 24px; }
+</style>

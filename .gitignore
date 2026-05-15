@@ -3,3 +3,7 @@ node_modules/
 .vscode/
 .idea/
 .claude/
+.env
+.env.local
+dist/
+.astro/

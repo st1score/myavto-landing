@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { partsBrands } from '../../lib/parts-brands';
+
+const brandList = Object.values(partsBrands);
+---
+<Base
+  title="Бренды запчастей TEIKIN, NPR, IZUMI, Daido в Алматы | MY AVTO"
+  description="Все бренды поршней, колец и вкладышей: TEIKIN, NPR, IZUMI, RIK, TP, Daido (ND), Taiho, NDC. Оригинал из Японии для Toyota, Nissan, Mitsubishi, Mazda. Алматы."
+  keywords="TEIKIN Алматы, NPR Алматы, IZUMI, Daido вкладыши, Taiho, RIK кольца, бренды запчастей Япония"
+>
+  <div class="page-hero">
+    <div class="ph-glow"></div>
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Бренды' }]} />
+      <div class="ph-content reveal">
+        <span class="eyebrow eyebrow-light">Каталог брендов</span>
+        <h1>Бренды запчастей<br /><span class="accent-text">которыми мы торгуем</span></h1>
+        <p class="ph-lead">
+          Только оригинальные японские бренды поршней, колец и вкладышей. OEM-поставщики
+          для Toyota, Honda, Nissan, Mazda, Mitsubishi.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <section>
+      <div class="grid cols-3 brand-grid">
+        {brandList.map((b) => (
+          <a href={`/brendy/${b.slug}/`} class="card brand-card reveal">
+            <div class="brand-card-head">
+              <h2>{b.display}</h2>
+              <span class="muted small">{b.country} · с {b.founded ?? 'давно'}</span>
+            </div>
+            <p class="muted">{b.tagline}</p>
+            <div class="cats-row">
+              {b.categories.map((c) => <span class="cat-pill">{c}</span>)}
+            </div>
+            <span class="card-arrow">→</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 80px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 64px;
+  }
+  .ph-glow {
+    position: absolute;
+    top: -100px; right: -150px;
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.3) 0%, transparent 60%);
+    filter: blur(60px);
+    z-index: 0;
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 320px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+    .page-hero { padding: 16px 0 48px; margin-bottom: 32px; }
+  }
+  .page-hero > .container { position: relative; z-index: 1; }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 32px; max-width: 800px; }
+  .page-hero h1 { color: #fff; margin-bottom: 16px; }
+  .ph-lead { color: rgba(255,255,255,0.78); font-size: 1.1rem; }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .eyebrow-light { color: #ff5760; }
+
+  .brand-card {
+    padding: 28px;
+    position: relative;
+    display: flex; flex-direction: column;
+    gap: 12px;
+  }
+  .brand-card-head { display: flex; flex-direction: column; gap: 4px; }
+  .brand-card h2 { font-size: 1.4rem; margin: 0; letter-spacing: -0.02em; }
+  .cats-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .cat-pill {
+    font-size: .75rem;
+    padding: 4px 10px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 20px;
+  }
+</style>

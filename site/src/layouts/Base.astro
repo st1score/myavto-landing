@@ -1,0 +1,429 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  keywords?: string;
+  ogImage?: string;
+  jsonLd?: Record<string, any> | Record<string, any>[];
+  noindex?: boolean;
+  heroDark?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonical = Astro.url.pathname,
+  keywords,
+  ogImage = '/assets/og-image.jpg',
+  jsonLd,
+  noindex = false,
+} = Astro.props;
+
+const siteUrl = 'https://my-avto.kz';
+const fullCanonical = canonical.startsWith('http') ? canonical : siteUrl + canonical;
+const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
+---
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{title}</title>
+<meta name="description" content={description}>
+{keywords && <meta name="keywords" content={keywords}>}
+<meta name="author" content="MY AVTO">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'}>
+<link rel="canonical" href={fullCanonical}>
+
+<meta name="geo.region" content="KZ-ALA">
+<meta name="geo.placename" content="Алматы">
+<meta name="geo.position" content="43.238949;76.889709">
+<meta name="ICBM" content="43.238949, 76.889709">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content={fullCanonical}>
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:image" content={fullOg}>
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="MY AVTO">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={title}>
+<meta name="twitter:description" content={description}>
+<meta name="twitter:image" content={fullOg}>
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'AutoPartsStore',
+  name: 'MY AVTO',
+  url: siteUrl,
+  telephone: '+77015509377',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'ТЦ «CarCity», 3 ярус, бутик 135В',
+    addressLocality: 'Алматы',
+    addressCountry: 'KZ',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: 43.238949, longitude: 76.889709 },
+  openingHoursSpecification: [
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], opens: '09:00', closes: '17:00' },
+    { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Sunday'], opens: '11:00', closes: '16:00' },
+  ],
+  sameAs: ['https://www.instagram.com/myavto.kz_', 'https://www.tiktok.com/@myavto.kz'],
+  priceRange: '₸₸',
+  paymentAccepted: 'Kaspi, Наличные, Безналичный расчёт',
+})} />
+
+{jsonLd && (
+  Array.isArray(jsonLd)
+    ? jsonLd.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)
+    : <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+)}
+
+<style is:global>
+  :root {
+    /* Palette — Tesla-style monochrome + red accent */
+    --c-black: #0a0a0a;
+    --c-near-black: #141414;
+    --c-graphite: #1f1f1f;
+    --c-charcoal: #2a2a2a;
+    --c-text: #0a0a0a;
+    --c-text-dim: #5a5a5e;
+    --c-text-faint: #9a9aa0;
+    --c-bg: #ffffff;
+    --c-bg-soft: #f7f7f8;
+    --c-bg-card: #ffffff;
+    --c-border: #e4e4e7;
+    --c-border-strong: #d1d1d6;
+    --c-red: #E50914;
+    --c-red-dark: #b40710;
+    --c-red-soft: #ff2a3a;
+    --c-success: #16a34a;
+
+    /* Tokens */
+    --r-sm: 8px;
+    --r-md: 14px;
+    --r-lg: 20px;
+    --r-xl: 28px;
+    --shadow-sm: 0 1px 2px rgba(10,10,10,0.04), 0 1px 1px rgba(10,10,10,0.03);
+    --shadow-md: 0 6px 24px rgba(10,10,10,0.06), 0 2px 8px rgba(10,10,10,0.04);
+    --shadow-lg: 0 24px 60px rgba(10,10,10,0.12), 0 8px 24px rgba(10,10,10,0.08);
+    --shadow-red: 0 12px 40px rgba(229,9,20,0.25);
+
+    --maxw: 1240px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --t-fast: 180ms var(--ease);
+    --t-med: 320ms var(--ease);
+    --t-slow: 600ms var(--ease);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  a { color: inherit; text-decoration: none; transition: color var(--t-fast); }
+  a:hover { color: var(--c-red); }
+
+  h1, h2, h3, h4 {
+    margin: 0 0 .5em;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  h1 { font-size: clamp(2.2rem, 5vw, 4rem); font-weight: 800; letter-spacing: -0.035em; }
+  h2 { font-size: clamp(1.6rem, 3.2vw, 2.6rem); font-weight: 700; letter-spacing: -0.025em; }
+  h3 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
+
+  p { margin: 0 0 1em; }
+
+  .container { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 640px) { .container { padding: 0 16px; } }
+
+  section { padding: 80px 0; }
+  @media (max-width: 768px) { section { padding: 40px 0; } }
+  @media (max-width: 480px) { section { padding: 32px 0; } }
+
+  .eyebrow {
+    display: inline-block;
+    text-transform: uppercase;
+    font-size: .75rem;
+    letter-spacing: 0.16em;
+    color: var(--c-red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 56px;
+  }
+  .section-title h2 { margin-bottom: 12px; }
+  .section-title p { color: var(--c-text-dim); font-size: 1.08rem; }
+  @media (max-width: 640px) {
+    .section-title { margin-bottom: 32px; }
+    .section-title p { font-size: .98rem; }
+  }
+
+  /* Grid */
+  .grid { display: grid; gap: 20px; }
+  .grid.cols-2 { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  .grid.cols-3 { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .grid.cols-4 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+  /* Cards */
+  .card {
+    position: relative;
+    background: var(--c-bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 24px;
+    transition: transform var(--t-med), border-color var(--t-med), box-shadow var(--t-med);
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(229,9,20,0) 0%, rgba(229,9,20,0.05) 100%);
+    opacity: 0;
+    transition: opacity var(--t-med);
+    pointer-events: none;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--c-black);
+    box-shadow: var(--shadow-lg);
+  }
+  .card:hover::before { opacity: 1; }
+  a.card { display: block; color: inherit; }
+  a.card:hover { color: inherit; }
+  .card h3 { margin-bottom: 6px; }
+  .card-arrow {
+    position: absolute;
+    top: 24px; right: 24px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    color: var(--c-text-faint);
+    transition: transform var(--t-med), color var(--t-med);
+  }
+  .card:hover .card-arrow {
+    color: var(--c-red);
+    transform: translate(3px, -3px);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: var(--c-red);
+    color: #fff !important;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: .95rem;
+    border: 1px solid var(--c-red);
+    cursor: pointer;
+    transition: all var(--t-fast);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    min-height: 48px; /* touch-friendly */
+  }
+  @media (max-width: 640px) { .btn { padding: 12px 20px; font-size: .92rem; min-height: 46px; } }
+  .btn::after {
+    content: '→';
+    transition: transform var(--t-fast);
+    display: inline-block;
+  }
+  .btn:hover {
+    background: var(--c-red-dark);
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-red);
+  }
+  .btn:hover::after { transform: translateX(4px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--c-text) !important;
+    border-color: var(--c-border-strong);
+  }
+  .btn-ghost:hover {
+    background: var(--c-black);
+    color: #fff !important;
+    border-color: var(--c-black);
+    box-shadow: none;
+  }
+
+  .btn-dark {
+    background: var(--c-black);
+    border-color: var(--c-black);
+  }
+  .btn-dark:hover { background: var(--c-near-black); box-shadow: var(--shadow-lg); }
+
+  .btn-sm { padding: 10px 18px; font-size: .88rem; }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .78rem;
+    font-weight: 500;
+    background: var(--c-bg-soft);
+    color: var(--c-text-dim);
+    border: 1px solid var(--c-border);
+  }
+  .badge.in-stock { color: var(--c-success); border-color: rgba(22,163,74,0.3); background: rgba(22,163,74,0.06); }
+  .badge.accent { color: var(--c-red); border-color: rgba(229,9,20,0.3); background: rgba(229,9,20,0.06); }
+
+  /* Tables */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    background: #fff;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .94rem; }
+  th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--c-border); }
+  th {
+    background: var(--c-bg-soft);
+    font-weight: 600;
+    color: var(--c-text-dim);
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  tbody tr { transition: background-color var(--t-fast); }
+  tbody tr:hover { background: var(--c-bg-soft); }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  .price {
+    font-weight: 700;
+    color: var(--c-black);
+    white-space: nowrap;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .muted { color: var(--c-text-dim); }
+  .faint { color: var(--c-text-faint); }
+  .small { font-size: .85rem; }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 700ms var(--ease), transform 700ms var(--ease);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 80ms; }
+  .reveal-delay-2 { transition-delay: 160ms; }
+  .reveal-delay-3 { transition-delay: 240ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+    .reveal { opacity: 1; transform: none; }
+  }
+
+  /* Numbers (catalog) */
+  .numbers { display: flex; flex-wrap: wrap; gap: 6px; }
+  .number {
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: .85rem;
+    color: var(--c-text);
+    transition: all var(--t-fast);
+  }
+  .number:hover { border-color: var(--c-black); background: #fff; }
+
+  /* Focus visible */
+  :focus-visible { outline: 2px solid var(--c-red); outline-offset: 2px; border-radius: 4px; }
+
+  /* Selection */
+  ::selection { background: var(--c-red); color: #fff; }
+</style>
+</head>
+<body>
+<Header />
+<main>
+  <slot />
+</main>
+<Footer />
+
+<script>
+  // Scroll-reveal через IntersectionObserver
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // Анимация счётчиков [data-counter]
+  const cio = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const el = entry.target as HTMLElement;
+      const target = Number(el.dataset.counter ?? '0');
+      const suffix = el.dataset.suffix ?? '';
+      const duration = 1400;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+      cio.unobserve(el);
+    }
+  }, { threshold: 0.4 });
+  document.querySelectorAll('[data-counter]').forEach((el) => cio.observe(el));
+</script>
+</body>
+</html>

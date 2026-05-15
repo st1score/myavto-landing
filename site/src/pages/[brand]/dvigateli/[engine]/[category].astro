@@ -1,0 +1,534 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import {
+  getEngines,
+  getEnginePartsIndex,
+  getVariantSizes,
+  getStock,
+  getPartNumbers,
+  getAttributes,
+} from '../../../../lib/db';
+import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../../../lib/slugs';
+import { categoryLabel, brandDisplay, insertTypeLabel } from '../../../../lib/labels';
+import { calcRetailKzt, formatKzt, getUsdRate } from '../../../../lib/pricing';
+
+export async function getStaticPaths() {
+  const engines = await getEngines();
+  const partsIdx = await getEnginePartsIndex();
+  const engByCode = new Map(engines.map((e) => [e.engine_code, e]));
+  return partsIdx
+    .map((p) => {
+      const eng = engByCode.get(p.engine_code);
+      if (!eng) return null;
+      const catSl = categorySlug[p.category_code];
+      if (!catSl) return null;
+      return {
+        params: {
+          brand: brandSlug[eng.brand_name] ?? eng.brand_name.toLowerCase(),
+          engine: engineSlug(eng.engine_code),
+          category: catSl,
+        },
+        props: { engine: eng, categoryCode: p.category_code },
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+}
+
+const { engine, categoryCode } = Astro.props;
+const catLabel = categoryLabel[categoryCode];
+
+const [variants, stock, numbers, attrs, usdRate] = await Promise.all([
+  getVariantSizes(engine.engine_code, categoryCode),
+  getStock(engine.engine_code, categoryCode),
+  getPartNumbers(engine.engine_code, categoryCode),
+  getAttributes(engine.engine_code, categoryCode),
+  getUsdRate(),
+]);
+
+const attrMap = Object.fromEntries(
+  attrs.map((a) => [a.attribute_code, a.value_text ?? a.value_number ?? a.value_integer])
+);
+
+type Row = {
+  brand: string;
+  insertType: string;
+  variant: string;
+  sizes: Map<string, { price: number | null; stockQty: number }>;
+};
+
+const rows = new Map<string, Row>();
+const stockKey = (b: string, it: string, s: string) => `${b}|${it}|${s}`;
+const stockSum = new Map<string, number>();
+for (const st of stock) {
+  const k = stockKey(st.brand_name, st.insert_type, st.size_code);
+  stockSum.set(k, (stockSum.get(k) ?? 0) + st.qty);
+}
+
+for (const v of variants) {
+  const key = `${v.brand_name}|${v.insert_type}|${v.variant_name}`;
+  if (!rows.has(key)) {
+    rows.set(key, {
+      brand: v.brand_name,
+      insertType: v.insert_type,
+      variant: v.variant_name,
+      sizes: new Map(),
+    });
+  }
+  const row = rows.get(key)!;
+  row.sizes.set(v.size_code, {
+    price: v.purchase_price ? calcRetailKzt(Number(v.purchase_price), usdRate) : null,
+    stockQty: stockSum.get(stockKey(v.brand_name, v.insert_type, v.size_code)) ?? 0,
+  });
+}
+
+const rowsList = [...rows.values()].sort((a, b) => {
+  const aHas = [...a.sizes.values()].some((s) => s.price !== null);
+  const bHas = [...b.sizes.values()].some((s) => s.price !== null);
+  if (aHas !== bHas) return aHas ? -1 : 1;
+  return a.brand.localeCompare(b.brand) || a.insertType.localeCompare(b.insertType);
+});
+
+const sizeCodes = ['STD', '0.25', '0.50', '0.75', '1.00'];
+
+const oemNumbers = numbers.filter((n) => n.number_type === 'oem' || n.number_type === 'alt_oem');
+const tknNumbers = numbers.filter((n) => n.number_type === 'teikin');
+const catalogNumbers = numbers.filter((n) => n.number_type.startsWith('catalog_'));
+
+const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
+const engSl = engineSlug(engine.engine_code);
+
+const hasAnyPrice = rowsList.some((r) => [...r.sizes.values()].some((s) => s.price !== null));
+const allPrices: number[] = [];
+for (const r of rowsList) for (const s of r.sizes.values()) if (s.price !== null) allPrices.push(s.price);
+const lowPrice = allPrices.length ? Math.min(...allPrices) : null;
+const highPrice = allPrices.length ? Math.max(...allPrices) : null;
+const totalStock = [...stockSum.values()].reduce((a, b) => a + b, 0);
+
+const productJsonLd = hasAnyPrice
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: `${catLabel} для ${engine.brand_name} ${engine.engine_code}`,
+      description: `${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}.`,
+      brand: { '@type': 'Brand', name: engine.brand_name },
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'KZT',
+        lowPrice,
+        highPrice,
+        offerCount: allPrices.length,
+        availability: 'https://schema.org/InStock',
+      },
+    }
+  : null;
+---
+
+<Base
+  title={`${catLabel} для ${engine.brand_name} ${engine.engine_code} | Цены, наличие — MY AVTO Алматы`}
+  description={`${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}. ${rowsList.length} вариантов, бренды TEIKIN, IZUMI, NPR, RIK. Все ремонтные размеры. ${hasAnyPrice ? `Цены от ${formatKzt(lowPrice!)}.` : ''} Наличие в Алматы.`}
+  keywords={`${engine.engine_code} ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} ${engine.engine_code} Алматы, ${engine.brand_name} ${engine.engine_code} капиталка, ${engine.engine_code} TEIKIN, ${engine.engine_code} NPR`}
+  jsonLd={productJsonLd ?? undefined}
+>
+  <!-- Hero header — dark slice -->
+  <div class="page-hero">
+    <div class="page-hero-bg">
+      <div class="ph-glow"></div>
+    </div>
+    <div class="container">
+      <Breadcrumbs items={[
+        { name: 'Главная', href: '/' },
+        { name: engine.brand_name, href: `/${brandSl}/` },
+        { name: engine.engine_code, href: `/${brandSl}/dvigateli/${engSl}/` },
+        { name: catLabel },
+      ]} />
+      <div class="ph-content reveal">
+        <div class="ph-tags">
+          <span class="ph-tag">{engine.brand_name}</span>
+          <span class="ph-tag">{engine.engine_code}</span>
+          {engine.volume_l && <span class="ph-tag">{engine.volume_l} л</span>}
+          {engine.is_diesel && <span class="ph-tag">Дизель</span>}
+        </div>
+        <h1>
+          {catLabel}<br />
+          <span class="accent-text">для {engine.brand_name} {engine.engine_code}</span>
+        </h1>
+        <p class="ph-lead">
+          {rowsList.length} {rowsList.length === 1 ? 'вариант' : 'вариантов'} от разных брендов · все ремонтные размеры
+          {hasAnyPrice && ` · от ${formatKzt(lowPrice!)} за шт.`}
+        </p>
+        {hasAnyPrice && (
+          <div class="ph-meta">
+            {totalStock > 0 && (
+              <span class="ph-pill in-stock">
+                <span class="ph-dot"></span>{totalStock} шт в наличии
+              </span>
+            )}
+            <a href="https://wa.me/77015509377" class="btn">Узнать наличие</a>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    {(attrMap.piston_spec_raw || attrMap.piston_diameter || attrMap.pin_diameter) && (
+      <section class="specs-strip reveal">
+        {attrMap.piston_diameter && (
+          <div class="spec-item">
+            <div class="spec-label">Диаметр поршня</div>
+            <div class="spec-val">Ø {attrMap.piston_diameter} мм</div>
+          </div>
+        )}
+        {attrMap.pin_diameter && (
+          <div class="spec-item">
+            <div class="spec-label">Диаметр пальца</div>
+            <div class="spec-val">Ø {attrMap.pin_diameter} мм</div>
+          </div>
+        )}
+        {attrMap.piston_spec_raw && (
+          <div class="spec-item">
+            <div class="spec-label">Спецификация</div>
+            <div class="spec-val mono">{attrMap.piston_spec_raw}</div>
+          </div>
+        )}
+      </section>
+    )}
+
+    <section class="reveal">
+      <h2>Варианты в наличии</h2>
+      {rowsList.length === 0 ? (
+        <div class="empty">
+          <p class="muted">Данные временно недоступны. Уточните наличие по WhatsApp.</p>
+          <a href="https://wa.me/77015509377" class="btn">Связаться</a>
+        </div>
+      ) : (
+        <>
+          <!-- Desktop / tablet таблица -->
+          <div class="table-wrap desktop-only">
+            <table class="price-table">
+              <thead>
+                <tr>
+                  <th>Бренд</th>
+                  <th>Тип</th>
+                  {sizeCodes.map((s) => <th>{s}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {rowsList.map((r) => (
+                  <tr>
+                    <td><strong>{brandDisplay(r.brand)}</strong></td>
+                    <td><span class="badge">{insertTypeLabel[r.insertType] ?? r.insertType}</span></td>
+                    {sizeCodes.map((s) => {
+                      const cell = r.sizes.get(s);
+                      if (!cell) return <td class="empty-cell">—</td>;
+                      return (
+                        <td>
+                          {cell.price !== null && <div class="price">{formatKzt(cell.price)}</div>}
+                          {cell.stockQty > 0 && <div class="badge in-stock small-stock">✓ {cell.stockQty} шт</div>}
+                          {cell.price === null && cell.stockQty === 0 && <span class="faint small">под заказ</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile карточки -->
+          <div class="mobile-only mobile-cards">
+            {rowsList.map((r) => (
+              <div class="mc-card">
+                <div class="mc-head">
+                  <strong class="mc-brand">{brandDisplay(r.brand)}</strong>
+                  <span class="badge">{insertTypeLabel[r.insertType] ?? r.insertType}</span>
+                </div>
+                <div class="mc-sizes">
+                  {sizeCodes.map((s) => {
+                    const cell = r.sizes.get(s);
+                    return (
+                      <div class={`mc-size${!cell || (cell.price === null && cell.stockQty === 0) ? ' is-empty' : ''}`}>
+                        <span class="mc-size-label">{s}</span>
+                        {cell && cell.price !== null ? (
+                          <span class="price mc-price">{formatKzt(cell.price)}</span>
+                        ) : (
+                          <span class="faint small">{cell ? 'под заказ' : '—'}</span>
+                        )}
+                        {cell && cell.stockQty > 0 && (
+                          <span class="badge in-stock small-stock">✓ {cell.stockQty}</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+      <p class="price-note muted small">
+        Цены указаны за <strong>1 шт</strong>. Комплект на двигатель — обычно 4–6 шт (по числу цилиндров).
+        Курс USD обновляется ежедневно. Точное наличие уточняйте по WhatsApp.
+      </p>
+    </section>
+
+    {(oemNumbers.length > 0 || tknNumbers.length > 0 || catalogNumbers.length > 0) && (
+      <section class="reveal">
+        <h2>Каталожные номера</h2>
+        <div class="numbers-grid">
+          {oemNumbers.length > 0 && (
+            <div>
+              <div class="num-title">OEM номера</div>
+              <div class="numbers">{oemNumbers.map((n) => <span class="number">{n.number_value}</span>)}</div>
+            </div>
+          )}
+          {tknNumbers.length > 0 && (
+            <div>
+              <div class="num-title">Номера TEIKIN</div>
+              <div class="numbers">{tknNumbers.map((n) => <span class="number">TKN {n.number_value}</span>)}</div>
+            </div>
+          )}
+          {catalogNumbers.length > 0 && (
+            <div>
+              <div class="num-title">Каталог производителей</div>
+              <div class="numbers">{catalogNumbers.map((n) => <span class="number">{n.number_value}</span>)}</div>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    <section class="reveal">
+      <h2>Что важно знать</h2>
+      <p>
+        При капитальном ремонте двигателя <strong>{engine.brand_name} {engine.engine_code}</strong>
+        {' '}{catLabel.toLowerCase()} подбираются под фактический размер расточки цилиндров.
+        Стандартный размер (STD) — для новых блоков без расточки, ремонтные размеры
+        (0.25, 0.50, 0.75, 1.00 мм) — после расточки на соответствующую величину.
+      </p>
+      <p>
+        Продаём поштучно и комплектом. В наличии запчасти основных японских брендов:
+        TEIKIN, IZUMI, NPR, RIK, TP, ND. Оригинальные запчасти {engine.brand_name} — под заказ.
+      </p>
+    </section>
+
+    <section class="cta-section">
+      <div class="cta-box reveal">
+        <div class="cta-glow"></div>
+        <div class="cta-content">
+          <h2>Не нашли нужный размер?</h2>
+          <p>Напишите код двигателя и нужный размер — подберём.</p>
+          <a href="https://wa.me/77015509377" class="btn">Написать в WhatsApp</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .page-hero {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    padding: 24px 0 64px;
+    overflow: hidden;
+    isolation: isolate;
+    margin-bottom: 48px;
+  }
+  .page-hero-bg { position: absolute; inset: 0; z-index: -1; }
+  .ph-glow {
+    position: absolute;
+    width: 700px; height: 400px;
+    top: -100px; right: -200px;
+    background: radial-gradient(ellipse, rgba(229,9,20,0.35) 0%, transparent 60%);
+    filter: blur(60px);
+  }
+  @media (max-width: 768px) {
+    .ph-glow { width: 360px; height: 220px; top: -60px; right: -80px; filter: blur(40px); }
+  }
+  .page-hero :global(.breadcrumbs) { padding-top: 16px; }
+  .page-hero :global(.breadcrumbs a) { color: rgba(255,255,255,0.6); }
+  .page-hero :global(.breadcrumbs a:hover) { color: var(--c-red); }
+  .page-hero :global(.breadcrumbs .sep) { color: rgba(255,255,255,0.3); }
+  .page-hero :global(.breadcrumbs [aria-current="page"]) { color: #fff; }
+  .ph-content { padding-top: 24px; max-width: 800px; }
+  .ph-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .ph-tag {
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    font-size: .78rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+  }
+  .page-hero h1 {
+    color: #fff;
+    margin-bottom: 16px;
+    font-size: clamp(2rem, 4.5vw, 3.6rem);
+  }
+  .ph-lead { color: rgba(255,255,255,0.75); font-size: 1.1rem; max-width: 700px; }
+  .ph-meta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 24px; }
+  .ph-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(22,163,74,0.15);
+    border: 1px solid rgba(22,163,74,0.4);
+    color: #4ade80;
+    font-weight: 500;
+    font-size: .9rem;
+  }
+  .ph-dot {
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #4ade80;
+  }
+  .accent-text {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .specs-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .spec-item { padding: 20px 24px; border-right: 1px solid var(--c-border); }
+  .spec-item:last-child { border-right: 0; }
+  .spec-label {
+    font-size: .76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .spec-val { font-size: 1.1rem; font-weight: 700; }
+  .spec-val.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .95rem; }
+
+  .empty-cell { color: var(--c-text-faint); text-align: center; }
+  .small-stock { font-size: .72rem; padding: 2px 8px; margin-top: 4px; }
+  .price-note { margin: 16px 0 0; }
+  .empty {
+    text-align: center;
+    padding: 48px;
+    background: var(--c-bg-soft);
+    border-radius: var(--r-md);
+  }
+
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+  }
+  .num-title {
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .cta-section { padding: 32px 0 0; }
+  .cta-box {
+    position: relative;
+    background: var(--c-black);
+    color: #fff;
+    border-radius: var(--r-xl);
+    padding: 64px 32px;
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .cta-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.4) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .cta-box h2 { color: #fff; }
+  .cta-box p { color: rgba(255,255,255,0.75); }
+
+  /* Mobile/desktop toggles */
+  .desktop-only { display: block; }
+  .mobile-only { display: none; }
+  @media (max-width: 720px) {
+    .desktop-only { display: none; }
+    .mobile-only { display: block; }
+  }
+
+  /* Mobile cards для таблицы цен */
+  .mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mc-card {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .mc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .mc-brand { font-size: 1.05rem; }
+  .mc-sizes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
+  }
+  .mc-size {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .mc-size.is-empty { opacity: 0.45; }
+  .mc-size-label {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: .78rem;
+    color: var(--c-text-faint);
+    background: var(--c-bg-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 44px;
+    text-align: center;
+  }
+  .mc-price { font-size: .92rem; }
+
+  /* Hero на мобиле — меньше отступов */
+  @media (max-width: 640px) {
+    .page-hero { padding: 16px 0 36px; margin-bottom: 32px; }
+    .page-hero h1 { font-size: 1.9rem; }
+    .ph-lead { font-size: 1rem; }
+    .ph-tags { gap: 6px; margin-bottom: 14px; }
+    .ph-tag { padding: 3px 10px; font-size: .72rem; }
+    .ph-meta { margin-top: 16px; }
+    .specs-strip { grid-template-columns: 1fr 1fr; }
+    .spec-item { padding: 12px 16px; border-right: 1px solid var(--c-border); }
+    .spec-item:nth-child(2n) { border-right: 0; }
+    .spec-item:nth-last-child(-n+2) { border-bottom: 0; }
+    .cta-box { padding: 40px 24px; border-radius: var(--r-lg); }
+  }
+</style>
