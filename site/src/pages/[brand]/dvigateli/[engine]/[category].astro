@@ -82,13 +82,90 @@ const catalogNumbers = numbers.filter((n) => n.number_type.startsWith('catalog_'
 const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
 const engSl = engineSlug(engine.engine_code);
 
-const productJsonLd = null;
+// Список других категорий для этого двигателя (для внутренней перелинковки)
+const allPartsIdx = await getEnginePartsIndex();
+const otherCategories = allPartsIdx
+  .filter((p) => p.engine_code === engine.engine_code && p.category_code !== categoryCode)
+  .map((p) => p.category_code);
+
+// SEO: оптимизированные тексты под запросы вида "{категория} {код двигателя}"
+const catLower = catLabel.toLowerCase();
+const seoTitle = `${catLabel} ${engine.brand_name} ${engine.engine_code} купить в Алматы — ${partsBrandList[0] || 'TEIKIN'} | MY AVTO`;
+const seoDesc = `${catLabel} на двигатель ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}. Бренды: ${partsBrandList.join(', ') || 'TEIKIN, NPR, IZUMI'}. Размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50'}. Магазин в Алматы, доставка по Казахстану.`;
+const seoKw = [
+  `${catLower} ${engine.engine_code.toLowerCase()}`,
+  `${engine.engine_code.toLowerCase()} ${catLower}`,
+  `${catLower} ${engine.engine_code.toLowerCase()} алматы`,
+  `купить ${catLower} ${engine.engine_code.toLowerCase()}`,
+  `${engine.brand_name.toLowerCase()} ${engine.engine_code.toLowerCase()} капремонт`,
+  ...(partsBrandList.length ? partsBrandList.map((b) => `${engine.engine_code.toLowerCase()} ${b.toLowerCase()}`) : []),
+].join(', ');
+
+// FAQ под эту категорию + двигатель (генерируется автоматически)
+const faqItems = [
+  {
+    q: `Какие ${catLower} подходят на двигатель ${engine.brand_name} ${engine.engine_code}?`,
+    a: `На двигатель ${engine.brand_name} ${engine.engine_code} подходят ${catLower} брендов ${partsBrandList.length ? partsBrandList.join(', ') : 'TEIKIN, NPR, IZUMI, Taiho'}. ${attrMap.piston_diameter ? `Стандартный диаметр поршня — Ø${attrMap.piston_diameter} мм. ` : ''}Доступные ремонтные размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75, 1.00'}.`,
+  },
+  {
+    q: `Какой размер ${catLower} выбрать для ${engine.engine_code}?`,
+    a: `Если двигатель ${engine.engine_code} не растачивался — берите STD (стандарт). После расточки блока цилиндров — соответствующий ремонтный размер: 0.25, 0.50, 0.75 или 1.00 мм. Точный размер скажет моторист после замера цилиндров.`,
+  },
+  {
+    q: `Сколько стоят ${catLower} на ${engine.brand_name} ${engine.engine_code}?`,
+    a: `Цена зависит от бренда и размера. Напишите в WhatsApp +7 701 550 9377 — пришлём актуальную цену за 10 минут. У нас цены ниже рынка на 15-20%, потому что работаем напрямую с поставщиками из Японии.`,
+  },
+  {
+    q: `Есть ли ${catLower} в наличии в Алматы?`,
+    a: `Большинство позиций в наличии в магазине Алматы (ТЦ CarCity, 3 ярус, бутик 135В). Редкие размеры — под заказ из Японии, срок 3-7 дней. Точное наличие проверим по коду двигателя в WhatsApp.`,
+  },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://my-avto.kz/' },
+      { '@type': 'ListItem', position: 2, name: engine.brand_name, item: `https://my-avto.kz/${brandSl}/` },
+      { '@type': 'ListItem', position: 3, name: engine.engine_code, item: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/` },
+      { '@type': 'ListItem', position: 4, name: catLabel },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `${catLabel} ${engine.brand_name} ${engine.engine_code}`,
+    description: seoDesc,
+    category: catLabel,
+    brand: partsBrandList.length ? partsBrandList.map((b) => ({ '@type': 'Brand', name: b })) : [{ '@type': 'Brand', name: 'TEIKIN' }],
+    image: 'https://my-avto.kz/assets/og-image.jpg',
+    sku: tknNumbers[0]?.number_value || oemNumbers[0]?.number_value || `${engine.engine_code}-${categoryCode}`,
+    offers: {
+      '@type': 'AggregateOffer',
+      priceCurrency: 'KZT',
+      availability: 'https://schema.org/InStock',
+      seller: { '@type': 'AutoPartsStore', name: 'MY AVTO' },
+      url: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/${categorySlug[categoryCode]}/`,
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
 ---
 
 <Base
-  title={`${catLabel} для ${engine.brand_name} ${engine.engine_code} — характеристики и артикулы | MY AVTO Алматы`}
-  description={`${catLabel} для двигателя ${engine.brand_name} ${engine.engine_code}. Характеристики, бренды (${partsBrandList.join(', ') || 'TEIKIN, NPR, IZUMI'}), все ремонтные размеры, каталожные номера. Цены — по запросу в WhatsApp.`}
-  keywords={`${engine.engine_code} ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} ${engine.engine_code} Алматы, ${engine.brand_name} ${engine.engine_code} капиталка, ${engine.engine_code} TEIKIN, ${engine.engine_code} NPR`}
+  title={seoTitle}
+  description={seoDesc}
+  keywords={seoKw}
+  jsonLd={jsonLd}
 >
   <!-- Hero header — dark slice -->
   <div class="page-hero">
@@ -110,13 +187,11 @@ const productJsonLd = null;
           {engine.is_diesel && <span class="ph-tag">Дизель</span>}
         </div>
         <h1>
-          {catLabel}<br />
-          <span class="accent-text">для {engine.brand_name} {engine.engine_code}</span>
+          {catLabel} на двигатель<br />
+          <span class="accent-text">{engine.brand_name} {engine.engine_code}</span>
         </h1>
         <p class="ph-lead">
-          {variantList.length > 0
-            ? `${partsBrandList.length} ${partsBrandList.length === 1 ? 'бренд' : 'брендов'} · ${availableSizes.length} ${availableSizes.length === 1 ? 'размер' : 'размеров'}: ${availableSizes.join(', ')}`
-            : 'Уточните наличие и цену в WhatsApp.'}
+          Купить {catLower} {engine.engine_code} в Алматы. {partsBrandList.length > 0 ? `Бренды: ${partsBrandList.map(brandDisplay).join(', ')}.` : 'Бренды TEIKIN, NPR, IZUMI, Taiho в наличии.'} Размеры: {availableSizes.length > 0 ? availableSizes.join(', ') : 'STD, 0.25, 0.50, 0.75, 1.00'}.
         </p>
         <div class="ph-meta">
           <a href="https://wa.me/77015509377" class="btn">Узнать цену в WhatsApp</a>
@@ -236,20 +311,57 @@ const productJsonLd = null;
     )}
 
     <section class="reveal">
-      <h2>Что важно знать о двигателе {engine.engine_code}</h2>
+      <h2>Что важно знать о {catLower} на {engine.engine_code}</h2>
       <p>
         Двигатель <strong>{engine.brand_name} {engine.engine_code}</strong>
         {engine.volume_l && <> объёмом {engine.volume_l} л</>}
         {engine.cylinder_count && <>, {engine.cylinder_count}-цилиндровый</>}
-        {engine.is_diesel ? ' (дизель).' : ' (бензин).'}
-        При капитальном ремонте {catLabel.toLowerCase()} подбираются под фактический
-        размер расточки цилиндров.
+        {engine.is_diesel ? ' (дизель)' : ' (бензин)'}
+        {attrMap.piston_diameter && <> со стандартным диаметром поршня Ø{attrMap.piston_diameter} мм</>}.
+        При капитальном ремонте двигателя {engine.engine_code} {catLower} подбираются под фактический
+        размер расточки блока цилиндров — STD для нерастачиваемых, 0.25/0.50/0.75/1.00 мм для
+        ремонтных. Перед заказом моторист замеряет цилиндры и определяет нужный размер.
       </p>
       <p>
-        Бренды запчастей под этот двигатель в нашем каталоге:
-        {' '}<strong>{partsBrandList.length > 0 ? partsBrandList.map(brandDisplay).join(', ') : 'TEIKIN, IZUMI, NPR, RIK, TP'}</strong>.
-        Оригинальные запчасти {engine.brand_name} — под заказ из Японии.
+        В нашем магазине представлены {catLower} брендов
+        {' '}<strong>{partsBrandList.length > 0 ? partsBrandList.map(brandDisplay).join(', ') : 'TEIKIN, IZUMI, NPR, RIK, TP, ND, Taiho'}</strong> —
+        японские производители с гарантией оригинала. Поставка напрямую без посредников,
+        поэтому цены ниже рынка на 15-20%. Оригинальные {catLower} {engine.brand_name} —
+        под заказ из Японии (срок 7-14 дней).
       </p>
+      {oemNumbers.length > 0 && (
+        <p>
+          OEM номера для подбора: {oemNumbers.slice(0, 3).map((n) => <code>{n.number_value}</code>).reduce((a, b, i) => i === 0 ? [b] : [...a, ', ', b], [] as any)}.
+          Если у вас есть свой номер запчасти — пришлите в WhatsApp, подберём аналог.
+        </p>
+      )}
+    </section>
+
+    {otherCategories.length > 0 && (
+      <section class="reveal related-cats">
+        <h2>Другие запчасти на двигатель {engine.engine_code}</h2>
+        <p class="muted">Полный комплект для капремонта {engine.brand_name} {engine.engine_code}:</p>
+        <div class="related-grid">
+          {otherCategories.map((cc) => (
+            <a href={`/${brandSl}/dvigateli/${engSl}/${categorySlug[cc]}/`} class="related-card">
+              <strong>{categoryLabel[cc]}</strong>
+              <span>на {engine.brand_name} {engine.engine_code} →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="reveal faq-section">
+      <h2>Частые вопросы про {catLower} {engine.engine_code}</h2>
+      <div class="faq-list">
+        {faqItems.map((f) => (
+          <details class="faq-item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
     </section>
 
     <section class="cta-section">
@@ -504,6 +616,64 @@ const productJsonLd = null;
     text-align: center;
   }
   .mc-price { font-size: .92rem; }
+
+  /* Related categories */
+  .related-cats { margin-top: 48px; }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 20px;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color var(--t-fast), transform var(--t-fast);
+  }
+  .related-card strong { font-size: 1.05rem; }
+  .related-card span { color: var(--c-text-faint); font-size: .9rem; }
+  .related-card:hover {
+    border-color: var(--c-red);
+    transform: translateY(-2px);
+  }
+
+  /* FAQ */
+  .faq-section { margin-top: 48px; }
+  .faq-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .faq-item {
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--c-bg-soft, #fafafa);
+  }
+  .faq-item summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 600;
+    position: relative;
+    padding-right: 48px;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.4rem;
+    color: var(--c-red);
+    font-weight: 400;
+    transition: transform var(--t-fast);
+  }
+  .faq-item[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+  .faq-item p { padding: 0 20px 16px; margin: 0; color: var(--c-text-faint); }
 
   /* Hero на мобиле — меньше отступов */
   @media (max-width: 640px) {
