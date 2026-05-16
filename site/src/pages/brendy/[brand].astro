@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getEnginesByPartsBrand } from '../../lib/db';
-import { partsBrands, partsBrandSlugs } from '../../lib/parts-brands';
+import { partsBrands, partsBrandSlugs, CATEGORY_LABELS } from '../../lib/parts-brands';
 import { brandSlug, engineSlug } from '../../lib/slugs';
 import { categorySlug } from '../../lib/slugs';
 
@@ -53,9 +53,9 @@ const orgJsonLd = {
 };
 ---
 <Base
-  title={`${info.display} в Алматы | Купить ${info.categories[0].toLowerCase()} ${info.display} — MY AVTO`}
-  description={`${info.tagline}. Купить ${info.display} в Алматы для ${totalEngines || 'японских'} двигателей. Оригинал из Японии, все ремонтные размеры. Доставка по РК.`}
-  keywords={`${info.display} Алматы, ${info.display} купить, ${info.display} оригинал, ${info.categories.join(' ').toLowerCase()} ${info.display}`}
+  title={`${info.display} в Алматы — ${info.tagline} | MY AVTO`}
+  description={`${info.tagline}. Купить ${info.display} в Алматы. Все ремонтные размеры из Японии. Цена и наличие — по WhatsApp. Доставка по РК.`}
+  keywords={`${info.display} Алматы, ${info.display} купить, ${info.display} Казахстан, ${info.categories.map((c) => CATEGORY_LABELS[c]).join(', ').toLowerCase()} ${info.display}`}
   jsonLd={orgJsonLd}
 >
   <div class="page-hero">
@@ -71,12 +71,10 @@ const orgJsonLd = {
             <span class="meta-label">Страна</span>
             <span class="meta-value">{info.country}</span>
           </div>
-          {info.founded && (
-            <div class="meta-item">
-              <span class="meta-label">Основан</span>
-              <span class="meta-value">{info.founded}</span>
-            </div>
-          )}
+          <div class="meta-item">
+            <span class="meta-label">Что делает</span>
+            <span class="meta-value">{info.categories.map((c) => CATEGORY_LABELS[c]).join(', ')}</span>
+          </div>
           {totalEngines > 0 && (
             <div class="meta-item">
               <span class="meta-label">У нас в каталоге</span>
@@ -98,12 +96,12 @@ const orgJsonLd = {
 
   <div class="container">
     <section class="reveal">
-      <h2>Что мы продаём от {info.display}</h2>
+      <h2>Что мы возим от {info.display}</h2>
       <div class="grid cols-3">
         {info.categories.map((cat) => (
           <div class="card info-card">
-            <h3>{cat}</h3>
-            <p class="muted">Оригинальные {cat.toLowerCase()} {info.display}, все ремонтные размеры в наличии или под заказ.</p>
+            <h3>{CATEGORY_LABELS[cat]}</h3>
+            <p class="muted">{CATEGORY_LABELS[cat]} {info.display} на капремонт японских двигателей. Все ремонтные размеры. Цена и наличие — по WhatsApp.</p>
           </div>
         ))}
       </div>

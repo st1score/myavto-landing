@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getEngines } from '../../lib/db';
 import { brandSlug } from '../../lib/slugs';
+import { fmtNum } from '../../lib/format';
 
 export async function getStaticPaths() {
   const engines = await getEngines();
@@ -36,9 +37,7 @@ const diesel = engines.filter((e) => e.is_diesel);
         <span class="eyebrow eyebrow-light">Каталог</span>
         <h1>Запчасти для<br /><span class="accent-text">двигателей {brand}</span></h1>
         <p class="ph-lead">
-          <strong>{engines.length} двигателей {brand}</strong> с поршнями и кольцами.
-          Бренды: TEIKIN, IZUMI, NPR, RIK, TP, ND, оригинал. Все ремонтные размеры —
-          STD, 0.25, 0.50, 0.75, 1.00.
+          <strong>{engines.length} двигателей {brand}</strong> с подбором запчастей. Поршни и гильзы — TEIKIN, ND, IZUMI. Кольца — RIK, TP, NPR. Вкладыши — Taiho, NDC. Все ремонтные размеры. Цена и наличие — в WhatsApp.
         </p>
       </div>
     </div>
@@ -56,7 +55,7 @@ const diesel = engines.filter((e) => e.is_diesel);
             <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
               <h3>{e.engine_code}</h3>
               <p class="muted small">
-                {e.volume_l && `${e.volume_l} л`}
+                {e.volume_l && `${fmtNum(e.volume_l)} л`}
                 {e.valve_count && ` · ${e.valve_count}V`}
                 {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
               </p>
@@ -77,7 +76,7 @@ const diesel = engines.filter((e) => e.is_diesel);
           {diesel.map((e, i) => (
             <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
               <h3>{e.engine_code}</h3>
-              <p class="muted small">{e.volume_l && `${e.volume_l} л`} · Дизель</p>
+              <p class="muted small">{e.volume_l && `${fmtNum(e.volume_l)} л`} · Дизель</p>
               <span class="card-arrow">→</span>
             </a>
           ))}

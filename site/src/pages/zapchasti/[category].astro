@@ -4,6 +4,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getEngines, getEnginePartsIndex } from '../../lib/db';
 import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../lib/slugs';
 import { categoryLabel } from '../../lib/labels';
+import { fmtNum } from '../../lib/format';
 
 export async function getStaticPaths() {
   return Object.values(categorySlug).map((slug) => ({ params: { category: slug } }));
@@ -80,7 +81,7 @@ function url(brand: string, code: string) {
             <a href={url(e.brand_name, e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
               <h3>{e.engine_code}</h3>
               <p class="muted small">
-                {e.volume_l && `${e.volume_l} л`}
+                {e.volume_l && `${fmtNum(e.volume_l)} л`}
                 {e.is_diesel && ' · Дизель'}
               </p>
               <span class="card-arrow">→</span>
