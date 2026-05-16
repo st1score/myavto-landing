@@ -13,7 +13,6 @@ export const CONTACTS = {
   instagramHandle: '@myavto.kz_',
   tiktok: 'https://www.tiktok.com/@myavto.kz',
   tiktokHandle: '@myavto.kz',
-  kaspi: 'https://l.kaspi.kz/shop/U2E5tHvjbzmz9vD',
   kolesa: 'https://kolesa.kz/a/show/216448704?redirect=1',
   address: 'г. Алматы, ТЦ «CarCity», 3 ярус, бутик 135В',
   addressShort: 'CarCity · 3 ярус · 135В',

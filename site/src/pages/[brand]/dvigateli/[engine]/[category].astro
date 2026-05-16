@@ -11,7 +11,10 @@ import {
 } from '../../../../lib/db';
 import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../../../lib/slugs';
 import { categoryLabel, brandDisplay, insertTypeLabel } from '../../../../lib/labels';
-// Цены временно скрыты — выводим только характеристики, размеры и артикулы.
+import { fmtNum } from '../../../../lib/format';
+import { brandsForCategory, CATEGORY_SLUG_MAP, CATEGORY_LABELS, type PartCategory } from '../../../../lib/parts-brands';
+// Цены не выводим — только характеристики, бренды, размеры и артикулы.
+// Цены и наличие узнаются через WhatsApp.
 
 export async function getStaticPaths() {
   const engines = await getEngines();
@@ -72,8 +75,18 @@ for (const v of variantList) for (const s of v.sizes) allSizes.add(s);
 const sizesOrder = ['STD', '0.25', '0.50', '0.75', '1.00'];
 const availableSizes = sizesOrder.filter((s) => allSizes.has(s));
 
-// Брендов запчастей под этот двигатель
+// Брендов запчастей под этот двигатель (из БД — то что реально есть)
 const partsBrandList = [...new Set(variantList.map((v) => v.brand))];
+
+// Все бренды которые в принципе возим под эту категорию (из конфига parts-brands.ts).
+// Это нужно когда в БД ещё не загружена номенклатура для конкретного двигателя,
+// но мы хотим показать клиенту какие бренды можем привезти под заказ.
+const DB_TO_PART_CATEGORY: Record<string, PartCategory> = {
+  PISTON: 'porshni',
+  RING: 'koltsa',
+};
+const currentPartCategory = DB_TO_PART_CATEGORY[categoryCode] ?? 'porshni';
+const allBrandsForCategory = brandsForCategory(currentPartCategory);
 
 const oemNumbers = numbers.filter((n) => n.number_type === 'oem' || n.number_type === 'alt_oem');
 const tknNumbers = numbers.filter((n) => n.number_type === 'teikin');
@@ -91,7 +104,8 @@ const otherCategories = allPartsIdx
 // SEO: оптимизированные тексты под запросы вида "{категория} {код двигателя}"
 const catLower = catLabel.toLowerCase();
 const seoTitle = `${catLabel} ${engine.brand_name} ${engine.engine_code} купить в Алматы — ${partsBrandList[0] || 'TEIKIN'} | MY AVTO`;
-const seoDesc = `${catLabel} на двигатель ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}. Бренды: ${partsBrandList.join(', ') || 'TEIKIN, NPR, IZUMI'}. Размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50'}. Магазин в Алматы, доставка по Казахстану.`;
+const brandNamesForSeo = (partsBrandList.length ? partsBrandList : allBrandsForCategory.map((b) => b.display)).join(', ');
+const seoDesc = `${catLabel} на двигатель ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${fmtNum(engine.volume_l)} л` : ''}. Бренды: ${brandNamesForSeo}. Размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75'}. Цена и наличие — в WhatsApp.`;
 const seoKw = [
   `${catLower} ${engine.engine_code.toLowerCase()}`,
   `${engine.engine_code.toLowerCase()} ${catLower}`,
@@ -102,10 +116,11 @@ const seoKw = [
 ].join(', ');
 
 // FAQ под эту категорию + двигатель (генерируется автоматически)
+const brandListForFaq = partsBrandList.length ? partsBrandList.join(', ') : allBrandsForCategory.map((b) => b.display).join(', ');
 const faqItems = [
   {
     q: `Какие ${catLower} подходят на двигатель ${engine.brand_name} ${engine.engine_code}?`,
-    a: `На двигатель ${engine.brand_name} ${engine.engine_code} подходят ${catLower} брендов ${partsBrandList.length ? partsBrandList.join(', ') : 'TEIKIN, NPR, IZUMI, Taiho'}. ${attrMap.piston_diameter ? `Стандартный диаметр поршня — Ø${attrMap.piston_diameter} мм. ` : ''}Доступные ремонтные размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75, 1.00'}.`,
+    a: `На двигатель ${engine.brand_name} ${engine.engine_code} подходят ${catLower} брендов ${brandListForFaq}. ${attrMap.piston_diameter ? `Стандартный диаметр поршня — Ø${fmtNum(attrMap.piston_diameter)} мм. ` : ''}Доступные ремонтные размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75, 1.00'}.`,
   },
   {
     q: `Какой размер ${catLower} выбрать для ${engine.engine_code}?`,
@@ -113,11 +128,11 @@ const faqItems = [
   },
   {
     q: `Сколько стоят ${catLower} на ${engine.brand_name} ${engine.engine_code}?`,
-    a: `Цена зависит от бренда и размера. Напишите в WhatsApp +7 701 550 9377 — пришлём актуальную цену за 10 минут. У нас цены ниже рынка на 15-20%, потому что работаем напрямую с поставщиками из Японии.`,
+    a: `Цена зависит от бренда и размера. Напишите код двигателя в WhatsApp +7 701 550 9377 — пришлём актуальную цену и наличие. Работаем напрямую с поставщиками из Японии.`,
   },
   {
     q: `Есть ли ${catLower} в наличии в Алматы?`,
-    a: `Большинство позиций в наличии в магазине Алматы (ТЦ CarCity, 3 ярус, бутик 135В). Редкие размеры — под заказ из Японии, срок 3-7 дней. Точное наличие проверим по коду двигателя в WhatsApp.`,
+    a: `Самые ходовые позиции в наличии в магазине: Алматы, ТЦ CarCity, 3 ярус, бутик 135В. Редкие размеры — под заказ из Японии, срок 7-14 дней. Точное наличие проверим по коду двигателя в WhatsApp.`,
   },
 ];
 
@@ -183,7 +198,7 @@ const jsonLd = [
         <div class="ph-tags">
           <span class="ph-tag">{engine.brand_name}</span>
           <span class="ph-tag">{engine.engine_code}</span>
-          {engine.volume_l && <span class="ph-tag">{engine.volume_l} л</span>}
+          {engine.volume_l && <span class="ph-tag">{fmtNum(engine.volume_l)} л</span>}
           {engine.is_diesel && <span class="ph-tag">Дизель</span>}
         </div>
         <h1>
@@ -191,7 +206,7 @@ const jsonLd = [
           <span class="accent-text">{engine.brand_name} {engine.engine_code}</span>
         </h1>
         <p class="ph-lead">
-          Купить {catLower} {engine.engine_code} в Алматы. {partsBrandList.length > 0 ? `Бренды: ${partsBrandList.map(brandDisplay).join(', ')}.` : 'Бренды TEIKIN, NPR, IZUMI, Taiho в наличии.'} Размеры: {availableSizes.length > 0 ? availableSizes.join(', ') : 'STD, 0.25, 0.50, 0.75, 1.00'}.
+          Купить {catLower} {engine.engine_code} в Алматы. Доступные бренды: {(partsBrandList.length > 0 ? partsBrandList.map(brandDisplay) : allBrandsForCategory.map((b) => b.display)).join(', ')}. Размеры: {availableSizes.length > 0 ? availableSizes.join(', ') : 'STD, 0.25, 0.50, 0.75, 1.00'}. Цена и наличие — в WhatsApp.
         </p>
         <div class="ph-meta">
           <a href="https://wa.me/77015509377" class="btn">Узнать цену в WhatsApp</a>
@@ -215,7 +230,7 @@ const jsonLd = [
         {engine.volume_l && (
           <div class="spec-row">
             <div class="spec-row-label">Объём двигателя</div>
-            <div class="spec-row-val">{engine.volume_l} л</div>
+            <div class="spec-row-val">{fmtNum(engine.volume_l)} л</div>
           </div>
         )}
         {engine.cylinder_count && (
@@ -237,13 +252,13 @@ const jsonLd = [
         {attrMap.piston_diameter && (
           <div class="spec-row">
             <div class="spec-row-label">Диаметр поршня</div>
-            <div class="spec-row-val">Ø {attrMap.piston_diameter} мм</div>
+            <div class="spec-row-val">Ø {fmtNum(attrMap.piston_diameter)} мм</div>
           </div>
         )}
         {attrMap.pin_diameter && (
           <div class="spec-row">
             <div class="spec-row-label">Диаметр пальца</div>
-            <div class="spec-row-val">Ø {attrMap.pin_diameter} мм</div>
+            <div class="spec-row-val">Ø {fmtNum(attrMap.pin_diameter)} мм</div>
           </div>
         )}
         {attrMap.piston_spec_raw && (
@@ -255,13 +270,15 @@ const jsonLd = [
       </div>
     </section>
 
-    {variantList.length > 0 && (
-      <section class="reveal">
-        <h2>Доступные бренды и размеры</h2>
-        <p class="muted">
-          Под этот двигатель подходят {catLabel.toLowerCase()} следующих брендов.
-          Цена и точное наличие — по запросу.
-        </p>
+    <section class="reveal">
+      <h2>Доступные бренды и размеры</h2>
+      <p class="muted">
+        Под этот двигатель {catLower} могут быть {allBrandsForCategory.length > 0 ? `следующих брендов` : 'разных брендов'}.
+        Размеры — STD (стандарт) и ремонтные: 0.25, 0.50, 0.75, 1.00 мм.
+        <strong>Цена и точное наличие — по WhatsApp</strong> (отправьте код двигателя и желаемый размер).
+      </p>
+
+      {variantList.length > 0 ? (
         <div class="variants-grid">
           {variantList.map((v) => (
             <div class="variant-card">
@@ -277,12 +294,34 @@ const jsonLd = [
             </div>
           ))}
         </div>
-        <p class="price-note muted small">
-          STD — стандартный заводской размер. 0.25 / 0.50 / 0.75 / 1.00 — ремонтные размеры
-          (диаметр после расточки больше штатного на соответствующую величину в мм).
-        </p>
-      </section>
-    )}
+      ) : (
+        <div class="variants-grid">
+          {allBrandsForCategory.map((b) => (
+            <div class="variant-card">
+              <div class="variant-head">
+                <strong class="variant-brand">{b.display}</strong>
+                <span class="badge muted small">{b.country}</span>
+              </div>
+              <div class="variant-sizes">
+                {sizesOrder.map((s) => <span class="size-chip">{s}</span>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p class="price-note muted small">
+        STD — стандартный заводской размер. 0.25 / 0.50 / 0.75 / 1.00 — ремонтные размеры
+        (диаметр после расточки больше штатного на соответствующую величину в мм). Какой размер
+        нужен — определяет моторист после замера цилиндров.
+      </p>
+
+      <div class="brands-cta">
+        <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20${encodeURIComponent(catLower)}%20на%20${engine.brand_name}%20${engine.engine_code},%20размер%20уточню`} class="btn" target="_blank" rel="noopener noreferrer">
+          Узнать цену в WhatsApp
+        </a>
+      </div>
+    </section>
 
     {(oemNumbers.length > 0 || tknNumbers.length > 0 || catalogNumbers.length > 0) && (
       <section class="reveal">
@@ -314,20 +353,19 @@ const jsonLd = [
       <h2>Что важно знать о {catLower} на {engine.engine_code}</h2>
       <p>
         Двигатель <strong>{engine.brand_name} {engine.engine_code}</strong>
-        {engine.volume_l && <> объёмом {engine.volume_l} л</>}
+        {engine.volume_l && <> объёмом {fmtNum(engine.volume_l)} л</>}
         {engine.cylinder_count && <>, {engine.cylinder_count}-цилиндровый</>}
         {engine.is_diesel ? ' (дизель)' : ' (бензин)'}
-        {attrMap.piston_diameter && <> со стандартным диаметром поршня Ø{attrMap.piston_diameter} мм</>}.
+        {attrMap.piston_diameter && <> со стандартным диаметром поршня Ø{fmtNum(attrMap.piston_diameter)} мм</>}.
         При капитальном ремонте двигателя {engine.engine_code} {catLower} подбираются под фактический
         размер расточки блока цилиндров — STD для нерастачиваемых, 0.25/0.50/0.75/1.00 мм для
         ремонтных. Перед заказом моторист замеряет цилиндры и определяет нужный размер.
       </p>
       <p>
         В нашем магазине представлены {catLower} брендов
-        {' '}<strong>{partsBrandList.length > 0 ? partsBrandList.map(brandDisplay).join(', ') : 'TEIKIN, IZUMI, NPR, RIK, TP, ND, Taiho'}</strong> —
-        японские производители с гарантией оригинала. Поставка напрямую без посредников,
-        поэтому цены ниже рынка на 15-20%. Оригинальные {catLower} {engine.brand_name} —
-        под заказ из Японии (срок 7-14 дней).
+        {' '}<strong>{(partsBrandList.length > 0 ? partsBrandList.map(brandDisplay) : allBrandsForCategory.map((b) => b.display)).join(', ')}</strong> —
+        японские производители. Самые ходовые позиции в наличии в Алматы, редкие размеры —
+        под заказ из Японии (срок 7-14 дней). Цена и точное наличие — в WhatsApp.
       </p>
       {oemNumbers.length > 0 && (
         <p>

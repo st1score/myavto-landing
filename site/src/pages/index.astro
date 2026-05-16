@@ -39,18 +39,18 @@ const autoBrands = [
 ];
 
 const partsBrands = [
-  { name: 'TEIKIN', src: '/assets/parts-brands/teikin.png' },
-  { name: 'NPR', src: '/assets/parts-brands/npr.png' },
-  { name: 'RIK', src: '/assets/parts-brands/riken.png' },
-  { name: 'TP', src: '/assets/parts-brands/tp.png' },
-  { name: 'IZUMI', src: '/assets/parts-brands/izumi.png' },
-  { name: 'ND', src: '/assets/parts-brands/nd.png' },
-  { name: 'NDC', src: '/assets/parts-brands/ndc.png' },
-  { name: 'NM', src: '/assets/parts-brands/nm.png' },
-  { name: 'NPW', src: '/assets/parts-brands/npw.png' },
-  { name: 'TAIHO', src: '/assets/parts-brands/taiho.png' },
-  { name: 'GMB', src: '/assets/parts-brands/gmb.png' },
-  { name: 'ROCKY', src: '/assets/parts-brands/rocky.png' },
+  { name: 'TEIKIN', src: '/assets/parts-brands/teikin.png', href: '/brendy/teikin/' },
+  { name: 'ND', src: '/assets/parts-brands/nd.png', href: '/brendy/nd/' },
+  { name: 'IZUMI', src: '/assets/parts-brands/izumi.png', href: '/brendy/izumi/' },
+  { name: 'NM', src: '/assets/parts-brands/nm.png', href: '/brendy/nm/' },
+  { name: 'NPR', src: '/assets/parts-brands/npr.png', href: '/brendy/npr/' },
+  { name: 'RIK', src: '/assets/parts-brands/riken.png', href: '/brendy/rik/' },
+  { name: 'TP', src: '/assets/parts-brands/tp.png', href: '/brendy/tp/' },
+  { name: 'TAIHO', src: '/assets/parts-brands/taiho.png', href: '/brendy/taiho/' },
+  { name: 'NDC', src: '/assets/parts-brands/ndc.png', href: '/brendy/ndc/' },
+  { name: 'GMB', src: '/assets/parts-brands/gmb.png', href: '/brendy/gmb/' },
+  { name: 'NPW', src: '/assets/parts-brands/npw.png', href: '/brendy/npw/' },
+  { name: 'NOK', src: '/assets/parts-brands/nm.png', href: '/brendy/nok/' },
 ];
 
 const brandLogoMap: Record<string, string> = {
@@ -63,7 +63,7 @@ const brandLogoMap: Record<string, string> = {
 
 <Base
   title="Запчасти для капиталки двигателя в Алматы | Поршни, кольца — MY AVTO"
-  description="Поршни, кольца, вкладыши, прокладки ГБЦ для японских авто. Toyota, Nissan, Mitsubishi, Mazda. Наличие в Алматы, доставка по Казахстану. Kaspi рассрочка."
+  description="Поршни, кольца, вкладыши, прокладки ГБЦ для японских авто. Toyota, Nissan, Mitsubishi, Mazda. Магазин в Алматы (ТЦ CarCity бутик 135В), доставка по Казахстану."
   keywords="запчасти для капиталки двигателя Алматы, поршни Toyota Алматы, кольца поршневые, MY AVTO"
   canonical="/"
 >
@@ -172,15 +172,13 @@ const brandLogoMap: Record<string, string> = {
       <div class="grid cols-3">
         <div class="benefit reveal">
           <div class="benefit-icon">⚡</div>
-          <h3>Цены — прозрачные</h3>
-          <p class="muted">Никаких «уточнить у менеджера» — цены и наличие сразу на сайте.</p>
+          <h3>Подбор за 10 минут</h3>
+          <p class="muted">Напишите код двигателя или марку/год авто — найдём запчасти и пришлём цены в WhatsApp.</p>
         </div>
         <div class="benefit reveal reveal-delay-1">
-          <div class="benefit-icon">
-            <img src="/assets/social/kaspi.png" alt="Kaspi" height="36" />
-          </div>
-          <h3>Kaspi рассрочка</h3>
-          <p class="muted">3, 6 или 12 месяцев без процентов и переплат. Оформление за 5 минут.</p>
+          <div class="benefit-icon">🚚</div>
+          <h3>Доставка по Казахстану</h3>
+          <p class="muted">Автобусом, СДЭК, Казпочта, AVS самолётом. Inter-city за 1-3 дня.</p>
         </div>
         <div class="benefit reveal reveal-delay-2">
           <div class="benefit-icon">✓</div>

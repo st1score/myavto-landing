@@ -1,15 +1,27 @@
 // Контент-карта брендов запчастей. Используется в /brendy/[brand]/
+// и для логики "какие бренды доступны для категории запчасти".
+export type PartCategory =
+  | 'porshni'         // поршни
+  | 'gilzy'           // гильзы цилиндров
+  | 'koltsa'          // поршневые кольца
+  | 'vkladyshi'       // вкладыши (коренные, шатунные, балансира, распредвала)
+  | 'remkomplekty'    // ремкомплекты
+  | 'prokladki-gbc'   // прокладки ГБЦ
+  | 'vodyanye-pompy'  // водяные помпы
+  | 'roliki'          // ролики
+  | 'maslosjomki'     // маслосъёмные колпачки
+  | 'salniki';        // сальники
+
 export type PartsBrandInfo = {
   slug: string;
-  dbName: string; // как хранится в DB (uppercase)
+  dbName: string;
   display: string;
   country: string;
-  founded?: string;
   tagline: string;
   description: string;
-  categories: string[]; // что производит: "поршни", "кольца", "вкладыши"
+  categories: PartCategory[];
   highlights: string[];
-  logo?: string; // путь в /assets/parts-brands/
+  logo?: string;
 };
 
 export const partsBrands: Record<string, PartsBrandInfo> = {
@@ -18,70 +30,83 @@ export const partsBrands: Record<string, PartsBrandInfo> = {
     dbName: 'TEIKIN',
     display: 'TEIKIN',
     country: 'Япония',
-    founded: '1953',
-    tagline: 'Японские поршни и кольца премиум-класса',
+    tagline: 'Японские поршни и гильзы',
     description:
-      'TEIKIN — японский производитель поршневых колец и поршней с 1953 года. Один из крупнейших OEM-поставщиков для Toyota, Honda, Nissan, Mitsubishi. Кольца TEIKIN отличаются точностью геометрии и высокой износостойкостью покрытий (хром, хром-молибден, нитрид).',
-    categories: ['Поршневые кольца', 'Поршни', 'Полнокомплектные ремкомплекты'],
+      'TEIKIN — японский производитель поршней и гильз для двигателей внутреннего сгорания. Поставляет на капремонт японских автомобилей: Toyota, Nissan, Mitsubishi, Mazda. Все ремонтные размеры: STD, 0.25, 0.50, 0.75 (наличие уточняйте в WhatsApp).',
+    categories: ['porshni', 'gilzy'],
     highlights: [
-      'OEM-поставщик для японских автоконцернов',
-      'Все размеры: STD, 0.25, 0.50, 0.75',
-      'Технология PVD-покрытия для гоночных применений',
-      'Производство в Японии, без подделок из Китая',
+      'Производство в Японии',
+      'Поршни и гильзы для японских ДВС',
+      'Все ремонтные размеры (STD, 0.25, 0.50, 0.75)',
+      'Наличие и цена — по WhatsApp',
     ],
     logo: '/assets/parts-brands/teikin.png',
   },
-  npr: {
-    slug: 'npr',
-    dbName: 'NPR',
-    display: 'NPR',
+  nd: {
+    slug: 'nd',
+    dbName: 'ND',
+    display: 'ND',
     country: 'Япония',
-    founded: '1939',
-    tagline: 'Nippon Piston Ring — старейший японский производитель колец',
+    tagline: 'Поршни и гильзы — фактически тот же бренд, что TEIKIN',
     description:
-      'NPR (Nippon Piston Ring) — основан в 1939 году, один из мировых лидеров в производстве поршневых колец. Поставляет на конвейер Toyota, Subaru, Honda, Yamaha. Известны технологией Steel Top Ring (стальные верхние кольца) для современных турбо-двигателей.',
-    categories: ['Поршневые кольца', 'Гильзы цилиндров', 'Стопорные кольца'],
+      'ND — японский бренд поршней и гильз. По сути это тот же производитель что TEIKIN, просто с другого завода: отличаются только цветом коробки и маркировкой. Артикулы и размеры одинаковые. Если TEIKIN нет в наличии — берут ND с теми же характеристиками.',
+    categories: ['porshni', 'gilzy'],
     highlights: [
-      'Производство с 1939 года',
-      'Стальные верхние кольца для турбо-двигателей',
-      'Полная линейка по японским ДВС',
-      'Все ремонтные размеры в наличии',
+      'Тот же производитель что TEIKIN, другой завод',
+      'Артикулы одинаковые с TEIKIN',
+      'Отличие только в коробке и маркировке поршня',
+      'Все ремонтные размеры',
     ],
-    logo: '/assets/parts-brands/npr.png',
+    logo: '/assets/parts-brands/nd.png',
   },
   izumi: {
     slug: 'izumi',
     dbName: 'IZUMI',
     display: 'IZUMI',
     country: 'Япония',
-    founded: '1937',
-    tagline: 'Поршни и кольца Izumi Industries',
+    tagline: 'Японские поршни и гильзы',
     description:
-      'IZUMI Industries — японский производитель поршней и колец премиум-класса. Поставщик OEM для Mazda, Mitsubishi, Subaru. Поршни IZUMI отличаются качеством литья из эвтектического алюминиевого сплава с керамическим покрытием юбки.',
-    categories: ['Поршни', 'Поршневые кольца', 'Поршневые пальцы'],
+      'IZUMI — японский производитель поршней и гильз цилиндров. Подходит на популярные двигатели японских автомобилей: Toyota, Nissan, Mitsubishi, Mazda. Все ремонтные размеры. Цена и наличие — в WhatsApp.',
+    categories: ['porshni', 'gilzy'],
     highlights: [
-      'OEM-поставщик Mazda и Mitsubishi',
-      'Эвтектический алюминиевый сплав',
-      'Керамическое покрытие юбки',
       'Производство в Японии',
+      'Поршни и гильзы',
+      'Все ремонтные размеры',
+      'Альтернатива TEIKIN/ND по цене',
     ],
     logo: '/assets/parts-brands/izumi.png',
+  },
+  nm: {
+    slug: 'nm',
+    dbName: 'NM',
+    display: 'NM (Nippon Motors)',
+    country: 'Япония',
+    tagline: 'Поршни, гильзы, ремкомплекты и прокладки ГБЦ',
+    description:
+      'NM (Nippon Motors) — японский производитель с широким ассортиментом для капремонта. Поршни и гильзы, полные ремкомплекты с прокладками, отдельно прокладки ГБЦ. Один из самых востребованных брендов когда нужен ремкомплект «всё в одном».',
+    categories: ['porshni', 'gilzy', 'remkomplekty', 'prokladki-gbc'],
+    highlights: [
+      'Полные ремкомплекты двигателя',
+      'Прокладки ГБЦ отдельно',
+      'Поршни и гильзы',
+      'Универсальный бренд для капремонта',
+    ],
+    logo: '/assets/parts-brands/nm.png',
   },
   rik: {
     slug: 'rik',
     dbName: 'RIK',
-    display: 'RIK / Riken',
+    display: 'RIK',
     country: 'Япония',
-    founded: '1927',
-    tagline: 'Riken — старейший производитель поршневых колец в Японии',
+    tagline: 'Японские поршневые кольца',
     description:
-      'Riken Corporation основана в 1927 году. Один из крупнейших поставщиков поршневых колец для японских автопроизводителей. Технологии нитрид-кремниевого покрытия и DLC (алмазоподобное покрытие) для уменьшения трения.',
-    categories: ['Поршневые кольца', 'Маслосъёмные кольца'],
+      'RIK — японский производитель поршневых колец. Один из самых популярных брендов на капремонт японских двигателей. Все ремонтные размеры (STD, 0.25, 0.50, 0.75) и любые толщины колец на самые ходовые ДВС.',
+    categories: ['koltsa'],
     highlights: [
-      'Производство с 1927 года',
-      'DLC-покрытие для снижения трения',
+      'Производство в Японии',
+      'Только поршневые кольца',
       'Все ремонтные размеры',
-      'OEM для Toyota, Honda, Suzuki',
+      'Под все ходовые японские двигатели',
     ],
     logo: '/assets/parts-brands/riken.png',
   },
@@ -90,51 +115,49 @@ export const partsBrands: Record<string, PartsBrandInfo> = {
     dbName: 'TP',
     display: 'TP',
     country: 'Япония',
-    tagline: 'Поршневые кольца TP — рабочая лошадка для капремонта',
+    tagline: 'Японские поршневые кольца',
     description:
-      'TP — японский производитель поршневых колец. Хорошее соотношение цены и качества для массового сегмента: подходит для большинства повседневных капремонтов. Полная линейка ремонтных размеров для Toyota, Nissan, Mitsubishi.',
-    categories: ['Поршневые кольца'],
+      'TP — японский производитель поршневых колец. Часто выбирают для рядового капремонта: хорошее качество за разумные деньги. Полная линейка ремонтных размеров для Toyota, Nissan, Mitsubishi, Mazda.',
+    categories: ['koltsa'],
     highlights: [
       'Японское производство',
-      'Доступная цена при сохранении качества',
-      'Линейка по самым популярным двигателям',
+      'Только поршневые кольца',
       'Все ремонтные размеры',
+      'Хорошее соотношение цена/качество',
     ],
     logo: '/assets/parts-brands/tp.png',
   },
-  nd: {
-    slug: 'nd',
-    dbName: 'ND',
-    display: 'ND / Daido',
+  npr: {
+    slug: 'npr',
+    dbName: 'NPR',
+    display: 'NPR',
     country: 'Япония',
-    founded: '1939',
-    tagline: 'Daido Metal — мировой лидер в подшипниках скольжения',
+    tagline: 'Nippon Piston Ring — поршневые кольца',
     description:
-      'Daido Metal (бренд ND) — японский производитель вкладышей коленвала с 1939 года. Поставщик OEM для Toyota, Honda, Nissan, а также Mercedes, BMW и других. Вкладыши Daido — индустриальный стандарт качества.',
-    categories: ['Вкладыши коренные', 'Вкладыши шатунные', 'Упорные полукольца'],
+      'NPR (Nippon Piston Ring) — японский производитель поршневых колец. Делает только кольца, никаких поршней или вкладышей. Поставляет на конвейер крупных японских автоконцернов. Все ремонтные размеры под японские ДВС.',
+    categories: ['koltsa'],
     highlights: [
-      'OEM-поставщик Toyota, Honda, Nissan',
-      'Триметаллические и биметаллические вкладыши',
-      'Все ремонтные размеры (STD, 0.25, 0.50, 0.75)',
-      'Гарантия производителя',
+      'Только поршневые кольца',
+      'Производство в Японии',
+      'Все ремонтные размеры',
+      'Для большинства японских двигателей',
     ],
-    logo: '/assets/parts-brands/nd.png',
+    logo: '/assets/parts-brands/npr.png',
   },
   taiho: {
     slug: 'taiho',
     dbName: 'TAIHO',
     display: 'Taiho',
     country: 'Япония',
-    founded: '1939',
-    tagline: 'Taiho Kogyo — премиальные вкладыши коленвала',
+    tagline: 'Вкладыши коренные, шатунные, балансира и распредвала',
     description:
-      'Taiho Kogyo — японский производитель подшипников скольжения. OEM-поставщик Toyota Motor Corporation. Вкладыши Taiho используются на конвейере Toyota, Lexus, Daihatsu. Высокая нагрузочная способность и долговечность.',
-    categories: ['Вкладыши коренные', 'Вкладыши шатунные'],
+      'Taiho — японский производитель подшипников скольжения (вкладышей) для двигателя. Делает только вкладыши: коренные, шатунные, балансирные валы, распредвал. На капремонт японских двигателей — один из основных брендов наряду с NDC.',
+    categories: ['vkladyshi'],
     highlights: [
-      'OEM Toyota / Lexus',
-      'Производство в Японии',
-      'Триметаллические вкладыши',
-      'Долговечность под высокой нагрузкой',
+      'Коренные и шатунные вкладыши',
+      'Вкладыши балансира и распредвала',
+      'Только вкладыши, ничего больше',
+      'Все ремонтные размеры',
     ],
     logo: '/assets/parts-brands/taiho.png',
   },
@@ -143,18 +166,107 @@ export const partsBrands: Record<string, PartsBrandInfo> = {
     dbName: 'NDC',
     display: 'NDC',
     country: 'Япония',
-    tagline: 'Вкладыши NDC для японских двигателей',
+    tagline: 'Вкладыши коренные, шатунные, балансира и распредвала',
     description:
-      'NDC — японский производитель вкладышей коленвала. Качественная альтернатива оригинальным вкладышам по более доступной цене. Полная линейка размеров для популярных двигателей Mitsubishi, Nissan, Toyota.',
-    categories: ['Вкладыши коренные', 'Вкладыши шатунные'],
+      'NDC — японский производитель вкладышей коленвала. Так же как Taiho делает только вкладыши: коренные, шатунные, балансира, распредвала. Полная линейка ремонтных размеров для японских двигателей.',
+    categories: ['vkladyshi'],
     highlights: [
-      'Японское производство',
-      'Подходит к Mitsubishi, Nissan',
+      'Коренные и шатунные вкладыши',
+      'Вкладыши балансира и распредвала',
+      'Только вкладыши',
       'Все ремонтные размеры',
-      'Доступная цена',
     ],
     logo: '/assets/parts-brands/ndc.png',
+  },
+  gmb: {
+    slug: 'gmb',
+    dbName: 'GMB',
+    display: 'GMB',
+    country: 'Япония',
+    tagline: 'Водяные помпы и ролики',
+    description:
+      'GMB — японский производитель водяных помп и роликов ГРМ. Один из самых популярных брендов на замену помпы при капремонте или при замене ремня ГРМ. Подходит на все ходовые японские двигатели.',
+    categories: ['vodyanye-pompy', 'roliki'],
+    highlights: [
+      'Только водяные помпы и ролики',
+      'Японское производство',
+      'Подходят на все ходовые ДВС',
+      'Альтернатива дорогому оригиналу',
+    ],
+    logo: '/assets/parts-brands/gmb.png',
+  },
+  npw: {
+    slug: 'npw',
+    dbName: 'NPW',
+    display: 'NPW',
+    country: 'Япония',
+    tagline: 'Водяные помпы и ролики',
+    description:
+      'NPW — японский производитель водяных помп и роликов ГРМ. Аналог GMB по качеству и назначению. На некоторые двигатели NPW идёт чаще чем GMB — зависит от модели. Уточняйте в WhatsApp.',
+    categories: ['vodyanye-pompy', 'roliki'],
+    highlights: [
+      'Только водяные помпы и ролики',
+      'Японское производство',
+      'Аналог GMB',
+      'Цена и наличие — по WhatsApp',
+    ],
+    logo: '/assets/parts-brands/npw.png',
+  },
+  nok: {
+    slug: 'nok',
+    dbName: 'NOK',
+    display: 'NOK',
+    country: 'Япония',
+    tagline: 'Маслосъёмные колпачки и сальники',
+    description:
+      'NOK — японский производитель сальников и маслосъёмных колпачков. Один из лучших по качеству на рынке: ставится на оригинальные двигатели на заводе. На капремонт берут практически всегда, потому что дешёвые аналоги текут.',
+    categories: ['maslosjomki', 'salniki'],
+    highlights: [
+      'Маслосъёмные колпачки',
+      'Сальники коленвала и распредвалов',
+      'Заводское качество для японских ДВС',
+      'Лучшие на рынке по герметичности',
+    ],
   },
 };
 
 export const partsBrandSlugs = Object.keys(partsBrands);
+
+export const CATEGORY_LABELS: Record<PartCategory, string> = {
+  porshni: 'Поршни',
+  gilzy: 'Гильзы цилиндров',
+  koltsa: 'Поршневые кольца',
+  vkladyshi: 'Вкладыши коренные / шатунные',
+  remkomplekty: 'Ремкомплекты двигателя',
+  'prokladki-gbc': 'Прокладки ГБЦ',
+  'vodyanye-pompy': 'Водяные помпы',
+  roliki: 'Ролики ГРМ',
+  maslosjomki: 'Маслосъёмные колпачки',
+  salniki: 'Сальники',
+};
+
+// Возвращает бренды которые поставляют запчасти данной категории.
+// Используется на странице категории чтобы показать только релевантные бренды.
+export function brandsForCategory(category: PartCategory): PartsBrandInfo[] {
+  return Object.values(partsBrands).filter((b) => b.categories.includes(category));
+}
+
+// Маппинг slug категории из URL → PartCategory
+// (URL содержит slug категории в БД, но на каждой странице мы знаем что показать)
+export const CATEGORY_SLUG_MAP: Record<string, PartCategory> = {
+  'porshni': 'porshni',
+  'gilzy': 'gilzy',
+  'koltsa': 'koltsa',
+  'koltsa-porshnevye': 'koltsa',
+  'vkladyshi': 'vkladyshi',
+  'vkladyshi-korennye': 'vkladyshi',
+  'vkladyshi-shatunnye': 'vkladyshi',
+  'remkomplekty': 'remkomplekty',
+  'prokladki': 'prokladki-gbc',
+  'prokladki-gbc': 'prokladki-gbc',
+  'pompy': 'vodyanye-pompy',
+  'vodyanye-pompy': 'vodyanye-pompy',
+  'roliki': 'roliki',
+  'maslosjomki': 'maslosjomki',
+  'salniki': 'salniki',
+};

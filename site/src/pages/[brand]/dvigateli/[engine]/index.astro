@@ -3,6 +3,7 @@ import Base from '../../../../layouts/Base.astro';
 import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
 import { getEngines, getEnginePartsIndex, getPartNumbers, getAttributes } from '../../../../lib/db';
 import { brandSlug, engineSlug } from '../../../../lib/slugs';
+import { fmtNum } from '../../../../lib/format';
 
 export async function getStaticPaths() {
   const engines = await getEngines();
@@ -43,7 +44,7 @@ const engSl = engineSlug(engine.engine_code);
 
 // SEO: оптимизация под "запчасти {engine_code}", "{brand} {engine}", "капремонт {engine}"
 const seoTitle = `Запчасти на двигатель ${engine.brand_name} ${engine.engine_code} купить в Алматы | MY AVTO`;
-const seoDesc = `Запчасти на ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}: поршни, кольца, вкладыши, прокладки. Бренды TEIKIN, NPR, IZUMI. Все ремонтные размеры. Магазин в Алматы.`;
+const seoDesc = `Запчасти на ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${fmtNum(engine.volume_l)} л` : ''}: поршни, кольца, вкладыши, прокладки. Бренды TEIKIN, NPR, IZUMI. Все ремонтные размеры. Цена и наличие — в WhatsApp.`;
 const seoKw = [
   `${engine.engine_code.toLowerCase()} запчасти`,
   `запчасти ${engine.engine_code.toLowerCase()}`,
@@ -85,7 +86,7 @@ const jsonLd = [
       <div class="ph-content reveal">
         <div class="ph-tags">
           <span class="ph-tag">{engine.brand_name}</span>
-          {engine.volume_l && <span class="ph-tag">{engine.volume_l} л</span>}
+          {engine.volume_l && <span class="ph-tag">{fmtNum(engine.volume_l)} л</span>}
           {engine.valve_count && <span class="ph-tag">{engine.valve_count}V</span>}
           {engine.is_diesel && <span class="ph-tag">Дизель</span>}
           {engine.cylinder_count && <span class="ph-tag">{engine.cylinder_count} цил.</span>}
@@ -96,7 +97,7 @@ const jsonLd = [
         </h1>
         <p class="ph-lead">
           Поршни, кольца, вкладыши и прокладки для капремонта двигателя {engine.engine_code} в Алматы.
-          Бренды TEIKIN, NPR, IZUMI, Taiho. Все ремонтные размеры — STD, 0.25, 0.50, 0.75, 1.00.
+          Поршни/гильзы — TEIKIN, ND, IZUMI. Кольца — RIK, TP, NPR. Вкладыши — Taiho, NDC. Все ремонтные размеры. Цена и наличие — в WhatsApp.
         </p>
       </div>
     </div>
@@ -105,12 +106,12 @@ const jsonLd = [
   <div class="container">
     {(attrMap.piston_diameter || attrMap.pin_diameter || attrMap.piston_spec_raw) && (
       <section class="specs-strip reveal">
-        {engine.volume_l && <div class="spec-item"><div class="spec-label">Объём</div><div class="spec-val">{engine.volume_l} л</div></div>}
+        {engine.volume_l && <div class="spec-item"><div class="spec-label">Объём</div><div class="spec-val">{fmtNum(engine.volume_l)} л</div></div>}
         {engine.cylinder_count && <div class="spec-item"><div class="spec-label">Цилиндров</div><div class="spec-val">{engine.cylinder_count}</div></div>}
         {engine.valve_count && <div class="spec-item"><div class="spec-label">Клапанов</div><div class="spec-val">{engine.valve_count}</div></div>}
         <div class="spec-item"><div class="spec-label">Топливо</div><div class="spec-val">{engine.is_diesel ? 'Дизель' : 'Бензин'}</div></div>
-        {attrMap.piston_diameter && <div class="spec-item"><div class="spec-label">Ø поршня</div><div class="spec-val">{attrMap.piston_diameter} мм</div></div>}
-        {attrMap.pin_diameter && <div class="spec-item"><div class="spec-label">Ø пальца</div><div class="spec-val">{attrMap.pin_diameter} мм</div></div>}
+        {attrMap.piston_diameter && <div class="spec-item"><div class="spec-label">Ø поршня</div><div class="spec-val">{fmtNum(attrMap.piston_diameter)} мм</div></div>}
+        {attrMap.pin_diameter && <div class="spec-item"><div class="spec-label">Ø пальца</div><div class="spec-val">{fmtNum(attrMap.pin_diameter)} мм</div></div>}
       </section>
     )}
     {engine.notes && <p class="muted notes reveal">{engine.notes}</p>}
@@ -124,8 +125,8 @@ const jsonLd = [
               <div class="big-card-icon">🔧</div>
               <h3>Поршни на {engine.engine_code}</h3>
               <p class="muted">
-                Поршни в сборе. Бренды TEIKIN, IZUMI, ND, ART, оригинал.
-                Размеры STD / 0.25 / 0.50 / 0.75 / 1.00.
+                Поршни и гильзы. Бренды TEIKIN, ND, IZUMI, NM.
+                Размеры STD / 0.25 / 0.50 / 0.75 / 1.00. Цена — в WhatsApp.
               </p>
               <span class="card-link">Посмотреть варианты <span class="arrow">→</span></span>
             </a>
@@ -135,8 +136,8 @@ const jsonLd = [
               <div class="big-card-icon">⚙️</div>
               <h3>Поршневые кольца на {engine.engine_code}</h3>
               <p class="muted">
-                Комплекты поршневых колец. Бренды TP, RIK, NPR, оригинал.
-                Все ремонтные размеры.
+                Комплекты поршневых колец. Бренды RIK, TP, NPR.
+                Все ремонтные размеры. Цена — в WhatsApp.
               </p>
               <span class="card-link">Посмотреть варианты <span class="arrow">→</span></span>
             </a>
