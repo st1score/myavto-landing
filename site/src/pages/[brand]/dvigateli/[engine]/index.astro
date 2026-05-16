@@ -40,12 +40,39 @@ const oemRings = ringNumbers.filter((n) => n.number_type === 'oem');
 
 const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
 const engSl = engineSlug(engine.engine_code);
+
+// SEO: оптимизация под "запчасти {engine_code}", "{brand} {engine}", "капремонт {engine}"
+const seoTitle = `Запчасти на двигатель ${engine.brand_name} ${engine.engine_code} купить в Алматы | MY AVTO`;
+const seoDesc = `Запчасти на ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}: поршни, кольца, вкладыши, прокладки. Бренды TEIKIN, NPR, IZUMI. Все ремонтные размеры. Магазин в Алматы.`;
+const seoKw = [
+  `${engine.engine_code.toLowerCase()} запчасти`,
+  `запчасти ${engine.engine_code.toLowerCase()}`,
+  `${engine.engine_code.toLowerCase()} поршни`,
+  `${engine.engine_code.toLowerCase()} кольца`,
+  `${engine.engine_code.toLowerCase()} вкладыши`,
+  `${engine.engine_code.toLowerCase()} капремонт`,
+  `${engine.brand_name.toLowerCase()} ${engine.engine_code.toLowerCase()}`,
+  `ремкомплект ${engine.engine_code.toLowerCase()} алматы`,
+].join(', ');
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://my-avto.kz/' },
+      { '@type': 'ListItem', position: 2, name: engine.brand_name, item: `https://my-avto.kz/${brandSl}/` },
+      { '@type': 'ListItem', position: 3, name: engine.engine_code },
+    ],
+  },
+];
 ---
 
 <Base
-  title={`Запчасти для ${engine.brand_name} ${engine.engine_code} | Капиталка двигателя в Алматы — MY AVTO`}
-  description={`Поршни и поршневые кольца для двигателя ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${engine.volume_l} л` : ''}. Все ремонтные размеры. Наличие в Алматы. Доставка по Казахстану.`}
-  keywords={`${engine.engine_code} поршни, ${engine.engine_code} кольца, ${engine.brand_name} ${engine.engine_code} капиталка, ремкомплект ${engine.engine_code} Алматы`}
+  title={seoTitle}
+  description={seoDesc}
+  keywords={seoKw}
+  jsonLd={jsonLd}
 >
   <div class="page-hero">
     <div class="ph-glow"></div>
@@ -64,12 +91,12 @@ const engSl = engineSlug(engine.engine_code);
           {engine.cylinder_count && <span class="ph-tag">{engine.cylinder_count} цил.</span>}
         </div>
         <h1>
-          Двигатель<br />
+          Запчасти на двигатель<br />
           <span class="accent-text">{engine.brand_name} {engine.engine_code}</span>
         </h1>
         <p class="ph-lead">
-          Запчасти для капитального ремонта: поршни в сборе и поршневые кольца.
-          Все ремонтные размеры — STD, 0.25, 0.50, 0.75, 1.00.
+          Поршни, кольца, вкладыши и прокладки для капремонта двигателя {engine.engine_code} в Алматы.
+          Бренды TEIKIN, NPR, IZUMI, Taiho. Все ремонтные размеры — STD, 0.25, 0.50, 0.75, 1.00.
         </p>
       </div>
     </div>

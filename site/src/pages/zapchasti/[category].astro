@@ -32,9 +32,26 @@ function url(brand: string, code: string) {
 ---
 
 <Base
-  title={`${catLabel} для японских авто в Алматы | Каталог по двигателям — MY AVTO`}
-  description={`Купить ${catLabel.toLowerCase()} в Алматы. Каталог для ${filtered.length} двигателей: Toyota, Nissan, Mitsubishi, Mazda. Бренды TEIKIN, IZUMI, NPR, RIK.`}
-  keywords={`${catLabel.toLowerCase()} Алматы, купить ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} японские авто, ${catLabel.toLowerCase()} TEIKIN`}
+  title={`${catLabel} купить в Алматы — каталог по двигателям | TEIKIN NPR IZUMI | MY AVTO`}
+  description={`${catLabel} на двигатели Toyota, Nissan, Mitsubishi, Mazda. Каталог для ${filtered.length} двигателей. Бренды TEIKIN, IZUMI, NPR, RIK, Taiho. Все размеры. Магазин в Алматы.`}
+  keywords={`${catLabel.toLowerCase()} алматы, купить ${catLabel.toLowerCase()}, ${catLabel.toLowerCase()} на двигатель, ${catLabel.toLowerCase()} японские авто, ${catLabel.toLowerCase()} teikin, ${catLabel.toLowerCase()} npr, ${catLabel.toLowerCase()} казахстан`}
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://my-avto.kz/' },
+        { '@type': 'ListItem', position: 2, name: catLabel },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `${catLabel} для японских авто`,
+      description: `Каталог ${catLabel.toLowerCase()} на ${filtered.length} двигателей Toyota, Nissan, Mitsubishi, Mazda.`,
+      url: `https://my-avto.kz/zapchasti/${category}/`,
+    },
+  ]}
 >
   <div class="page-hero">
     <div class="ph-glow"></div>
