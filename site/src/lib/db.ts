@@ -155,6 +155,32 @@ export async function getEnginePartsIndex(): Promise<{ engine_code: string; cate
   return rows;
 }
 
+// Все продукты-варианты со stock>0 — для генерации product-страниц по артикулу
+export type PistonProduct = {
+  engine_code: string;
+  auto_brand: string;
+  parts_brand: string;
+  size_code: string;
+  insert_type: string;
+  total_qty: number;
+};
+export async function getPistonProductsInStock(): Promise<PistonProduct[]> {
+  const { rows } = await pool.query<PistonProduct>(`
+    SELECT s.engine_code,
+           e.brand_name AS auto_brand,
+           s.brand_name AS parts_brand,
+           s.size_code,
+           s.insert_type,
+           SUM(s.qty)::int AS total_qty
+      FROM stock_items s
+      JOIN engines e ON e.engine_code = s.engine_code
+     WHERE s.category_code = 'PISTON' AND s.qty > 0 AND e.is_active = true
+     GROUP BY s.engine_code, e.brand_name, s.brand_name, s.size_code, s.insert_type
+     ORDER BY e.brand_name, s.engine_code, s.brand_name, s.size_code
+  `);
+  return rows;
+}
+
 // Двигатели с запчастями определённого бренда (например, TEIKIN)
 export async function getEnginesByPartsBrand(
   partsBrand: string

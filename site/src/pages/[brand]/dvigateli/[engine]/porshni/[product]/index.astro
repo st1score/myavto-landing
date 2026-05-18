@@ -1,0 +1,531 @@
+---
+// Product page для конкретного поршня:
+// /<brand>/dvigateli/<engine>/porshni/<product>/
+// например: /toyota/dvigateli/1kz/porshni/teikin-46283-std/
+//
+// SEO-цель: ранжироваться по точным запросам типа
+// "TEIKIN 46283 STD", "поршень 1KZ TEIKIN", "13101-67030"
+
+import Base from '../../../../../../layouts/Base.astro';
+import Breadcrumbs from '../../../../../../components/Breadcrumbs.astro';
+import { getEngines, getPistonProductsInStock } from '../../../../../../lib/db';
+import { brandSlug, engineSlug } from '../../../../../../lib/slugs';
+import { partsBrandLabel } from '../../../../../../lib/labels';
+import { teikinCatalog } from '../../../../../../data/teikin-catalog';
+import { fmtNum } from '../../../../../../lib/format';
+
+export async function getStaticPaths() {
+  // Слаги размеров (внутри getStaticPaths — Astro изолирует контекст)
+  const SIZE_SLUG: Record<string, string> = {
+    'STD': 'std',
+    '0.25': '025',
+    '0.50': '050',
+    '0.75': '075',
+    '1.00': '100',
+  };
+  const brandSlugLower = (brand: string) => brand.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const insertSlug = (insertType: string) => insertType === 'plain' ? '' : '-' + insertType.toLowerCase();
+
+  const [products, engines] = await Promise.all([
+    getPistonProductsInStock(),
+    getEngines(),
+  ]);
+  const engByCode = new Map(engines.map((e) => [e.engine_code, e]));
+
+  const paths = [];
+  for (const p of products) {
+    const eng = engByCode.get(p.engine_code);
+    if (!eng) continue;
+    const sizeSl = SIZE_SLUG[p.size_code];
+    if (!sizeSl) continue;
+
+    // Для TEIKIN с известным артикулом — в URL даём конкретный артикул для SEO
+    let productSlug;
+    const teikinEntry = teikinCatalog[p.engine_code];
+    if (p.parts_brand === 'TEIKIN' && teikinEntry?.teikin_pistons?.[0]) {
+      const article = teikinEntry.teikin_pistons[0].toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      productSlug = `teikin-${article}${insertSlug(p.insert_type)}-${sizeSl}`;
+    } else {
+      productSlug = `${brandSlugLower(p.parts_brand)}${insertSlug(p.insert_type)}-${sizeSl}`;
+    }
+
+    paths.push({
+      params: {
+        brand: brandSlug[eng.brand_name] ?? eng.brand_name.toLowerCase(),
+        engine: engineSlug(eng.engine_code),
+        product: productSlug,
+      },
+      props: {
+        engine: eng,
+        product: p,
+        teikinEntry: teikinEntry ?? null,
+      },
+    });
+  }
+  return paths;
+}
+
+const { engine, product, teikinEntry } = Astro.props;
+
+const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
+const engSl = engineSlug(engine.engine_code);
+const sizeLabel = product.size_code;
+const partsBrandDisplay = partsBrandLabel[product.parts_brand] ?? product.parts_brand;
+
+// Артикул для отображения в title/h1
+let mainArticle = '';
+if (product.parts_brand === 'TEIKIN' && teikinEntry?.teikin_pistons?.[0]) {
+  mainArticle = teikinEntry.teikin_pistons[0];
+}
+
+// Тип вставки для отображения (plain → ничего, AG → "Антизадирный обод", A → "Вставка A")
+const insertDisplay = product.insert_type === 'plain'
+  ? ''
+  : product.insert_type === 'AG' ? ' (антизадирный обод AG)'
+  : product.insert_type === 'A' ? ' (вставка A)'
+  : ` (${product.insert_type})`;
+
+// SEO
+const titleParts = [
+  `Поршень ${partsBrandDisplay}`,
+  mainArticle,
+  sizeLabel,
+  `на ${engine.brand_name} ${engine.engine_code}`,
+];
+const seoTitle = titleParts.filter(Boolean).join(' ') + ' — купить в Алматы | MY AVTO';
+
+const seoDescParts: string[] = [];
+seoDescParts.push(`${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}${insertDisplay} — поршень на двигатель ${engine.brand_name} ${engine.engine_code}.`);
+if (teikinEntry?.bore_mm) seoDescParts.push(`Диаметр ${fmtNum(teikinEntry.bore_mm)} мм.`);
+if (teikinEntry?.oem_piston?.[0]) seoDescParts.push(`OEM ${teikinEntry.oem_piston[0]}.`);
+seoDescParts.push('Цена и наличие — по WhatsApp. Магазин в Алматы, доставка по РК.');
+const seoDesc = seoDescParts.join(' ');
+
+const seoKw = [
+  mainArticle && `TEIKIN ${mainArticle}`,
+  mainArticle && `${mainArticle}`,
+  `поршень ${engine.engine_code} ${sizeLabel}`,
+  `${partsBrandDisplay} ${engine.engine_code}`,
+  ...(teikinEntry?.oem_piston ?? []).map((o) => o),
+  ...(teikinEntry?.models ?? []).slice(0, 3),
+].filter(Boolean).join(', ');
+
+// Schema.org Product
+const productJsonLd: Record<string, any> = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: titleParts.filter(Boolean).join(' '),
+  description: seoDesc,
+  category: 'Поршни двигателя',
+  brand: { '@type': 'Brand', name: partsBrandDisplay },
+  sku: mainArticle || `${product.parts_brand}-${engine.engine_code}-${sizeLabel}`,
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'KZT',
+    availability: 'https://schema.org/InStock',
+    seller: { '@type': 'AutoPartsStore', name: 'MY AVTO', url: 'https://my-avto.kz' },
+    url: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/porshni/`,
+  },
+};
+if (teikinEntry?.image) {
+  productJsonLd.image = 'https://my-avto.kz' + teikinEntry.image;
+}
+
+// Breadcrumbs
+const breadcrumbsJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://my-avto.kz/' },
+    { '@type': 'ListItem', position: 2, name: engine.brand_name, item: `https://my-avto.kz/${brandSl}/` },
+    { '@type': 'ListItem', position: 3, name: engine.engine_code, item: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/` },
+    { '@type': 'ListItem', position: 4, name: 'Поршни', item: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/porshni/` },
+    { '@type': 'ListItem', position: 5, name: `${partsBrandDisplay} ${mainArticle || sizeLabel}` },
+  ],
+};
+
+// Текст для WhatsApp pre-fill
+const waText = encodeURIComponent(
+  `Здравствуйте! Интересует поршень ${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}${insertDisplay} на двигатель ${engine.brand_name} ${engine.engine_code}. Подскажите цену и наличие.`
+);
+---
+<Base
+  title={seoTitle}
+  description={seoDesc}
+  keywords={seoKw}
+  jsonLd={[productJsonLd, breadcrumbsJsonLd]}
+>
+  <div class="container">
+    <Breadcrumbs items={[
+      { name: 'Главная', href: '/' },
+      { name: engine.brand_name, href: `/${brandSl}/` },
+      { name: engine.engine_code, href: `/${brandSl}/dvigateli/${engSl}/` },
+      { name: 'Поршни', href: `/${brandSl}/dvigateli/${engSl}/porshni/` },
+      { name: `${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}` },
+    ]} />
+
+    <section class="product-hero reveal">
+      <div class="ph-tags">
+        <span class="ph-tag ph-tag-brand">{partsBrandDisplay}</span>
+        {mainArticle && <span class="ph-tag ph-tag-article">№ {mainArticle}</span>}
+        <span class="ph-tag">{engine.brand_name} {engine.engine_code}</span>
+        <span class="ph-tag ph-tag-size">{sizeLabel}</span>
+        {product.insert_type !== 'plain' && <span class="ph-tag">{product.insert_type}</span>}
+      </div>
+
+      <h1>
+        Поршень {partsBrandDisplay}{mainArticle && <> №&nbsp;{mainArticle}</>}<br>
+        <span class="h1-sub">размер {sizeLabel}{insertDisplay} на двигатель {engine.brand_name} {engine.engine_code}</span>
+      </h1>
+
+      <p class="ph-lead">
+        Оригинальный поршень {partsBrandDisplay}{mainArticle && <> артикул <strong>{mainArticle}</strong></>} —
+        для капитального ремонта двигателя {engine.brand_name} {engine.engine_code}.
+        {teikinEntry?.bore_mm && <> Диаметр <strong>Ø{fmtNum(teikinEntry.bore_mm)} мм</strong>.</>}
+        {teikinEntry?.cyl && <> Двигатель {teikinEntry.cyl}-цилиндровый.</>}
+        Цена и наличие — по WhatsApp.
+      </p>
+
+      <div class="hero-cta-row">
+        <a href={`https://wa.me/77015509377?text=${waText}`} class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+          Узнать цену в WhatsApp
+        </a>
+        <a href="tel:+77015509377" class="btn btn-lg btn-outline">
+          +7 701 550-93-77
+        </a>
+      </div>
+    </section>
+
+    <div class="product-grid">
+      <section class="product-image-block reveal">
+        {teikinEntry?.image ? (
+          <div class="catalog-image">
+            <img src={teikinEntry.image} alt={`Поршень ${partsBrandDisplay} ${mainArticle} ${sizeLabel} на ${engine.brand_name} ${engine.engine_code} — из каталога TEIKIN`} loading="lazy" />
+            <div class="catalog-caption muted small">Скан из каталога TEIKIN 2019, стр.&nbsp;{teikinEntry.catalog_page}</div>
+          </div>
+        ) : (
+          <div class="catalog-placeholder">
+            <div class="placeholder-icon">⚙️</div>
+            <div class="placeholder-text">Фото поршня {partsBrandDisplay} на {engine.engine_code}</div>
+          </div>
+        )}
+      </section>
+
+      <section class="product-specs reveal">
+        <h2>Технические характеристики</h2>
+        <dl class="specs-list">
+          <div class="spec-row">
+            <dt>Артикул {partsBrandDisplay}</dt>
+            <dd class="mono"><strong>{mainArticle || '—'}</strong></dd>
+          </div>
+          {teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 1 && (
+            <div class="spec-row">
+              <dt>Альтернативные арт.</dt>
+              <dd class="mono">{teikinEntry.teikin_pistons.slice(1).join(', ')}</dd>
+            </div>
+          )}
+          <div class="spec-row">
+            <dt>Двигатель</dt>
+            <dd>{engine.brand_name} {engine.engine_code}{teikinEntry?.display_name && teikinEntry.display_name !== engine.engine_code && <> ({teikinEntry.display_name})</>}</dd>
+          </div>
+          {teikinEntry?.cc && (
+            <div class="spec-row">
+              <dt>Объём двигателя</dt>
+              <dd>{teikinEntry.cc} см³ ({fmtNum(teikinEntry.cc / 1000)} л)</dd>
+            </div>
+          )}
+          {teikinEntry?.cyl && (
+            <div class="spec-row">
+              <dt>Цилиндров</dt>
+              <dd>{teikinEntry.cyl}</dd>
+            </div>
+          )}
+          {teikinEntry?.fuel && (
+            <div class="spec-row">
+              <dt>Тип топлива</dt>
+              <dd>{teikinEntry.fuel === 'DIESEL' ? 'Дизель' : 'Бензин'}</dd>
+            </div>
+          )}
+          <div class="spec-row">
+            <dt>Размер</dt>
+            <dd><strong>{sizeLabel}{insertDisplay}</strong></dd>
+          </div>
+          {teikinEntry?.bore_mm && (
+            <div class="spec-row">
+              <dt>Диаметр поршня</dt>
+              <dd>Ø {fmtNum(teikinEntry.bore_mm)} мм{teikinEntry.bore_depth_mm && <> ({teikinEntry.bore_depth_mm > 0 ? '+' : ''}{fmtNum(teikinEntry.bore_depth_mm)})</>}</dd>
+            </div>
+          )}
+          {teikinEntry?.pin_diameter_mm && (
+            <div class="spec-row">
+              <dt>Диаметр пальца</dt>
+              <dd>Ø {fmtNum(teikinEntry.pin_diameter_mm)} мм</dd>
+            </div>
+          )}
+          {teikinEntry?.cd_mm && (
+            <div class="spec-row">
+              <dt>CD (расстояние от оси пальца до днища)</dt>
+              <dd>{fmtNum(teikinEntry.cd_mm)} мм</dd>
+            </div>
+          )}
+          {teikinEntry?.tl_mm && (
+            <div class="spec-row">
+              <dt>TL (полная высота поршня)</dt>
+              <dd>{fmtNum(teikinEntry.tl_mm)} мм</dd>
+            </div>
+          )}
+          {teikinEntry?.surface_treatment && (
+            <div class="spec-row">
+              <dt>Покрытие</dt>
+              <dd>{teikinEntry.surface_treatment}</dd>
+            </div>
+          )}
+          {teikinEntry?.mrc_mm && (
+            <div class="spec-row">
+              <dt>Зазор гильзы (MRC)</dt>
+              <dd>{fmtNum(teikinEntry.mrc_mm)} мм</dd>
+            </div>
+          )}
+        </dl>
+      </section>
+    </div>
+
+    {teikinEntry?.rings && (
+      <section class="reveal">
+        <h2>Размеры поршневых колец в комплекте</h2>
+        <p class="muted small">Толщина и диаметр компрессионных и маслосъёмного колец (из каталога TEIKIN).</p>
+        <div class="rings-block">
+          {teikinEntry.rings.map((r, i) => (
+            <div class="ring-card">
+              <div class="ring-num">{i + 1}</div>
+              <div class="ring-body">
+                <div class="ring-name">{i === teikinEntry.rings!.length - 1 ? 'Маслосъёмное' : `${i + 1}-е компрессионное`}</div>
+                <div class="ring-val mono">{r}</div>
+              </div>
+            </div>
+          ))}
+          {teikinEntry.ring_tl_mm && (
+            <div class="ring-card ring-card-extra">
+              <div class="ring-num">Ø</div>
+              <div class="ring-body">
+                <div class="ring-name">Диаметр кольца (TL)</div>
+                <div class="ring-val mono">{fmtNum(teikinEntry.ring_tl_mm)} мм</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    )}
+
+    {(teikinEntry?.oem_piston?.length || teikinEntry?.oem_rings?.length || teikinEntry?.oem_pin?.length) && (
+      <section class="reveal">
+        <h2>Каталожные номера (OEM)</h2>
+        <div class="oem-grid">
+          {teikinEntry.oem_piston && teikinEntry.oem_piston.length > 0 && (
+            <div>
+              <div class="oem-title">OEM поршня</div>
+              <div class="oem-list">{teikinEntry.oem_piston.map((o) => <span class="oem-num mono">{o}</span>)}</div>
+            </div>
+          )}
+          {teikinEntry.oem_rings && teikinEntry.oem_rings.length > 0 && (
+            <div>
+              <div class="oem-title">OEM колец</div>
+              <div class="oem-list">{teikinEntry.oem_rings.map((o) => <span class="oem-num mono">{o}</span>)}</div>
+            </div>
+          )}
+          {teikinEntry.oem_pin && teikinEntry.oem_pin.length > 0 && (
+            <div>
+              <div class="oem-title">OEM пальца</div>
+              <div class="oem-list">{teikinEntry.oem_pin.map((o) => <span class="oem-num mono">{o}</span>)}</div>
+            </div>
+          )}
+          {teikinEntry.oem_liner && teikinEntry.oem_liner.length > 0 && (
+            <div>
+              <div class="oem-title">OEM гильзы</div>
+              <div class="oem-list">{teikinEntry.oem_liner.map((o) => <span class="oem-num mono">{o}</span>)}</div>
+            </div>
+          )}
+        </div>
+        <p class="muted small oem-note">Используйте эти номера для проверки совместимости в каталоге дилера или у моториста.</p>
+      </section>
+    )}
+
+    {teikinEntry?.models && teikinEntry.models.length > 0 && (
+      <section class="reveal">
+        <h2>На какие модели подходит</h2>
+        <ul class="models-list">
+          {teikinEntry.models.map((m) => <li>{m}</li>)}
+        </ul>
+        <p class="muted small">Список не полный. Если не уверены — напишите марку, модель и год в WhatsApp.</p>
+      </section>
+    )}
+
+    <section class="cta-block reveal">
+      <div class="cta-glow"></div>
+      <div class="cta-content">
+        <h2>Готовы оформить?</h2>
+        <p>Напишите в WhatsApp — пришлём актуальную цену, фото со склада, согласуем доставку.</p>
+        <a href={`https://wa.me/77015509377?text=${waText}`} class="btn btn-lg" target="_blank" rel="noopener noreferrer">
+          Написать в WhatsApp
+        </a>
+        <div class="cta-meta muted small">
+          ТЦ CarCity, 3 ярус, бутик 135В · Пн-Сб 9:00-17:00 · Доставка по Казахстану
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .product-hero {
+    padding: 32px 0 16px;
+    max-width: 880px;
+  }
+  .ph-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .ph-tag {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    font-size: .82rem;
+    font-weight: 600;
+  }
+  .ph-tag-brand { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .ph-tag-article { background: var(--c-red); color: #fff; border-color: var(--c-red); font-family: 'JetBrains Mono', monospace; }
+  .ph-tag-size { background: #fef3c7; color: #92400e; border-color: #fbbf24; }
+  h1 { font-size: clamp(1.6rem, 3vw, 2.4rem); margin-bottom: 14px; line-height: 1.15; }
+  .h1-sub { font-size: 0.65em; font-weight: 600; color: var(--c-text-dim); display: block; margin-top: 6px; }
+  .ph-lead { font-size: 1.05rem; color: var(--c-text-dim); max-width: 700px; margin-bottom: 20px; }
+  .hero-cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .btn-outline { background: transparent; border: 1px solid var(--c-border); color: var(--c-text); }
+  .btn-outline:hover { background: var(--c-bg-soft); border-color: var(--c-red); color: var(--c-red); }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 32px;
+    margin: 16px 0 56px;
+  }
+  @media (max-width: 768px) {
+    .product-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+
+  .product-image-block {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  .catalog-image { display: flex; flex-direction: column; }
+  .catalog-image img { width: 100%; height: auto; display: block; }
+  .catalog-caption { padding: 10px 14px; text-align: center; border-top: 1px solid var(--c-border); background: var(--c-bg-soft); }
+  .catalog-placeholder {
+    aspect-ratio: 1/1.4;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px;
+    background: var(--c-bg-soft);
+  }
+  .placeholder-icon { font-size: 4rem; opacity: .35; }
+  .placeholder-text { color: var(--c-text-faint); font-size: .9rem; }
+
+  .product-specs h2 { font-size: 1.3rem; margin-bottom: 16px; }
+  .specs-list { display: flex; flex-direction: column; gap: 0; }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--c-border);
+  }
+  .spec-row:last-child { border-bottom: 0; }
+  .spec-row dt { color: var(--c-text-dim); font-size: .95rem; margin: 0; }
+  .spec-row dd { margin: 0; font-weight: 600; font-size: .98rem; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  @media (max-width: 480px) {
+    .spec-row { grid-template-columns: 1fr; gap: 2px; padding: 10px 0; }
+    .spec-row dt { font-size: .85rem; }
+  }
+
+  /* Rings */
+  section { margin-bottom: 48px; }
+  section h2 { margin-bottom: 12px; }
+  .rings-block {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .ring-card {
+    display: flex; gap: 12px; align-items: center;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+  }
+  .ring-card-extra { background: var(--c-bg-soft); }
+  .ring-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--c-red);
+    color: #fff;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-card-extra .ring-num { background: var(--c-text); }
+  .ring-name { font-size: .82rem; color: var(--c-text-dim); }
+  .ring-val { font-weight: 700; font-size: 1.05rem; }
+
+  /* OEM numbers */
+  .oem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 12px;
+  }
+  .oem-title {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .oem-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .oem-num {
+    display: inline-block;
+    padding: 5px 10px;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: 6px;
+    font-size: .9rem;
+  }
+  .oem-note { margin-top: 16px; }
+
+  .models-list { padding-left: 20px; line-height: 1.7; column-count: 2; column-gap: 24px; }
+  @media (max-width: 540px) { .models-list { column-count: 1; } }
+
+  .cta-block {
+    position: relative;
+    padding: 48px 32px;
+    background: var(--c-black);
+    color: #fff;
+    border-radius: var(--r-xl);
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+    margin: 48px 0;
+  }
+  .cta-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.35) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .cta-block h2 { color: #fff; margin-bottom: 12px; }
+  .cta-block p { color: rgba(255,255,255,0.75); margin-bottom: 24px; }
+  .cta-block .btn { margin-bottom: 18px; }
+  .cta-meta { color: rgba(255,255,255,0.5) !important; }
+</style>
