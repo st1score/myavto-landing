@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import LogoMarquee from '../components/LogoMarquee.astro';
 import EnginePickerForm from '../components/EnginePickerForm.astro';
+import CarPicker from '../components/CarPicker.astro';
 import FAQ from '../components/FAQ.astro';
 import { getEngines, getBrandStats } from '../lib/db';
 import { brandSlug } from '../lib/slugs';
@@ -124,7 +125,10 @@ const brandLogoMap: Record<string, string> = {
     speed={50}
   />
 
-  <!-- ENGINE PICKER FORM -->
+  <!-- CAR PICKER — для тех кто не знает код двигателя -->
+  <CarPicker />
+
+  <!-- ENGINE PICKER FORM — для тех кто знает код -->
   <EnginePickerForm />
 
   <!-- PARTS BRANDS MARQUEE — DARK -->

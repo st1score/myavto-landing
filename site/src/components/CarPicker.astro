@@ -1,0 +1,376 @@
+---
+// Пошаговый поиск запчастей "по машине" (для тех, кто не знает код двигателя).
+// Марка → Модель → Поколение/Год → Двигатель → переход на /[brand]/dvigateli/[engine]/
+//
+// Логика:
+//  - Build-time: получаем все engine_code из БД и матчим с паттернами в car-models.ts
+//  - Серверно собираем плоский JSON-каталог и кладём в data-атрибут
+//  - Клиентский <script> рендерит и обрабатывает выбор
+
+import { CAR_BRANDS, matchEnginePattern, type CarBrand } from '../data/car-models';
+import { getEngines } from '../lib/db';
+import { brandSlug as brandSlugMap, engineSlug } from '../lib/slugs';
+
+const engines = await getEngines();
+const enginesByBrand = new Map<string, string[]>();
+for (const e of engines) {
+  if (!enginesByBrand.has(e.brand_name)) enginesByBrand.set(e.brand_name, []);
+  enginesByBrand.get(e.brand_name)!.push(e.engine_code);
+}
+
+// Для каждой марки/модели/поколения резолвим паттерны → реальные engine_code из БД.
+// Получаем структуру с URL для перехода и подписями для UI.
+type ResolvedEngine = {
+  code: string;       // реальный код из БД
+  url: string;        // /toyota/dvigateli/2az-fe/
+};
+
+type ResolvedGeneration = {
+  code: string;
+  years: string;
+  engines: ResolvedEngine[];
+};
+
+type ResolvedModel = {
+  slug: string;
+  display: string;
+  generations: ResolvedGeneration[];
+};
+
+type ResolvedBrand = {
+  slug: string;
+  display: string;
+  models: ResolvedModel[];
+};
+
+function brandDbName(slug: string): string {
+  if (slug === 'toyota') return 'Toyota';
+  if (slug === 'nissan') return 'Nissan';
+  if (slug === 'mitsubishi') return 'Mitsubishi';
+  if (slug === 'mazda') return 'Mazda';
+  return slug;
+}
+
+const catalog: ResolvedBrand[] = CAR_BRANDS.map((brand) => {
+  const dbBrand = brandDbName(brand.slug);
+  const dbCodes = enginesByBrand.get(dbBrand) ?? [];
+  const aSlug = brandSlugMap[dbBrand] ?? dbBrand.toLowerCase();
+
+  const models: ResolvedModel[] = brand.models
+    .map((m) => {
+      const gens: ResolvedGeneration[] = m.generations
+        .map((g) => {
+          // Резолвим все паттерны в реальные engine_code (с дедупом)
+          const seen = new Set<string>();
+          const matched: ResolvedEngine[] = [];
+          for (const pattern of g.engines) {
+            for (const code of matchEnginePattern(pattern, dbCodes)) {
+              if (seen.has(code)) continue;
+              seen.add(code);
+              matched.push({
+                code,
+                url: `/${aSlug}/dvigateli/${engineSlug(code)}/`,
+              });
+            }
+          }
+          const years = g.yearEnd ? `${g.yearStart}–${g.yearEnd}` : `${g.yearStart}–наст. время`;
+          return { code: g.code, years, engines: matched };
+        })
+        .filter((g) => g.engines.length > 0);
+      return { slug: m.slug, display: m.display, generations: gens };
+    })
+    .filter((m) => m.generations.length > 0);
+
+  return { slug: brand.slug, display: brand.display, models };
+}).filter((b) => b.models.length > 0);
+---
+
+<section class="car-picker" id="car-picker">
+  <div class="container">
+    <div class="cp-head reveal">
+      <span class="eyebrow">Не знаете код двигателя?</span>
+      <h2>Найдите запчасти по машине</h2>
+      <p class="muted">Выберите марку, модель и год — мы покажем подходящие двигатели.</p>
+    </div>
+
+    <div class="cp-stepper" id="cpStepper">
+      <!-- Шаг 1: марка -->
+      <div class="cp-step" data-step="brand">
+        <div class="cp-step-label"><span class="cp-step-num">1</span> Марка авто</div>
+        <div class="cp-brand-grid" id="cpBrands">
+          {catalog.map((b) => (
+            <button type="button" class="cp-brand-btn" data-brand={b.slug}>
+              {b.display}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Шаг 2: модель -->
+      <div class="cp-step is-hidden" data-step="model">
+        <div class="cp-step-label">
+          <span class="cp-step-num">2</span> Модель
+          <button type="button" class="cp-back-btn" data-back="brand">← Назад</button>
+        </div>
+        <div class="cp-list" id="cpModels"></div>
+      </div>
+
+      <!-- Шаг 3: поколение/год -->
+      <div class="cp-step is-hidden" data-step="gen">
+        <div class="cp-step-label">
+          <span class="cp-step-num">3</span> Год выпуска
+          <button type="button" class="cp-back-btn" data-back="model">← Назад</button>
+        </div>
+        <div class="cp-list" id="cpGens"></div>
+      </div>
+
+      <!-- Шаг 4: двигатель -->
+      <div class="cp-step is-hidden" data-step="engine">
+        <div class="cp-step-label">
+          <span class="cp-step-num">4</span> Код двигателя
+          <button type="button" class="cp-back-btn" data-back="gen">← Назад</button>
+        </div>
+        <p class="cp-engine-hint muted small">
+          Выберите ваш двигатель — мы покажем все запчасти которые есть. Если не знаете —
+          напишите марку/год в WhatsApp, поможем определить.
+        </p>
+        <div class="cp-list" id="cpEngines"></div>
+        <div class="cp-fallback">
+          <a href="https://wa.me/77015509377?text=Здравствуйте,%20не%20знаю%20код%20двигателя,%20помогите%20определить" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+            Не знаю двигатель — спросить в WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="application/json" id="cpCatalog" set:html={JSON.stringify(catalog)}></script>
+
+<script>
+  type ResolvedEngine = { code: string; url: string };
+  type ResolvedGeneration = { code: string; years: string; engines: ResolvedEngine[] };
+  type ResolvedModel = { slug: string; display: string; generations: ResolvedGeneration[] };
+  type ResolvedBrand = { slug: string; display: string; models: ResolvedModel[] };
+
+  const catalogEl = document.getElementById('cpCatalog') as HTMLScriptElement | null;
+  if (catalogEl) {
+    const catalog: ResolvedBrand[] = JSON.parse(catalogEl.textContent || '[]');
+
+    const stepper = document.getElementById('cpStepper');
+    if (stepper) {
+      const steps = Array.from(stepper.querySelectorAll<HTMLElement>('.cp-step'));
+      const showStep = (name: string) => {
+        for (const s of steps) {
+          s.classList.toggle('is-hidden', s.dataset.step !== name);
+        }
+      };
+
+      let currentBrand: ResolvedBrand | null = null;
+      let currentModel: ResolvedModel | null = null;
+      let currentGen: ResolvedGeneration | null = null;
+
+      const modelsEl = document.getElementById('cpModels')!;
+      const gensEl = document.getElementById('cpGens')!;
+      const enginesEl = document.getElementById('cpEngines')!;
+
+      // Шаг 1 → выбрана марка
+      stepper.querySelectorAll<HTMLButtonElement>('.cp-brand-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const slug = btn.dataset.brand!;
+          currentBrand = catalog.find((b) => b.slug === slug) ?? null;
+          if (!currentBrand) return;
+          renderModels();
+          showStep('model');
+        });
+      });
+
+      function renderModels() {
+        if (!currentBrand) return;
+        modelsEl.innerHTML = '';
+        for (const m of currentBrand.models) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cp-list-btn';
+          btn.innerHTML = `<span class="cp-list-main">${m.display}</span>`;
+          btn.addEventListener('click', () => {
+            currentModel = m;
+            renderGens();
+            showStep('gen');
+          });
+          modelsEl.appendChild(btn);
+        }
+      }
+
+      function renderGens() {
+        if (!currentModel) return;
+        gensEl.innerHTML = '';
+        for (const g of currentModel.generations) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cp-list-btn';
+          btn.innerHTML = `
+            <span class="cp-list-main">${g.years}</span>
+            <span class="cp-list-sub">Поколение ${g.code}</span>
+          `;
+          btn.addEventListener('click', () => {
+            currentGen = g;
+            renderEngines();
+            showStep('engine');
+          });
+          gensEl.appendChild(btn);
+        }
+      }
+
+      function renderEngines() {
+        if (!currentGen) return;
+        enginesEl.innerHTML = '';
+        for (const e of currentGen.engines) {
+          const a = document.createElement('a');
+          a.href = e.url;
+          a.className = 'cp-list-btn cp-engine-btn';
+          a.innerHTML = `<span class="cp-list-main">${e.code}</span><span class="cp-list-arrow">→</span>`;
+          enginesEl.appendChild(a);
+        }
+      }
+
+      // Кнопки "назад"
+      stepper.querySelectorAll<HTMLButtonElement>('.cp-back-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          showStep(btn.dataset.back!);
+        });
+      });
+    }
+  }
+</script>
+
+<style>
+  .car-picker {
+    padding: 56px 0;
+    background: linear-gradient(180deg, #fafafa 0%, #fff 100%);
+  }
+  @media (max-width: 640px) { .car-picker { padding: 36px 0; } }
+
+  .cp-head { text-align: center; max-width: 720px; margin: 0 auto 32px; }
+  .cp-head .eyebrow {
+    display: inline-block;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--c-red);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .cp-head h2 { margin-bottom: 10px; }
+  .cp-head p { color: var(--c-text-dim); }
+
+  .cp-stepper {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  @media (max-width: 640px) { .cp-stepper { padding: 16px; } }
+
+  .cp-step.is-hidden { display: none; }
+
+  .cp-step-label {
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 700; font-size: 1.05rem;
+    margin-bottom: 16px;
+  }
+  .cp-step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--c-red); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700;
+  }
+  .cp-back-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 0;
+    color: var(--c-text-dim);
+    font-size: .9rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .cp-back-btn:hover { background: var(--c-bg-soft); color: var(--c-red); }
+
+  .cp-brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .cp-brand-btn {
+    padding: 18px 16px;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    background: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--t-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cp-brand-btn:hover,
+  .cp-brand-btn:active {
+    border-color: var(--c-red);
+    color: var(--c-red);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cp-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+  }
+  @media (max-width: 640px) {
+    .cp-list { grid-template-columns: 1fr 1fr; gap: 6px; }
+  }
+  .cp-list-btn {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 14px 16px;
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--t-fast);
+    text-decoration: none;
+    color: var(--c-text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cp-list-btn:hover,
+  .cp-list-btn:active {
+    border-color: var(--c-red);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  .cp-list-main { font-weight: 700; font-size: .98rem; }
+  .cp-list-sub { font-size: .8rem; color: var(--c-text-faint); }
+  .cp-list-arrow {
+    margin-left: auto;
+    color: var(--c-red);
+    font-size: 1.1rem;
+  }
+  .cp-engine-btn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .cp-engine-hint { margin-bottom: 14px; }
+  .cp-fallback {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--c-border);
+    text-align: center;
+  }
+</style>
