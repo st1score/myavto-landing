@@ -66,13 +66,14 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-<!-- Google tag (gtag.js) — Google Ads conversion tracking -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18062973221"></script>
+<!-- Google tag (gtag.js) — GA4 + Google Ads -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-YQ21411TM0"></script>
 <script is:inline>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'AW-18062973221');
+  gtag('config', 'G-YQ21411TM0');       // GA4 — поведение, источники, real-time
+  gtag('config', 'AW-18062973221');     // Google Ads — конверсии
 
   // Global conversion tracking: catch all WhatsApp + tel: clicks
   document.addEventListener('click', function(e) {
@@ -82,14 +83,19 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
     if (!a) return;
     var href = a.getAttribute('href') || '';
     if (href.indexOf('wa.me') !== -1 || href.indexOf('api.whatsapp.com') !== -1 || href.indexOf('whatsapp://') !== -1) {
+      // Google Ads конверсия
       gtag('event', 'conversion', {'send_to': 'AW-18062973221/hTneCMP33q0cEKWyjKVD'});
+      // GA4 событие — увидим в отчётах GA4 как ключевое событие
+      gtag('event', 'whatsapp_click', { event_category: 'engagement', event_label: href });
     } else if (href.indexOf('tel:') === 0) {
       gtag('event', 'conversion', {'send_to': 'AW-18062973221/BF4qCMb33q0cEKWyjKVD'});
+      gtag('event', 'phone_click', { event_category: 'engagement', event_label: href });
     }
   }, true);
 
   // Also catch programmatic WhatsApp opens from EnginePickerForm
   window.trackWhatsAppConversion = function() {
+    gtag('event', 'whatsapp_form_submit', { event_category: 'engagement', event_label: 'engine_picker_form' });
     gtag('event', 'conversion', {'send_to': 'AW-18062973221/hTneCMP33q0cEKWyjKVD'});
   };
 </script>
