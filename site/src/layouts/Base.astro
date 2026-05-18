@@ -75,6 +75,10 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   gtag('config', 'G-YQ21411TM0');       // GA4 — поведение, источники, real-time
   gtag('config', 'AW-18062973221');     // Google Ads — конверсии
 
+  // Глобально использовать sendBeacon для всех событий — гарантирует доставку
+  // даже когда пользователь сразу уходит со страницы (на wa.me, tel: и т.п.)
+  gtag('set', { transport_type: 'beacon' });
+
   // Global conversion tracking: catch all WhatsApp + tel: clicks
   document.addEventListener('click', function(e) {
     var t = e.target;
