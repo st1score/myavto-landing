@@ -90,11 +90,31 @@ const ccToLiters = (cc: number): string => (Math.round(cc / 100) / 10).toFixed(1
 // Siblings → разные размеры этого же бренда + другие бренды этого размера
 const SIZE_ORDER = ['STD', '0.25', '0.50', '0.75', '1.00'];
 function sizeIdx(s: string): number { return SIZE_ORDER.indexOf(s); }
+
+// Для дизелей в реальности гонят только STD и 0.50 — отсекаем редкие 0.25/0.75/1.00
+const isDiesel = engine.is_diesel === true;
+const allowedSizes = new Set(isDiesel ? ['STD', '0.50'] : ['STD', '0.25', '0.50', '0.75', '1.00']);
+
+// Бренды, которые показываем как «другие варианты» — Riken исключаем (мало позиций).
+const ALT_BRAND_WHITELIST = new Set(['ND', 'IZUMI', 'NM', 'OEM', 'TEIKIN', 'KA']);
+
 const otherSizesSameBrand = [...siblings]
   .filter((s) => s.parts_brand === product.parts_brand)
+  .filter((s) => allowedSizes.has(s.size_code))
+  .filter((s) => s.insert_type === product.insert_type) // не путаем юзера insert-вариантами
   .sort((a, b) => sizeIdx(a.size_code) - sizeIdx(b.size_code));
+
+// Другие бренды того же размера — дедуп по parts_brand, без insert-суффиксов
+const seenBrands = new Set<string>();
 const otherBrandsSameSize = [...siblings]
-  .filter((s) => s.parts_brand !== product.parts_brand && s.size_code === product.size_code);
+  .filter((s) => s.parts_brand !== product.parts_brand
+              && s.size_code === product.size_code
+              && ALT_BRAND_WHITELIST.has(s.parts_brand))
+  .filter((s) => {
+    if (seenBrands.has(s.parts_brand)) return false;
+    seenBrands.add(s.parts_brand);
+    return true;
+  });
 
 function siblingUrl(s: typeof siblings[number]): string {
   const sizeSl = ({ 'STD': 'std', '0.25': '025', '0.50': '050', '0.75': '075', '1.00': '100' } as Record<string, string>)[s.size_code] ?? 'std';
@@ -141,7 +161,7 @@ const faqItems = [
   },
   {
     q: 'Что входит в комплект?',
-    a: `В комплект поршня ${partsBrandDisplay} входит: сам поршень + поршневой палец${teikinEntry?.teikin_pin ? ` (артикул ${teikinEntry.teikin_pin})` : ''}${teikinEntry?.teikin_bushing ? ` и втулка пальца (${teikinEntry.teikin_bushing})` : ''}. Поршневые кольца и гильзы — продаются отдельно.`,
+    a: `В комплект поршня ${partsBrandDisplay} входит: сам поршень + поршневой палец. Поршневые кольца и гильзы — продаются отдельно.`,
   },
   mainArticle ? {
     q: `Что значит артикул ${mainArticle}?`,
@@ -253,9 +273,7 @@ const waText = encodeURIComponent(
           {actualBoreMm != null && (
             <div class="row hl"><dt>Диаметр поршня</dt><dd><b>Ø {fmtNum(actualBoreMm)} мм</b>{product.size_code !== 'STD' && teikinEntry?.bore_mm && <> <span class="muted small">(STD: {fmtNum(teikinEntry.bore_mm)})</span></>}</dd></div>
           )}
-          {teikinEntry?.pin_diameter_mm && (
-            <div class="row"><dt>Палец</dt><dd>Ø {fmtNum(teikinEntry.pin_diameter_mm)} мм{teikinEntry.pin_total_length_mm && <> · длина {fmtNum(teikinEntry.pin_total_length_mm)} мм</>}</dd></div>
-          )}
+          {/* Размер пальца не выводим — этой информации не требует покупатель */}
         </dl>
 
         {teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 0 && (
@@ -283,7 +301,7 @@ const waText = encodeURIComponent(
 
         <div class="kit-note">
           <span class="kit-ico">📦</span>
-          <span>В комплект входят: <b>поршень + палец</b>{teikinEntry?.teikin_pin && <> ({teikinEntry.teikin_pin})</>}. Кольца и гильзы — <a href={`/${brandSl}/dvigateli/${engSl}/`}>отдельно</a>.</span>
+          <span>В комплект входят: <b>поршень + палец</b>. Кольца и гильзы — <a href={`/${brandSl}/dvigateli/${engSl}/`}>отдельно</a>.</span>
         </div>
       </div>
     </div>
@@ -324,9 +342,7 @@ const waText = encodeURIComponent(
           {teikinEntry.oem_piston?.length ? (
             <div class="oem-line"><span class="oem-label">Поршень</span><div class="oem-vals">{teikinEntry.oem_piston.map((o) => <code>{o}</code>)}</div></div>
           ) : null}
-          {teikinEntry.oem_pin?.length ? (
-            <div class="oem-line"><span class="oem-label">Палец</span><div class="oem-vals">{teikinEntry.oem_pin.map((o) => <code>{o}</code>)}</div></div>
-          ) : null}
+          {/* OEM пальца не показываем — пользователь ищет поршень */}
         </section>
       ) : null}
 
@@ -338,17 +354,17 @@ const waText = encodeURIComponent(
               <span class="alt-label">Размеры {partsBrandDisplay}:</span>
               <div class="alt-chips">
                 {otherSizesSameBrand.map((s) => (
-                  <a href={siblingUrl(s)} class="alt-chip">{s.size_code}{s.insert_type !== 'plain' && <> {s.insert_type}</>}</a>
+                  <a href={siblingUrl(s)} class="alt-chip">{s.size_code}</a>
                 ))}
               </div>
             </div>
           )}
           {otherBrandsSameSize.length > 0 && (
             <div class="alt-line">
-              <span class="alt-label">Бренды {sizeLabel}:</span>
+              <span class="alt-label">Тот же артикул в других брендах:</span>
               <div class="alt-chips">
                 {otherBrandsSameSize.map((s) => (
-                  <a href={siblingUrl(s)} class="alt-chip">{partsBrandLabel[s.parts_brand] ?? s.parts_brand}{s.insert_type !== 'plain' && <> {s.insert_type}</>}</a>
+                  <a href={siblingUrl(s)} class="alt-chip">{partsBrandLabel[s.parts_brand] ?? s.parts_brand}</a>
                 ))}
               </div>
             </div>
@@ -356,6 +372,17 @@ const waText = encodeURIComponent(
         </section>
       )}
     </div>
+
+    <!-- ЛОГО производителей поршней — чтобы было понятно как они выглядят -->
+    <section class="reveal brand-logos">
+      <h2>Бренды поршней, которые мы возим</h2>
+      <div class="bl-grid">
+        <div class="bl-card"><img src="/assets/parts-brands/teikin.png" alt="Teikin (Япония) — производитель поршней" loading="lazy" /><span>Teikin <small>Япония</small></span></div>
+        <div class="bl-card"><img src="/assets/parts-brands/izumi.png" alt="Izumi (Япония) — производитель поршней" loading="lazy" /><span>Izumi <small>Япония</small></span></div>
+        <div class="bl-card"><img src="/assets/parts-brands/nd.png" alt="ND Components — производитель поршней" loading="lazy" /><span>ND <small>оригинал</small></span></div>
+        <div class="bl-card"><img src="/assets/parts-brands/nm.png" alt="NM (Тайвань) — производитель поршней" loading="lazy" /><span>NM <small>Тайвань</small></span></div>
+      </div>
+    </section>
 
     <!-- Совместимые модели + FAQ -->
     {teikinEntry?.models && teikinEntry.models.length > 0 && (
@@ -803,4 +830,49 @@ const waText = encodeURIComponent(
   }
   .cta-final .btn { margin-bottom: 10px; }
   .cta-meta { font-size: .82rem; color: var(--c-text-dim); }
+
+  /* Лого брендов поршней — компактная карточка */
+  .brand-logos {
+    background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+    border: 1px solid #cffafe;
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin: 14px 0;
+  }
+  .brand-logos > h2 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: #0e7490;
+  }
+  .bl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .bl-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .bl-card img {
+    width: 64px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .bl-card span {
+    font-weight: 600;
+    font-size: .9rem;
+    line-height: 1.2;
+  }
+  .bl-card small {
+    display: block;
+    font-weight: 400;
+    font-size: .72rem;
+    color: var(--c-text-dim);
+  }
 </style>
