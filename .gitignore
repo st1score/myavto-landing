@@ -7,3 +7,5 @@ node_modules/
 .env.local
 dist/
 .astro/
+site/scripts/cache-teikin-pdfs/
+site/scripts/.teikin-cookies.txt
