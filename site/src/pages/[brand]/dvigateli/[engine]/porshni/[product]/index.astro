@@ -10,8 +10,6 @@ import { brandSlug, engineSlug } from '../../../../../../lib/slugs';
 import { partsBrandLabel } from '../../../../../../lib/labels';
 import {
   teikinCatalog,
-  SKIRT_COATING_LABEL,
-  CROWN_COATING_LABEL,
   FUEL_LABEL,
 } from '../../../../../../data/teikin-catalog';
 import { fmtNum } from '../../../../../../lib/format';
@@ -75,6 +73,18 @@ const insertDisplay = product.insert_type === 'plain' ? ''
   : product.insert_type === 'AG' ? ' (антизадирная вставка AG)'
   : product.insert_type === 'A' ? ' (вставка A)'
   : ` (${product.insert_type})`;
+
+// Фактический диаметр поршня = номинал + ремонтный размер
+// STD = 96.0, 0.25 = 96.25, 0.50 = 96.5, 0.75 = 96.75, 1.00 = 97.0
+const SIZE_DELTA: Record<string, number> = {
+  'STD': 0, '0.25': 0.25, '0.50': 0.50, '0.75': 0.75, '1.00': 1.00,
+};
+const actualBoreMm = teikinEntry?.bore_mm != null
+  ? teikinEntry.bore_mm + (SIZE_DELTA[product.size_code] ?? 0)
+  : null;
+
+// Объём в литрах: 2982 → "3.0"
+const ccToLiters = (cc: number): string => (Math.round(cc / 100) / 10).toFixed(1);
 
 // Siblings → разные размеры этого же бренда + другие бренды этого размера
 const SIZE_ORDER = ['STD', '0.25', '0.50', '0.75', '1.00'];
@@ -206,7 +216,24 @@ const waText = encodeURIComponent(
       </div>
     </header>
 
-    <!-- ОСНОВНОЙ БЛОК: картинка + спеки рядом на десктопе -->
+    <!-- РЕАЛЬНЫЕ ФОТО + КАТАЛОЖНАЯ СТРАНИЦА -->
+    {product.parts_brand === 'TEIKIN' && (
+      <section class="photos-strip reveal">
+        <h2 class="photos-h2">Как выглядит товар</h2>
+        <div class="photos-grid">
+          <figure class="photo-card">
+            <img src="/teikin-photos/piston-sample.png" alt={`Реальный поршень TEIKIN — пример внешнего вида`} loading="lazy" />
+            <figcaption>Поршень TEIKIN</figcaption>
+          </figure>
+          <figure class="photo-card">
+            <img src="/teikin-photos/boxes.png" alt="Фирменные упаковки TEIKIN" loading="lazy" />
+            <figcaption>Фирменная упаковка</figcaption>
+          </figure>
+        </div>
+      </section>
+    )}
+
+    <!-- ОСНОВНОЙ БЛОК: картинка из каталога + спеки рядом на десктопе -->
     <div class="main-grid reveal">
       {teikinEntry?.image && (
         <figure class="catalog-fig">
@@ -219,32 +246,39 @@ const waText = encodeURIComponent(
         <dl class="specs-tight">
           <div class="row"><dt>Двигатель</dt><dd>{engine.brand_name} {engine.engine_code}{teikinEntry?.display_name && teikinEntry.display_name !== `${engine.brand_name} ${engine.engine_code}` && <> ({teikinEntry.display_name})</>}</dd></div>
           {teikinEntry?.cc && (
-            <div class="row"><dt>Объём</dt><dd>{teikinEntry.cc} см³ · {teikinEntry.cyl} цил.{teikinEntry.fuel && <> · {FUEL_LABEL[teikinEntry.fuel]}</>}</dd></div>
+            <div class="row"><dt>Объём</dt><dd>{ccToLiters(teikinEntry.cc)} л · {teikinEntry.cyl} цил.{teikinEntry.fuel && <> · {FUEL_LABEL[teikinEntry.fuel]}</>}</dd></div>
           )}
-          <div class="row hl"><dt>Артикул TEIKIN</dt><dd class="mono">{mainArticle || '—'}{teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 1 && <> <span class="muted small">(альт: {teikinEntry.teikin_pistons.slice(1).join(' / ')})</span></>}</dd></div>
           <div class="row hl"><dt>Размер</dt><dd><b>{sizeLabel}</b>{product.size_code !== 'STD' && <> <span class="muted small">(+{sizeLabel.replace('0.', '')} мм)</span></>}{product.insert_type !== 'plain' && <> · {product.insert_type}</>}</dd></div>
-          {teikinEntry?.bore_mm && (
-            <div class="row hl"><dt>Диаметр поршня</dt><dd><b>Ø {fmtNum(teikinEntry.bore_mm)} мм</b></dd></div>
-          )}
-          {teikinEntry?.cd_mm && (
-            <div class="row"><dt>Высота сжатия <abbr title="Compression Distance — расстояние от центра пальца до днища">CD</abbr></dt><dd>{fmtNum(teikinEntry.cd_mm)} мм</dd></div>
-          )}
-          {teikinEntry?.tl_mm && (
-            <div class="row"><dt>Полная высота <abbr title="Total Length — общая высота поршня">TL</abbr></dt><dd>{fmtNum(teikinEntry.tl_mm)} мм</dd></div>
+          {actualBoreMm != null && (
+            <div class="row hl"><dt>Диаметр поршня</dt><dd><b>Ø {fmtNum(actualBoreMm)} мм</b>{product.size_code !== 'STD' && teikinEntry?.bore_mm && <> <span class="muted small">(STD: {fmtNum(teikinEntry.bore_mm)})</span></>}</dd></div>
           )}
           {teikinEntry?.pin_diameter_mm && (
             <div class="row"><dt>Палец</dt><dd>Ø {fmtNum(teikinEntry.pin_diameter_mm)} мм{teikinEntry.pin_total_length_mm && <> · длина {fmtNum(teikinEntry.pin_total_length_mm)} мм</>}</dd></div>
           )}
-          {teikinEntry?.skirt_coating && (
-            <div class="row"><dt>Покрытие юбки</dt><dd>{SKIRT_COATING_LABEL[teikinEntry.skirt_coating]}</dd></div>
-          )}
-          {teikinEntry?.crown_coating && teikinEntry.crown_coating !== 'none' && (
-            <div class="row"><dt>Покрытие днища</dt><dd>{CROWN_COATING_LABEL[teikinEntry.crown_coating]}</dd></div>
-          )}
-          {teikinEntry?.mrc_mm && (
-            <div class="row"><dt>Зазор <abbr title="MRC — Maximum Recommended Clearance">MRC</abbr></dt><dd>{fmtNum(teikinEntry.mrc_mm)} мм</dd></div>
-          )}
         </dl>
+
+        {teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 0 && (
+          <div class="articles-block">
+            <div class="articles-title">Артикулы TEIKIN</div>
+            <ul class="articles-list">
+              {teikinEntry.teikin_pistons.map((art) => {
+                const isCurrent = mainArticle === art;
+                const variant = art.replace(teikinEntry.teikin_pistons[0]!, '') || '';
+                const label = variant === '' ? 'базовый (без вставки)'
+                  : variant === 'A' ? 'со вставкой A'
+                  : variant === 'G' ? 'с галереей охлаждения'
+                  : variant === 'AG' ? 'со вставкой A + галерея'
+                  : variant;
+                return (
+                  <li class={isCurrent ? 'art-current' : ''}>
+                    <span class="art-num mono">{art}</span>
+                    <span class="art-label">{label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         <div class="kit-note">
           <span class="kit-ico">📦</span>
@@ -252,6 +286,34 @@ const waText = encodeURIComponent(
         </div>
       </div>
     </div>
+
+    <!-- ОБЪЯСНЕНИЕ типов вставок (A, AG, plain) -->
+    <section class="reveal inserts-explain">
+      <h2>Чем отличаются модификации поршня</h2>
+      <div class="inserts-table">
+        <div class="ins-row">
+          <div class="ins-tag ins-tag-plain">plain</div>
+          <div class="ins-name">Базовый поршень</div>
+          <div class="ins-desc">Без вставки в зоне верхнего кольца. Стандарт для бензиновых двигателей с умеренными нагрузками.</div>
+        </div>
+        <div class="ins-row">
+          <div class="ins-tag ins-tag-a">A</div>
+          <div class="ins-name">Со вставкой типа A</div>
+          <div class="ins-desc">Износостойкая стальная вставка под верхнее компрессионное кольцо. Дольше держит зазор, дороже базы.</div>
+        </div>
+        <div class="ins-row">
+          <div class="ins-tag ins-tag-g">G</div>
+          <div class="ins-name">С галереей охлаждения</div>
+          <div class="ins-desc">Внутренний канал в днище для прокачки масла — снижает температуру короны. Для турбо и тяжёлой нагрузки.</div>
+        </div>
+        <div class="ins-row">
+          <div class="ins-tag ins-tag-ag">AG</div>
+          <div class="ins-name">Вставка A + галерея</div>
+          <div class="ins-desc">Максимальная версия: и износостойкая вставка, и масляная галерея. Турбодизели и форсированные ДВС.</div>
+        </div>
+      </div>
+      <p class="muted small inserts-note">Текущий поршень — <b>{product.insert_type === 'plain' ? 'базовый' : product.insert_type}</b>{mainArticle && <> (артикул {mainArticle})</>}. Если нужна другая модификация — посмотри в блоке «Другие варианты» ниже или напиши в WhatsApp.</p>
+    </section>
 
     <!-- OEM + АНАЛОГИ в одной полоске -->
     <div class="info-row reveal">
@@ -378,6 +440,57 @@ const waText = encodeURIComponent(
   .btn-phone:hover { border-color: var(--c-red); color: var(--c-red) !important; }
   .btn-big { padding: 16px 28px; font-size: 1.05rem; }
 
+  /* Photos strip — real piston + boxes */
+  .photos-strip {
+    margin-bottom: 18px;
+    padding: 18px;
+    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #fef9c3 100%);
+    border: 1px solid #fcd34d;
+    border-radius: 14px;
+  }
+  .photos-h2 {
+    font-size: .82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #92400e;
+    margin: 0 0 12px;
+  }
+  .photos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .photo-card {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .photo-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    background: #fff;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  .photo-card figcaption {
+    padding: 8px 12px;
+    background: var(--c-bg-soft);
+    border-top: 1px solid var(--c-border);
+    font-size: .82rem;
+    text-align: center;
+    color: var(--c-text-dim);
+    font-weight: 600;
+  }
+  @media (max-width: 480px) {
+    .photo-card img { height: 140px; padding: 8px; }
+  }
+
   /* MAIN GRID */
   .main-grid {
     display: grid;
@@ -450,6 +563,105 @@ const waText = encodeURIComponent(
   .kit-ico { font-size: 1.1rem; flex-shrink: 0; }
   .kit-note a { color: var(--c-red); font-weight: 600; }
 
+  /* Articles list */
+  .articles-block {
+    margin-top: 14px;
+    padding: 12px;
+    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+  }
+  .articles-title {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-red);
+    margin-bottom: 8px;
+  }
+  .articles-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .articles-list li {
+    display: grid;
+    grid-template-columns: minmax(0, auto) 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 10px;
+    background: #fff;
+    border: 1px solid #fcd9b6;
+    border-radius: 7px;
+  }
+  .articles-list li.art-current {
+    background: var(--c-red);
+    color: #fff;
+    border-color: var(--c-red);
+    box-shadow: 0 2px 8px rgba(229,9,20,0.2);
+  }
+  .art-num { font-weight: 700; font-size: .98rem; }
+  .art-label { font-size: .8rem; color: var(--c-text-dim); }
+  .articles-list li.art-current .art-label { color: rgba(255,255,255,0.85); }
+
+  /* Inserts table */
+  .inserts-explain {
+    margin: 24px 0;
+    padding: 18px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+  }
+  .inserts-explain > h2 {
+    font-size: .92rem;
+    margin: 0 0 14px;
+    color: #1e40af;
+    font-weight: 700;
+  }
+  .inserts-table { display: flex; flex-direction: column; gap: 8px; }
+  .ins-row {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    align-items: start;
+  }
+  @media (min-width: 720px) {
+    .ins-row {
+      grid-template-columns: 60px 180px minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  .ins-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 0;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: .82rem;
+    text-align: center;
+    width: 60px;
+  }
+  .ins-tag-plain { background: #f3f4f6; color: #4b5563; }
+  .ins-tag-a { background: #fef3c7; color: #92400e; }
+  .ins-tag-g { background: #d1fae5; color: #065f46; }
+  .ins-tag-ag { background: var(--c-red); color: #fff; }
+  .ins-name { font-weight: 600; font-size: .92rem; grid-column: 2; }
+  .ins-desc { font-size: .85rem; color: var(--c-text-dim); line-height: 1.45; grid-column: 2; }
+  @media (min-width: 720px) {
+    .ins-name { grid-column: 2; }
+    .ins-desc { grid-column: 3; }
+  }
+  .inserts-note { margin-top: 12px; }
+
   /* INFO row: OEM + Аналоги в 2 колонки */
   .info-row {
     display: grid;
@@ -460,12 +672,24 @@ const waText = encodeURIComponent(
   @media (max-width: 640px) {
     .info-row { grid-template-columns: 1fr; gap: 14px; }
   }
+  .info-col {
+    padding: 16px 18px;
+    border-radius: 12px;
+  }
+  .info-col:nth-child(1) {
+    background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+    border: 1px solid #99f6e4;
+  }
+  .info-col:nth-child(2) {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
+    border: 1px solid #f0abfc;
+  }
   .info-col h2 {
     font-size: .82rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--c-text-faint);
+    color: var(--c-text-dim);
     margin: 0 0 10px;
   }
   .oem-line { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
@@ -505,7 +729,13 @@ const waText = encodeURIComponent(
   .alt-chip:hover { border-color: var(--c-red); color: var(--c-red); }
 
   /* Models */
-  .models { margin-bottom: 20px; }
+  .models {
+    margin-bottom: 20px;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%);
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+  }
   .models h2 {
     font-size: .82rem;
     text-transform: uppercase;
