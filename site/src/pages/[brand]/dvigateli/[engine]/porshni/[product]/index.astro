@@ -210,669 +210,717 @@ const waText = encodeURIComponent(
       { name: `${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}` },
     ]} />
 
-    <!-- HERO — компактный -->
-    <header class="ph-head reveal">
-      <div class="ph-chips">
-        <span class="chip chip-brand">{partsBrandDisplay}</span>
-        {mainArticle && <span class="chip chip-article">№ {mainArticle}</span>}
-        <span class="chip">{engine.brand_name} {engine.engine_code}</span>
-        <span class="chip chip-size">{sizeLabel}</span>
-        {product.insert_type !== 'plain' && <span class="chip chip-insert">{product.insert_type}</span>}
+    {/*
+      Redesign 2026-05: вдохновение nipponfz.com — белый фон, синий акцент, чистая типографика.
+      Иерархия:
+      1. HERO (выше «склейки»): изображение слева, артикул+спеки+CTA справа — всё важное на 1 экране.
+      2. VARIANTS — модификации/размеры/бренды-аналоги в одной компактной решётке.
+      3. BRANDS — лого Teikin/Izumi/ND/NM, чтобы покупатель узнавал коробку.
+      4. DETAILS — раскрывающиеся блоки: реальные фото, OEM, авто, FAQ. Не грузят первый экран.
+      5. FINAL CTA.
+    */}
+
+    <!-- HERO -->
+    <section class="ph-hero reveal">
+      <div class="ph-hero-visual">
+        {teikinEntry?.image ? (
+          <figure class="ph-img">
+            <img src={teikinEntry.image} alt={`Поршень ${partsBrandDisplay} ${mainArticle} ${sizeLabel} — ${engine.brand_name} ${engine.engine_code}`} loading="eager" />
+            <figcaption>Страница из e-catalog TEIKIN</figcaption>
+          </figure>
+        ) : (
+          <figure class="ph-img ph-img-fallback">
+            <img src="/teikin-photos/piston-sample.png" alt={`Поршень ${partsBrandDisplay}`} loading="eager" />
+          </figure>
+        )}
       </div>
 
-      <h1>
-        Поршень {partsBrandDisplay}{mainArticle && <> № {mainArticle}</>}
-        <span class="h1-sub">{sizeLabel}{insertDisplay} — {engine.brand_name} {engine.engine_code}</span>
-      </h1>
-
-      <p class="ph-lead">
-        Поршень {partsBrandDisplay}{mainArticle && <> арт. <b>{mainArticle}</b></>} для двигателя <b>{engine.brand_name} {engine.engine_code}</b>{teikinEntry?.bore_mm && <>, Ø <b>{fmtNum(teikinEntry.bore_mm)} мм</b></>}{teikinEntry?.cc && <>, {fmtNum(teikinEntry.cc / 1000)} л</>}{teikinEntry?.fuel && <>, {FUEL_LABEL[teikinEntry.fuel]}</>}. <span class="muted">Цена — по WhatsApp.</span>
-      </p>
-
-      <div class="cta-row">
-        <a href={`https://wa.me/77015509377?text=${waText}`} class="btn btn-wa" target="_blank" rel="noopener noreferrer">
-          Цена в WhatsApp →
-        </a>
-        <a href="tel:+77015509377" class="btn btn-phone">+7 701 550-93-77</a>
-      </div>
-    </header>
-
-    <!-- РЕАЛЬНЫЕ ФОТО + КАТАЛОЖНАЯ СТРАНИЦА -->
-    {product.parts_brand === 'TEIKIN' && (
-      <section class="photos-strip reveal">
-        <h2 class="photos-h2">Как выглядит товар</h2>
-        <div class="photos-grid">
-          <figure class="photo-card">
-            <img src="/teikin-photos/piston-sample.png" alt={`Реальный поршень TEIKIN — пример внешнего вида`} loading="lazy" />
-            <figcaption>Поршень TEIKIN</figcaption>
-          </figure>
-          <figure class="photo-card">
-            <img src="/teikin-photos/boxes.png" alt="Фирменные упаковки TEIKIN" loading="lazy" />
-            <figcaption>Фирменная упаковка</figcaption>
-          </figure>
+      <div class="ph-hero-info">
+        <div class="ph-meta">
+          <span class="ph-brand-pill">{partsBrandDisplay}</span>
+          <span class="ph-stock"><span class="dot"></span>в наличии</span>
         </div>
-      </section>
-    )}
 
-    <!-- ОСНОВНОЙ БЛОК: картинка из каталога + спеки рядом на десктопе -->
-    <div class="main-grid reveal">
-      {teikinEntry?.image && (
-        <figure class="catalog-fig">
-          <img src={teikinEntry.image} alt={`Поршень ${partsBrandDisplay} ${mainArticle} ${sizeLabel} на ${engine.brand_name} ${engine.engine_code}`} loading="lazy" />
-        </figure>
-      )}
+        <h1 class="ph-title">
+          Поршень{mainArticle ? <> <span class="ph-article mono">№ {mainArticle}</span></> : null}
+        </h1>
+        <p class="ph-sub">{sizeLabel}{product.insert_type !== 'plain' && <> · {product.insert_type}</>} · {engine.brand_name} {engine.engine_code}</p>
 
-      <div class="specs-card">
-        <div class="specs-title">Характеристики</div>
-        <dl class="specs-tight">
-          <div class="row"><dt>Двигатель</dt><dd>{engine.brand_name} {engine.engine_code}{teikinEntry?.display_name && teikinEntry.display_name !== `${engine.brand_name} ${engine.engine_code}` && <> ({teikinEntry.display_name})</>}</dd></div>
-          {teikinEntry?.cc && (
-            <div class="row"><dt>Объём</dt><dd>{ccToLiters(teikinEntry.cc)} л · {teikinEntry.cyl} цил.{teikinEntry.fuel && <> · {FUEL_LABEL[teikinEntry.fuel]}</>}</dd></div>
-          )}
-          <div class="row hl"><dt>Размер</dt><dd><b>{sizeLabel}</b>{product.size_code !== 'STD' && <> <span class="muted small">(+{sizeLabel.replace('0.', '')} мм)</span></>}{product.insert_type !== 'plain' && <> · {product.insert_type}</>}</dd></div>
+        <dl class="ph-facts">
           {actualBoreMm != null && (
-            <div class="row hl"><dt>Диаметр поршня</dt><dd><b>Ø {fmtNum(actualBoreMm)} мм</b>{product.size_code !== 'STD' && teikinEntry?.bore_mm && <> <span class="muted small">(STD: {fmtNum(teikinEntry.bore_mm)})</span></>}</dd></div>
+            <div class="ph-fact ph-fact-key">
+              <dt>Диаметр поршня</dt>
+              <dd>Ø {fmtNum(actualBoreMm)}<span class="unit">мм</span></dd>
+            </div>
           )}
-          {/* Размер пальца не выводим — этой информации не требует покупатель */}
+          <div class="ph-fact ph-fact-key">
+            <dt>Ремонтный размер</dt>
+            <dd>{sizeLabel}{product.size_code !== 'STD' && <span class="unit">+{sizeLabel.replace('0.', '')} мм</span>}</dd>
+          </div>
+          {teikinEntry?.cc && (
+            <div class="ph-fact">
+              <dt>Двигатель</dt>
+              <dd>{ccToLiters(teikinEntry.cc)} л · {teikinEntry.cyl} цил.</dd>
+            </div>
+          )}
+          {teikinEntry?.fuel && (
+            <div class="ph-fact">
+              <dt>Топливо</dt>
+              <dd>{FUEL_LABEL[teikinEntry.fuel]}</dd>
+            </div>
+          )}
         </dl>
 
-        {teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 0 && (
-          <div class="articles-block">
-            <div class="articles-title">Артикулы TEIKIN</div>
-            <ul class="articles-list">
-              {teikinEntry.teikin_pistons.map((art) => {
-                const isCurrent = mainArticle === art;
-                const variant = art.replace(teikinEntry.teikin_pistons[0]!, '') || '';
-                const label = variant === '' ? 'базовый'
-                  : variant === 'A' ? 'ALFIN reinforcement'
-                  : variant === 'G' ? 'oil cooling gallery'
-                  : variant === 'AG' ? 'ALFIN + gallery'
-                  : variant;
-                return (
-                  <li class={isCurrent ? 'art-current' : ''}>
-                    <span class="art-num mono">{art}</span>
-                    <span class="art-label">{label}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+        <div class="ph-cta">
+          <a href={`https://wa.me/77015509377?text=${waText}`} class="ph-btn ph-btn-primary" target="_blank" rel="noopener noreferrer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zm-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884z"/></svg>
+            Узнать цену в WhatsApp
+          </a>
+          <a href="tel:+77015509377" class="ph-btn ph-btn-secondary">+7 701 550-93-77</a>
+        </div>
 
-        <div class="kit-note">
-          <span class="kit-ico">📦</span>
-          <span>В комплект входят: <b>поршень + палец</b>. Кольца и гильзы — <a href={`/${brandSl}/dvigateli/${engSl}/`}>отдельно</a>.</span>
+        <div class="ph-kit">
+          В комплекте: <b>поршень + палец</b>. Кольца и гильзы — <a href={`/${brandSl}/dvigateli/${engSl}/`}>отдельно</a>.
         </div>
       </div>
-    </div>
-
-    <!-- ОБЪЯСНЕНИЕ типов вставок (A, AG, plain) -->
-    <section class="reveal inserts-explain">
-      <h2>Чем отличаются модификации поршня</h2>
-      <div class="inserts-table">
-        <div class="ins-row">
-          <div class="ins-tag ins-tag-plain">plain</div>
-          <div class="ins-name">Базовый поршень</div>
-          <div class="ins-desc">Без армирования канавки 1-го кольца и без масляной галереи. По терминологии TEIKIN — суффикса нет.</div>
-        </div>
-        <div class="ins-row">
-          <div class="ins-tag ins-tag-a">A</div>
-          <div class="ins-name">ALFIN reinforcement</div>
-          <div class="ins-desc">Никель-чугунная вставка, металлургически связанная с алюминиевой короной в зоне канавки 1-го компрессионного кольца. Защищает канавку от выгорания и разбивания на дизелях.</div>
-        </div>
-        <div class="ins-row">
-          <div class="ins-tag ins-tag-g">G</div>
-          <div class="ins-name">Oil cooling gallery</div>
-          <div class="ins-desc">Закольцованный масляный канал внутри головки поршня — подаётся масло через форсунку снизу, снимает температуру с короны. Турбодизели и форсированные ДВС.</div>
-        </div>
-        <div class="ins-row">
-          <div class="ins-tag ins-tag-ag">AG</div>
-          <div class="ins-name">ALFIN + Gallery</div>
-          <div class="ins-desc">И армирование канавки методом ALFIN, и масляная галерея охлаждения. Максимальная версия — для тяжёлых турбо и коммерческих дизелей.</div>
-        </div>
-      </div>
-      <p class="muted small inserts-note">Текущий поршень — <b>{product.insert_type === 'plain' ? 'базовый' : product.insert_type}</b>{mainArticle && <> (артикул {mainArticle})</>}. Если нужна другая модификация — посмотри в блоке «Другие варианты» ниже или напиши в WhatsApp.</p>
     </section>
 
-    <!-- OEM + АНАЛОГИ в одной полоске -->
-    <div class="info-row reveal">
-      {teikinEntry?.oem_piston?.length || teikinEntry?.oem_pin?.length ? (
-        <section class="info-col">
-          <h2>OEM номера</h2>
-          {teikinEntry.oem_piston?.length ? (
-            <div class="oem-line"><span class="oem-label">Поршень</span><div class="oem-vals">{teikinEntry.oem_piston.map((o) => <code>{o}</code>)}</div></div>
-          ) : null}
-          {/* OEM пальца не показываем — пользователь ищет поршень */}
-        </section>
-      ) : null}
+    <!-- VARIANTS -->
+    {(teikinEntry?.teikin_pistons?.length || otherSizesSameBrand.length > 0 || otherBrandsSameSize.length > 0) && (
+      <section class="ph-section reveal">
+        <h2 class="ph-h2">Варианты этого артикула</h2>
+        <div class="ph-var-grid">
+          {teikinEntry?.teikin_pistons && teikinEntry.teikin_pistons.length > 0 && (
+            <div class="ph-var-col ph-var-col-wide">
+              <div class="ph-var-h">Модификации поршня</div>
+              <ul class="ph-var-articles">
+                {teikinEntry.teikin_pistons.map((art) => {
+                  const isCurrent = mainArticle === art;
+                  const variant = art.replace(teikinEntry.teikin_pistons[0]!, '') || '';
+                  const label = variant === '' ? 'базовый'
+                    : variant === 'A' ? 'ALFIN reinforcement'
+                    : variant === 'G' ? 'oil cooling gallery'
+                    : variant === 'AG' ? 'ALFIN + gallery'
+                    : variant;
+                  return (
+                    <li class={isCurrent ? 'is-current' : ''}>
+                      <span class="ph-art-num mono">{art}</span>
+                      <span class="ph-art-label">{label}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <details class="ph-var-expand">
+                <summary>Что значат суффиксы A, G и AG?</summary>
+                <div class="ph-var-explain">
+                  <div><b class="tag-a">A</b> — ALFIN reinforcement. Никель-чугунная вставка вокруг канавки 1-го кольца, защищает от выгорания на дизелях.</div>
+                  <div><b class="tag-g">G</b> — oil cooling gallery. Масляный канал внутри короны, снимает температуру у турбо.</div>
+                  <div><b class="tag-ag">AG</b> — обе технологии вместе. Максимальная версия для тяжёлых турбодизелей.</div>
+                </div>
+              </details>
+            </div>
+          )}
 
-      {(otherSizesSameBrand.length > 0 || otherBrandsSameSize.length > 0) && (
-        <section class="info-col">
-          <h2>Другие варианты</h2>
           {otherSizesSameBrand.length > 0 && (
-            <div class="alt-line">
-              <span class="alt-label">Размеры {partsBrandDisplay}:</span>
-              <div class="alt-chips">
+            <div class="ph-var-col">
+              <div class="ph-var-h">Размеры {partsBrandDisplay}</div>
+              <div class="ph-var-chips">
+                <span class="ph-chip ph-chip-cur">{sizeLabel}</span>
                 {otherSizesSameBrand.map((s) => (
-                  <a href={siblingUrl(s)} class="alt-chip">{s.size_code}</a>
+                  <a href={siblingUrl(s)} class="ph-chip">{s.size_code}</a>
                 ))}
               </div>
             </div>
           )}
+
           {otherBrandsSameSize.length > 0 && (
-            <div class="alt-line">
-              <span class="alt-label">Тот же артикул в других брендах:</span>
-              <div class="alt-chips">
+            <div class="ph-var-col">
+              <div class="ph-var-h">Тот же артикул в других брендах</div>
+              <div class="ph-var-chips">
+                <span class="ph-chip ph-chip-cur">{partsBrandDisplay}</span>
                 {otherBrandsSameSize.map((s) => (
-                  <a href={siblingUrl(s)} class="alt-chip">{partsBrandLabel[s.parts_brand] ?? s.parts_brand}</a>
+                  <a href={siblingUrl(s)} class="ph-chip">{partsBrandLabel[s.parts_brand] ?? s.parts_brand}</a>
                 ))}
               </div>
             </div>
           )}
-        </section>
-      )}
-    </div>
-
-    <!-- ЛОГО производителей поршней — чтобы было понятно как они выглядят -->
-    <section class="reveal brand-logos">
-      <h2>Бренды поршней, которые мы возим</h2>
-      <div class="bl-grid">
-        <div class="bl-card"><img src="/assets/parts-brands/teikin.png" alt="Teikin (Япония) — производитель поршней" loading="lazy" /><span>Teikin <small>Япония</small></span></div>
-        <div class="bl-card"><img src="/assets/parts-brands/izumi.png" alt="Izumi (Япония) — производитель поршней" loading="lazy" /><span>Izumi <small>Япония</small></span></div>
-        <div class="bl-card"><img src="/assets/parts-brands/nd.png" alt="ND Components — производитель поршней" loading="lazy" /><span>ND <small>оригинал</small></span></div>
-        <div class="bl-card"><img src="/assets/parts-brands/nm.png" alt="NM (Тайвань) — производитель поршней" loading="lazy" /><span>NM <small>Тайвань</small></span></div>
-      </div>
-    </section>
-
-    <!-- Совместимые модели + FAQ -->
-    {teikinEntry?.models && teikinEntry.models.length > 0 && (
-      <section class="reveal models">
-        <h2>На какие авто</h2>
-        <ul>{teikinEntry.models.map((m) => <li>{m}</li>)}</ul>
+        </div>
       </section>
     )}
 
-    <section class="reveal faq">
-      <h2>Вопросы</h2>
-      <div class="faq-list">
-        {faqItems.map((f, i) => (
-          <details open={i === 0}>
-            <summary>{f.q}</summary>
-            <p>{f.a}</p>
-          </details>
-        ))}
+    <!-- BRANDS strip -->
+    <section class="ph-section ph-brands reveal">
+      <h2 class="ph-h2">Бренды поршней на складе</h2>
+      <div class="ph-brands-grid">
+        <div class="ph-brand-card"><img src="/assets/parts-brands/teikin.png" alt="Teikin" loading="lazy" /><div><b>Teikin</b><small>Япония</small></div></div>
+        <div class="ph-brand-card"><img src="/assets/parts-brands/izumi.png" alt="Izumi" loading="lazy" /><div><b>Izumi</b><small>Япония</small></div></div>
+        <div class="ph-brand-card"><img src="/assets/parts-brands/nd.png" alt="ND Components" loading="lazy" /><div><b>ND</b><small>оригинал</small></div></div>
+        <div class="ph-brand-card"><img src="/assets/parts-brands/nm.png" alt="NM" loading="lazy" /><div><b>NM</b><small>Тайвань</small></div></div>
       </div>
     </section>
 
-    <!-- Финальная CTA -->
-    <section class="cta-final reveal">
-      <a href={`https://wa.me/77015509377?text=${waText}`} class="btn btn-wa btn-big" target="_blank" rel="noopener noreferrer">
-        Узнать цену и оформить →
+    <!-- DETAILS — раскрывающиеся вспомогательные блоки -->
+    <section class="ph-section ph-details-section reveal">
+      {product.parts_brand === 'TEIKIN' && (
+        <details class="ph-det">
+          <summary>Реальные фото товара и упаковка</summary>
+          <div class="ph-det-body">
+            <div class="ph-real-photos">
+              <figure>
+                <img src="/teikin-photos/piston-sample.png" alt="Реальный поршень TEIKIN" loading="lazy" />
+                <figcaption>Поршень TEIKIN</figcaption>
+              </figure>
+              <figure>
+                <img src="/teikin-photos/boxes.png" alt="Фирменные упаковки TEIKIN" loading="lazy" />
+                <figcaption>Фирменная упаковка</figcaption>
+              </figure>
+            </div>
+          </div>
+        </details>
+      )}
+
+      {teikinEntry?.oem_piston?.length ? (
+        <details class="ph-det">
+          <summary>OEM номера производителя двигателя</summary>
+          <div class="ph-det-body">
+            <div class="ph-oem-list">
+              {teikinEntry.oem_piston.map((o) => <code>{o}</code>)}
+            </div>
+            <p class="ph-det-note">Номера из официального каталога производителя автомобиля — пригодятся для сверки на СТО.</p>
+          </div>
+        </details>
+      ) : null}
+
+      {teikinEntry?.models && teikinEntry.models.length > 0 && (
+        <details class="ph-det">
+          <summary>На какие авто подходит ({teikinEntry.models.length})</summary>
+          <div class="ph-det-body">
+            <ul class="ph-models">{teikinEntry.models.map((m) => <li>{m}</li>)}</ul>
+          </div>
+        </details>
+      )}
+
+      {faqItems.map((f, i) => (
+        <details class="ph-det" open={i === 0}>
+          <summary>{f.q}</summary>
+          <div class="ph-det-body">
+            <p>{f.a}</p>
+          </div>
+        </details>
+      ))}
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="ph-final reveal">
+      <div class="ph-final-text">
+        <div class="ph-final-h">Готовы заказать?</div>
+        <div class="ph-final-sub">Цена и наличие — в WhatsApp в течение 10 минут.</div>
+      </div>
+      <a href={`https://wa.me/77015509377?text=${waText}`} class="ph-btn ph-btn-primary ph-btn-big" target="_blank" rel="noopener noreferrer">
+        Узнать цену →
       </a>
-      <div class="cta-meta">ТЦ CarCity, 3 ярус, бутик 135В · Доставка по Казахстану</div>
+      <div class="ph-final-meta">ТЦ CarCity · 3 ярус, бутик 135В · Доставка по Казахстану</div>
     </section>
   </div>
 </Base>
 
 <style>
-  .product-page { padding-bottom: 32px; max-width: 1100px; }
-
-  /* HERO */
-  .ph-head { padding: 16px 0 12px; }
-  .ph-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-  .chip {
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: var(--c-bg-soft);
-    border: 1px solid var(--c-border);
-    font-size: .78rem;
-    font-weight: 600;
-    line-height: 1.2;
+  /* === Локальные токены: nipponfz-вайб (синий акцент + воздух) === */
+  .product-page {
+    --ph-blue: #0066cc;
+    --ph-blue-dark: #0052a3;
+    --ph-navy: #194681;
+    --ph-soft: #f6f8fc;
+    --ph-border: #e4e8ef;
+    --ph-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+    --ph-shadow-hover: 0 8px 28px rgba(15, 23, 42, 0.10);
+    max-width: 1120px;
+    padding-bottom: 32px;
   }
-  .chip-brand { background: #0f172a; color: #fff; border-color: #0f172a; }
-  .chip-article { background: var(--c-red); color: #fff; border-color: var(--c-red); font-family: 'JetBrains Mono', monospace; }
-  .chip-size { background: #fef3c7; color: #92400e; border-color: #fbbf24; }
-  .chip-insert { background: #ede9fe; color: #5b21b6; border-color: #c4b5fd; }
 
-  h1 { font-size: clamp(1.35rem, 3vw, 1.9rem); margin: 0 0 6px; line-height: 1.2; }
-  .h1-sub { display: block; font-size: 0.6em; font-weight: 600; color: var(--c-text-dim); margin-top: 4px; }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .92em; }
 
-  .ph-lead { font-size: .98rem; color: var(--c-text-dim); margin: 6px 0 14px; line-height: 1.5; }
-  .ph-lead b { color: var(--c-text); }
-
-  .cta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-  .btn-wa {
-    background: var(--c-red);
-    color: #fff !important;
-    padding: 12px 22px;
-    border-radius: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    transition: transform var(--t-fast), box-shadow var(--t-fast);
-  }
-  .btn-wa:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(229,9,20,0.3); }
-  .btn-phone {
-    background: #fff;
-    color: var(--c-text) !important;
-    border: 1.5px solid var(--c-border);
-    padding: 12px 22px;
-    border-radius: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: border-color var(--t-fast);
-    display: inline-flex; align-items: center;
-  }
-  .btn-phone:hover { border-color: var(--c-red); color: var(--c-red) !important; }
-  .btn-big { padding: 16px 28px; font-size: 1.05rem; }
-
-  /* Photos strip — real piston + boxes */
-  .photos-strip {
-    margin-bottom: 18px;
-    padding: 18px;
-    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #fef9c3 100%);
-    border: 1px solid #fcd34d;
-    border-radius: 14px;
-  }
-  .photos-h2 {
-    font-size: .82rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #92400e;
-    margin: 0 0 12px;
-  }
-  .photos-grid {
+  /* ───────── HERO ───────── */
+  .ph-hero {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    margin: 16px 0 28px;
+  }
+  @media (max-width: 860px) {
+    .ph-hero { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  .ph-img {
+    margin: 0;
+    background: #fff;
+    border: 1px solid var(--ph-border);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--ph-shadow);
+  }
+  .ph-img img { width: 100%; height: auto; display: block; }
+  .ph-img figcaption {
+    padding: 8px 14px;
+    font-size: .78rem;
+    color: var(--c-text-faint);
+    border-top: 1px solid var(--ph-border);
+    background: var(--ph-soft);
+    letter-spacing: 0.02em;
+  }
+  .ph-img-fallback img { padding: 24px; }
+
+  .ph-hero-info {
+    display: flex;
+    flex-direction: column;
     gap: 14px;
   }
-  .photo-card {
-    background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 0;
+  @media (min-width: 861px) {
+    .ph-hero-info { position: sticky; top: 84px; }
+  }
+
+  .ph-meta {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
   }
-  .photo-card img {
-    width: 100%;
-    height: 180px;
-    object-fit: contain;
-    background: #fff;
-    padding: 12px;
-    box-sizing: border-box;
+  .ph-brand-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: var(--ph-navy);
+    color: #fff;
+    border-radius: 999px;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
-  .photo-card figcaption {
-    padding: 8px 12px;
-    background: var(--c-bg-soft);
-    border-top: 1px solid var(--c-border);
+  .ph-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: .82rem;
-    text-align: center;
+    font-weight: 600;
+    color: #047857;
+  }
+  .ph-stock .dot {
+    width: 8px; height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(16,185,129,.18);
+  }
+
+  .ph-title {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    line-height: 1.1;
+    font-weight: 800;
+    color: #0a0a0a;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .ph-article {
+    color: var(--ph-blue);
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .ph-sub {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--c-text-dim);
+    font-weight: 500;
+  }
+
+  /* Сетка фактов — крупный диаметр + основные параметры */
+  .ph-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 4px 0 6px;
+  }
+  .ph-fact {
+    background: var(--ph-soft);
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .ph-fact dt {
+    font-size: .72rem;
+    color: var(--c-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .ph-fact dd {
+    margin: 0;
+    font-size: 1.04rem;
+    font-weight: 700;
+    color: #0a0a0a;
+    line-height: 1.15;
+  }
+  .ph-fact .unit {
+    font-size: .72em;
     color: var(--c-text-dim);
     font-weight: 600;
+    margin-left: 4px;
   }
-  @media (max-width: 480px) {
-    .photo-card img { height: 140px; padding: 8px; }
-  }
-
-  /* MAIN GRID */
-  .main-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 18px;
-    margin-bottom: 22px;
-  }
-  @media (max-width: 720px) {
-    .main-grid { grid-template-columns: 1fr; gap: 14px; }
-  }
-
-  .catalog-fig {
-    margin: 0;
+  .ph-fact-key {
     background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: 14px;
-    overflow: hidden;
+    border-color: var(--ph-blue);
+    box-shadow: inset 3px 0 0 var(--ph-blue);
   }
-  .catalog-fig img { width: 100%; height: auto; display: block; }
+  .ph-fact-key dd { color: var(--ph-blue); font-size: 1.2rem; }
 
-  /* Specs card */
-  .specs-card {
-    background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: 14px;
-    padding: 18px 18px 14px;
-  }
-  .specs-title {
-    font-size: .78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-text-faint);
-    margin-bottom: 10px;
-  }
-  .specs-tight { display: flex; flex-direction: column; }
-  .specs-tight .row {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px dashed var(--c-border);
-    font-size: .92rem;
-  }
-  .specs-tight .row:last-of-type { border-bottom: 0; }
-  .specs-tight .row.hl { background: #fffbeb; margin: 0 -10px; padding: 9px 10px; border-bottom: 1px solid #fcd34d; border-radius: 4px; }
-  .specs-tight dt { color: var(--c-text-dim); margin: 0; }
-  .specs-tight dd { margin: 0; font-weight: 600; text-align: right; line-height: 1.35; }
-  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .92em; }
-  abbr {
-    text-decoration: underline dotted var(--c-text-faint);
-    text-underline-offset: 2px;
-    cursor: help;
-    color: var(--c-text-faint);
-    font-size: 0.85em;
-  }
-
-  .kit-note {
-    margin-top: 12px;
-    padding: 10px 12px;
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    border-radius: 10px;
-    font-size: .88rem;
-    line-height: 1.45;
+  /* CTA */
+  .ph-cta {
     display: flex;
     gap: 8px;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 6px;
   }
-  .kit-ico { font-size: 1.1rem; flex-shrink: 0; }
-  .kit-note a { color: var(--c-red); font-weight: 600; }
-
-  /* Articles list */
-  .articles-block {
-    margin-top: 14px;
-    padding: 12px;
-    background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
-    border: 1px solid #fecaca;
-    border-radius: 10px;
-  }
-  .articles-title {
-    font-size: .72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-red);
-    margin-bottom: 8px;
-  }
-  .articles-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .articles-list li {
-    display: grid;
-    grid-template-columns: minmax(0, auto) 1fr;
-    gap: 10px;
-    align-items: center;
-    padding: 6px 10px;
-    background: #fff;
-    border: 1px solid #fcd9b6;
-    border-radius: 7px;
-  }
-  .articles-list li.art-current {
-    background: var(--c-red);
-    color: #fff;
-    border-color: var(--c-red);
-    box-shadow: 0 2px 8px rgba(229,9,20,0.2);
-  }
-  .art-num { font-weight: 700; font-size: .98rem; }
-  .art-label { font-size: .8rem; color: var(--c-text-dim); }
-  .articles-list li.art-current .art-label { color: rgba(255,255,255,0.85); }
-
-  /* Inserts table */
-  .inserts-explain {
-    margin: 24px 0;
-    padding: 18px;
-    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-    border: 1px solid #bfdbfe;
-    border-radius: 14px;
-  }
-  .inserts-explain > h2 {
-    font-size: .92rem;
-    margin: 0 0 14px;
-    color: #1e40af;
-    font-weight: 700;
-  }
-  .inserts-table { display: flex; flex-direction: column; gap: 8px; }
-  .ins-row {
-    display: grid;
-    grid-template-columns: 60px minmax(0, 1fr);
-    gap: 12px;
-    padding: 12px 14px;
-    background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: 10px;
-    align-items: start;
-  }
-  @media (min-width: 720px) {
-    .ins-row {
-      grid-template-columns: 60px 180px minmax(0, 1fr);
-      align-items: center;
-    }
-  }
-  .ins-tag {
+  .ph-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 0;
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: .82rem;
-    text-align: center;
-    width: 60px;
-  }
-  .ins-tag-plain { background: #f3f4f6; color: #4b5563; }
-  .ins-tag-a { background: #fef3c7; color: #92400e; }
-  .ins-tag-g { background: #d1fae5; color: #065f46; }
-  .ins-tag-ag { background: var(--c-red); color: #fff; }
-  .ins-name { font-weight: 600; font-size: .92rem; grid-column: 2; }
-  .ins-desc { font-size: .85rem; color: var(--c-text-dim); line-height: 1.45; grid-column: 2; }
-  @media (min-width: 720px) {
-    .ins-name { grid-column: 2; }
-    .ins-desc { grid-column: 3; }
-  }
-  .inserts-note { margin-top: 12px; }
-
-  /* INFO row: OEM + Аналоги в 2 колонки */
-  .info-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 22px;
-  }
-  @media (max-width: 640px) {
-    .info-row { grid-template-columns: 1fr; gap: 14px; }
-  }
-  .info-col {
-    padding: 16px 18px;
+    gap: 8px;
+    padding: 13px 22px;
     border-radius: 12px;
+    font-weight: 700;
+    font-size: .98rem;
+    text-decoration: none;
+    transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+    border: 1.5px solid transparent;
+    line-height: 1;
   }
-  .info-col:nth-child(1) {
-    background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
-    border: 1px solid #99f6e4;
+  .ph-btn-primary {
+    background: var(--c-red);
+    color: #fff !important;
+    flex: 1 1 auto;
+    min-width: 220px;
   }
-  .info-col:nth-child(2) {
-    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
-    border: 1px solid #f0abfc;
+  .ph-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229,9,20,0.32); }
+  .ph-btn-primary svg { flex-shrink: 0; }
+  .ph-btn-secondary {
+    background: #fff;
+    color: var(--c-text) !important;
+    border-color: var(--ph-border);
   }
-  .info-col h2 {
-    font-size: .82rem;
+  .ph-btn-secondary:hover { border-color: var(--ph-blue); color: var(--ph-blue) !important; }
+  .ph-btn-big { font-size: 1.05rem; padding: 16px 28px; }
+
+  .ph-kit {
+    font-size: .88rem;
+    color: var(--c-text-dim);
+    padding: 10px 14px;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    line-height: 1.5;
+  }
+  .ph-kit a { color: var(--ph-blue); font-weight: 600; }
+  .ph-kit b { color: var(--c-text); }
+
+  /* ───────── SECTION generic ───────── */
+  .ph-section {
+    margin: 24px 0;
+    background: #fff;
+    border: 1px solid var(--ph-border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: var(--ph-shadow);
+  }
+  .ph-h2 {
+    font-size: .8rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-text-dim);
-    margin: 0 0 10px;
-  }
-  .oem-line { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-  .oem-label {
-    font-size: .8rem;
-    color: var(--c-text-dim);
-    background: var(--c-bg-soft);
-    padding: 3px 8px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    align-self: flex-start;
-  }
-  .oem-vals { display: flex; flex-wrap: wrap; gap: 5px; }
-  .oem-vals code {
-    background: #f8fafc;
-    border: 1px solid var(--c-border);
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: .85rem;
-    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.1em;
+    color: var(--c-text-faint);
+    margin: 0 0 16px;
   }
 
-  .alt-line { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; align-items: center; }
-  .alt-label { font-size: .82rem; color: var(--c-text-dim); }
-  .alt-chips { display: flex; gap: 5px; flex-wrap: wrap; }
-  .alt-chip {
-    padding: 4px 10px;
+  /* ───────── VARIANTS ───────── */
+  .ph-var-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 860px) {
+    .ph-var-grid { grid-template-columns: 1fr; }
+  }
+  .ph-var-col {
+    background: var(--ph-soft);
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .ph-var-h {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .ph-var-articles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ph-var-articles li {
+    display: grid;
+    grid-template-columns: minmax(0, auto) 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 12px;
     background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: 999px;
+    border: 1px solid var(--ph-border);
+    border-radius: 8px;
+    transition: border-color var(--t-fast);
+  }
+  .ph-var-articles li.is-current {
+    background: var(--ph-blue);
+    color: #fff;
+    border-color: var(--ph-blue);
+  }
+  .ph-art-num { font-weight: 700; font-size: .98rem; }
+  .ph-art-label { font-size: .82rem; color: var(--c-text-dim); }
+  .ph-var-articles li.is-current .ph-art-label { color: rgba(255,255,255,0.85); }
+
+  .ph-var-expand {
+    margin-top: 10px;
+  }
+  .ph-var-expand summary {
     font-size: .82rem;
+    color: var(--ph-blue);
+    cursor: pointer;
+    padding: 6px 0;
+    list-style: none;
+    font-weight: 600;
+  }
+  .ph-var-expand summary::-webkit-details-marker { display: none; }
+  .ph-var-expand summary::before {
+    content: '▸';
+    display: inline-block;
+    margin-right: 6px;
+    transition: transform var(--t-fast);
+    font-size: .7rem;
+  }
+  .ph-var-expand[open] summary::before { transform: rotate(90deg); }
+  .ph-var-explain {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: .85rem;
+    color: var(--c-text-dim);
+    line-height: 1.55;
+  }
+  .ph-var-explain b {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .78rem;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .tag-a { background: #fef3c7; color: #92400e; }
+  .tag-g { background: #d1fae5; color: #065f46; }
+  .tag-ag { background: var(--c-red); color: #fff; }
+
+  .ph-var-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .ph-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid var(--ph-border);
+    border-radius: 999px;
+    font-size: .85rem;
     font-weight: 600;
     color: var(--c-text);
     text-decoration: none;
     transition: all var(--t-fast);
   }
-  .alt-chip:hover { border-color: var(--c-red); color: var(--c-red); }
+  .ph-chip:hover {
+    border-color: var(--ph-blue);
+    color: var(--ph-blue);
+  }
+  .ph-chip-cur {
+    background: var(--ph-blue);
+    color: #fff;
+    border-color: var(--ph-blue);
+    cursor: default;
+  }
+  .ph-chip-cur:hover { color: #fff; }
 
-  /* Models */
-  .models {
-    margin-bottom: 20px;
-    padding: 16px 18px;
-    background: linear-gradient(135deg, #fef9c3 0%, #fef3c7 100%);
-    border: 1px solid #fde68a;
-    border-radius: 12px;
-  }
-  .models h2 {
-    font-size: .82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-text-faint);
-    margin: 0 0 8px;
-  }
-  .models ul {
-    padding-left: 18px;
-    margin: 0;
-    column-count: 2;
-    column-gap: 20px;
-    line-height: 1.55;
-    font-size: .9rem;
-  }
-  @media (max-width: 540px) { .models ul { column-count: 1; } }
-
-  /* FAQ */
-  .faq { margin-bottom: 24px; }
-  .faq h2 {
-    font-size: .82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-text-faint);
-    margin: 0 0 10px;
-  }
-  .faq-list { display: flex; flex-direction: column; gap: 6px; }
-  .faq details {
-    border: 1px solid var(--c-border);
-    border-radius: 10px;
-    background: #fff;
-    overflow: hidden;
-  }
-  .faq summary {
-    padding: 12px 16px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: .92rem;
-    list-style: none;
-    position: relative;
-    padding-right: 40px;
-    line-height: 1.4;
-  }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after {
-    content: '+';
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.3rem;
-    color: var(--c-red);
-    transition: transform var(--t-fast);
-  }
-  .faq details[open] summary::after { transform: translateY(-50%) rotate(45deg); }
-  .faq p { padding: 0 16px 14px; margin: 0; color: var(--c-text-dim); font-size: .9rem; line-height: 1.55; }
-
-  /* CTA final */
-  .cta-final {
-    text-align: center;
-    padding: 24px 20px;
-    background: linear-gradient(135deg, #fef2f2 0%, #ffedd5 100%);
-    border-radius: 14px;
-  }
-  .cta-final .btn { margin-bottom: 10px; }
-  .cta-meta { font-size: .82rem; color: var(--c-text-dim); }
-
-  /* Лого брендов поршней — компактная карточка */
-  .brand-logos {
-    background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
-    border: 1px solid #cffafe;
-    border-radius: 14px;
-    padding: 18px 16px;
-    margin: 14px 0;
-  }
-  .brand-logos > h2 {
-    margin: 0 0 12px;
-    font-size: 1rem;
-    color: #0e7490;
-  }
-  .bl-grid {
+  /* ───────── BRANDS strip ───────── */
+  .ph-brands-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 10px;
   }
-  .bl-card {
+  .ph-brand-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--ph-soft);
+    border: 1px solid var(--ph-border);
     border-radius: 10px;
-    padding: 8px 12px;
+    transition: background var(--t-fast);
   }
-  .bl-card img {
-    width: 64px;
+  .ph-brand-card:hover { background: #fff; }
+  .ph-brand-card img {
+    width: 56px;
     height: 32px;
     object-fit: contain;
     flex-shrink: 0;
   }
-  .bl-card span {
-    font-weight: 600;
-    font-size: .9rem;
-    line-height: 1.2;
-  }
-  .bl-card small {
+  .ph-brand-card b {
     display: block;
-    font-weight: 400;
+    font-size: .9rem;
+    color: var(--c-text);
+    font-weight: 700;
+  }
+  .ph-brand-card small {
+    display: block;
     font-size: .72rem;
+    color: var(--c-text-faint);
+  }
+
+  /* ───────── DETAILS expandables ───────── */
+  .ph-details-section { padding: 8px 8px; box-shadow: none; background: transparent; border: 0; }
+  .ph-det {
+    background: #fff;
+    border: 1px solid var(--ph-border);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: border-color var(--t-fast);
+  }
+  .ph-det[open] { border-color: var(--ph-blue); }
+  .ph-det summary {
+    padding: 14px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .94rem;
+    list-style: none;
+    position: relative;
+    padding-right: 44px;
+    color: var(--c-text);
+  }
+  .ph-det summary::-webkit-details-marker { display: none; }
+  .ph-det summary::after {
+    content: '';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 10px; height: 10px;
+    border-right: 2px solid var(--c-text-dim);
+    border-bottom: 2px solid var(--c-text-dim);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform var(--t-fast);
+  }
+  .ph-det[open] summary::after { transform: translateY(-30%) rotate(-135deg); }
+  .ph-det-body {
+    padding: 0 18px 16px;
     color: var(--c-text-dim);
+    font-size: .92rem;
+    line-height: 1.55;
+  }
+  .ph-det-body p { margin: 0 0 8px; }
+  .ph-det-body p:last-child { margin-bottom: 0; }
+  .ph-det-note { font-size: .82rem; color: var(--c-text-faint); margin-top: 10px; }
+
+  .ph-real-photos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 540px) { .ph-real-photos { grid-template-columns: 1fr; } }
+  .ph-real-photos figure {
+    margin: 0;
+    background: var(--ph-soft);
+    border: 1px solid var(--ph-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .ph-real-photos img {
+    width: 100%;
+    height: 160px;
+    object-fit: contain;
+    background: #fff;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  .ph-real-photos figcaption {
+    text-align: center;
+    padding: 6px;
+    font-size: .8rem;
+    color: var(--c-text-dim);
+  }
+
+  .ph-oem-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ph-oem-list code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--ph-soft);
+    border: 1px solid var(--ph-border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: .9rem;
+    color: var(--c-text);
+  }
+
+  .ph-models {
+    margin: 0;
+    padding-left: 18px;
+    column-count: 2;
+    column-gap: 20px;
+    font-size: .92rem;
+    line-height: 1.55;
+  }
+  @media (max-width: 540px) { .ph-models { column-count: 1; } }
+
+  /* ───────── FINAL CTA ───────── */
+  .ph-final {
+    margin: 32px 0 0;
+    padding: 30px 24px;
+    text-align: center;
+    background: linear-gradient(135deg, var(--ph-navy) 0%, #1e3a8a 100%);
+    color: #fff;
+    border-radius: 18px;
+    box-shadow: var(--ph-shadow);
+  }
+  .ph-final-text { margin-bottom: 18px; }
+  .ph-final-h {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .ph-final-sub {
+    font-size: .95rem;
+    opacity: 0.85;
+  }
+  .ph-final .ph-btn { margin-bottom: 14px; }
+  .ph-final-meta {
+    font-size: .82rem;
+    opacity: 0.7;
+    margin-top: 4px;
   }
 </style>
