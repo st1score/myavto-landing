@@ -16,7 +16,34 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   max: 4,
+  keepAlive: true,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 15_000,
+  statement_timeout: 30_000,
 });
+
+// Глушим ошибки idle-соединений (Supabase pooler иногда рвёт их в простое).
+pool.on('error', (err) => {
+  console.warn('[db] idle client error (recoverable):', err.message);
+});
+
+// Retry: 3 попытки на типичные transient-ошибки Supabase/pg.
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  const transient = /ETIMEDOUT|ECONNRESET|terminated unexpectedly|Connection terminated|57P03|administrator command|EAI_AGAIN/i;
+  let lastErr: unknown;
+  for (let i = 0; i < 3; i++) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      lastErr = e;
+      if (!transient.test(String(e?.message ?? e))) throw e;
+      const wait = 500 * (i + 1);
+      console.warn(`[db] ${label} retry ${i + 1}/3 after ${wait}ms: ${e.message}`);
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
+}
 
 export type Engine = {
   brand_name: string;
@@ -83,16 +110,18 @@ export async function getPartNumbers(
   engineCode: string,
   categoryCode: string
 ): Promise<PartNumber[]> {
-  const { rows } = await pool.query<PartNumber>(
-    `
-    SELECT number_value, number_type, is_primary
-      FROM engine_part_numbers
-     WHERE engine_code = $1 AND category_code = $2 AND is_active = true
-     ORDER BY is_primary DESC, number_type, number_value
-  `,
-    [engineCode, categoryCode]
-  );
-  return rows;
+  return withRetry(async () => {
+    const { rows } = await pool.query<PartNumber>(
+      `
+      SELECT number_value, number_type, is_primary
+        FROM engine_part_numbers
+       WHERE engine_code = $1 AND category_code = $2 AND is_active = true
+       ORDER BY is_primary DESC, number_type, number_value
+    `,
+      [engineCode, categoryCode]
+    );
+    return rows;
+  }, `getPartNumbers(${engineCode},${categoryCode})`);
 }
 
 // Атрибуты поршня/кольца (диаметр, толщина, палец)
@@ -100,15 +129,17 @@ export async function getAttributes(
   engineCode: string,
   categoryCode: string
 ): Promise<AttributeValue[]> {
-  const { rows } = await pool.query<AttributeValue>(
-    `
-    SELECT attribute_code, value_number, value_text, value_integer
-      FROM engine_part_attribute_values
-     WHERE engine_code = $1 AND category_code = $2
-  `,
-    [engineCode, categoryCode]
-  );
-  return rows;
+  return withRetry(async () => {
+    const { rows } = await pool.query<AttributeValue>(
+      `
+      SELECT attribute_code, value_number, value_text, value_integer
+        FROM engine_part_attribute_values
+       WHERE engine_code = $1 AND category_code = $2
+    `,
+      [engineCode, categoryCode]
+    );
+    return rows;
+  }, `getAttributes(${engineCode},${categoryCode})`);
 }
 
 // Варианты + размеры + цены
@@ -116,16 +147,18 @@ export async function getVariantSizes(
   engineCode: string,
   categoryCode: string
 ): Promise<VariantSize[]> {
-  const { rows } = await pool.query<VariantSize>(
-    `
-    SELECT brand_name, variant_name, insert_type, size_code, purchase_price
-      FROM part_variant_sizes
-     WHERE engine_code = $1 AND category_code = $2 AND is_active = true
-     ORDER BY brand_name, insert_type, size_code
-  `,
-    [engineCode, categoryCode]
-  );
-  return rows;
+  return withRetry(async () => {
+    const { rows } = await pool.query<VariantSize>(
+      `
+      SELECT brand_name, variant_name, insert_type, size_code, purchase_price
+        FROM part_variant_sizes
+       WHERE engine_code = $1 AND category_code = $2 AND is_active = true
+       ORDER BY brand_name, insert_type, size_code
+    `,
+      [engineCode, categoryCode]
+    );
+    return rows;
+  }, `getVariantSizes(${engineCode},${categoryCode})`);
 }
 
 // Остатки
@@ -133,15 +166,17 @@ export async function getStock(
   engineCode: string,
   categoryCode: string
 ): Promise<StockItem[]> {
-  const { rows } = await pool.query<StockItem>(
-    `
-    SELECT brand_name, variant_name, insert_type, size_code, warehouse_code, qty
-      FROM stock_items
-     WHERE engine_code = $1 AND category_code = $2 AND qty > 0
-  `,
-    [engineCode, categoryCode]
-  );
-  return rows;
+  return withRetry(async () => {
+    const { rows } = await pool.query<StockItem>(
+      `
+      SELECT brand_name, variant_name, insert_type, size_code, warehouse_code, qty
+        FROM stock_items
+       WHERE engine_code = $1 AND category_code = $2 AND qty > 0
+    `,
+      [engineCode, categoryCode]
+    );
+    return rows;
+  }, `getStock(${engineCode},${categoryCode})`);
 }
 
 // Для какого (двигатель × категория) у нас есть хотя бы один вариант (то есть есть что показывать)

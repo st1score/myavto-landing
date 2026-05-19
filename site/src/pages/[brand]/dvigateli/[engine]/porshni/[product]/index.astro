@@ -70,8 +70,9 @@ const sizeLabel = product.size_code;
 const partsBrandDisplay = partsBrandLabel[product.parts_brand] ?? product.parts_brand;
 const mainArticle = product.parts_brand === 'TEIKIN' && teikinEntry?.teikin_pistons?.[0] || '';
 const insertDisplay = product.insert_type === 'plain' ? ''
-  : product.insert_type === 'AG' ? ' (антизадирная вставка AG)'
-  : product.insert_type === 'A' ? ' (вставка A)'
+  : product.insert_type === 'AG' ? ' (ALFIN + gallery)'
+  : product.insert_type === 'A' ? ' (ALFIN)'
+  : product.insert_type === 'G' ? ' (oil cooling gallery)'
   : ` (${product.insert_type})`;
 
 // Фактический диаметр поршня = номинал + ремонтный размер
@@ -144,7 +145,7 @@ const faqItems = [
   },
   mainArticle ? {
     q: `Что значит артикул ${mainArticle}?`,
-    a: `${mainArticle} — каталожный номер TEIKIN для поршня двигателя ${engine.brand_name} ${engine.engine_code}. Модификации 46283A / 46283G / 46283AG — варианты с разной обработкой днища или антизадирной вставкой.`,
+    a: `${mainArticle} — каталожный номер TEIKIN для поршня двигателя ${engine.brand_name} ${engine.engine_code}. Суффиксы по каталогу TEIKIN: «A» — ALFIN reinforcement (никель-чугунное армирование канавки 1-го кольца), «G» — oil cooling gallery (масляная галерея в днище), «AG» — обе технологии вместе.`,
   } : null,
   {
     q: 'Сколько стоит?',
@@ -264,10 +265,10 @@ const waText = encodeURIComponent(
               {teikinEntry.teikin_pistons.map((art) => {
                 const isCurrent = mainArticle === art;
                 const variant = art.replace(teikinEntry.teikin_pistons[0]!, '') || '';
-                const label = variant === '' ? 'базовый (без вставки)'
-                  : variant === 'A' ? 'со вставкой A'
-                  : variant === 'G' ? 'с галереей охлаждения'
-                  : variant === 'AG' ? 'со вставкой A + галерея'
+                const label = variant === '' ? 'базовый'
+                  : variant === 'A' ? 'ALFIN reinforcement'
+                  : variant === 'G' ? 'oil cooling gallery'
+                  : variant === 'AG' ? 'ALFIN + gallery'
                   : variant;
                 return (
                   <li class={isCurrent ? 'art-current' : ''}>
@@ -294,22 +295,22 @@ const waText = encodeURIComponent(
         <div class="ins-row">
           <div class="ins-tag ins-tag-plain">plain</div>
           <div class="ins-name">Базовый поршень</div>
-          <div class="ins-desc">Без вставки в зоне верхнего кольца. Стандарт для бензиновых двигателей с умеренными нагрузками.</div>
+          <div class="ins-desc">Без армирования канавки 1-го кольца и без масляной галереи. По терминологии TEIKIN — суффикса нет.</div>
         </div>
         <div class="ins-row">
           <div class="ins-tag ins-tag-a">A</div>
-          <div class="ins-name">Со вставкой типа A</div>
-          <div class="ins-desc">Износостойкая стальная вставка под верхнее компрессионное кольцо. Дольше держит зазор, дороже базы.</div>
+          <div class="ins-name">ALFIN reinforcement</div>
+          <div class="ins-desc">Никель-чугунная вставка, металлургически связанная с алюминиевой короной в зоне канавки 1-го компрессионного кольца. Защищает канавку от выгорания и разбивания на дизелях.</div>
         </div>
         <div class="ins-row">
           <div class="ins-tag ins-tag-g">G</div>
-          <div class="ins-name">С галереей охлаждения</div>
-          <div class="ins-desc">Внутренний канал в днище для прокачки масла — снижает температуру короны. Для турбо и тяжёлой нагрузки.</div>
+          <div class="ins-name">Oil cooling gallery</div>
+          <div class="ins-desc">Закольцованный масляный канал внутри головки поршня — подаётся масло через форсунку снизу, снимает температуру с короны. Турбодизели и форсированные ДВС.</div>
         </div>
         <div class="ins-row">
           <div class="ins-tag ins-tag-ag">AG</div>
-          <div class="ins-name">Вставка A + галерея</div>
-          <div class="ins-desc">Максимальная версия: и износостойкая вставка, и масляная галерея. Турбодизели и форсированные ДВС.</div>
+          <div class="ins-name">ALFIN + Gallery</div>
+          <div class="ins-desc">И армирование канавки методом ALFIN, и масляная галерея охлаждения. Максимальная версия — для тяжёлых турбо и коммерческих дизелей.</div>
         </div>
       </div>
       <p class="muted small inserts-note">Текущий поршень — <b>{product.insert_type === 'plain' ? 'базовый' : product.insert_type}</b>{mainArticle && <> (артикул {mainArticle})</>}. Если нужна другая модификация — посмотри в блоке «Другие варианты» ниже или напиши в WhatsApp.</p>
