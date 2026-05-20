@@ -15,6 +15,10 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
         <h3>📍 Адрес</h3>
         <p><strong>г. Алматы</strong></p>
         <p>ТЦ «CarCity», 3 ярус, бутик 135В</p>
+        <p class="map-links">
+          <a href="https://2gis.kz/almaty/search/CarCity" target="_blank" rel="noopener">Открыть в 2ГИС →</a>
+          <a href="https://yandex.kz/maps/162/almaty/?text=CarCity%20Алматы" target="_blank" rel="noopener">Яндекс.Карты →</a>
+        </p>
       </div>
 
       <div class="card big">
@@ -50,4 +54,6 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 
 <style>
   .card.big { padding: 24px; }
+  .map-links { display: flex; gap: 16px; margin-top: 12px; }
+  .map-links a { color: var(--c-red); font-weight: 600; font-size: .92rem; }
 </style>

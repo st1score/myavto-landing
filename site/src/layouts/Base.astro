@@ -114,16 +114,27 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
 <script type="application/ld+json" set:html={JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'AutoPartsStore',
+  '@id': siteUrl + '/#store',
   name: 'MY AVTO',
+  alternateName: 'MY AVTO — запчасти для капиталки двигателя',
+  description: 'Магазин запчастей для капитального ремонта двигателей японских автомобилей в Алматы: поршни, поршневые кольца, вкладыши, прокладки ГБЦ. Бренды TEIKIN, IZUMI, NPR, RIK, Taiho, NDC.',
   url: siteUrl,
+  logo: siteUrl + '/assets/logo.png',
+  image: siteUrl + '/assets/og-image.jpg',
   telephone: '+77015509377',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'ТЦ «CarCity», 3 ярус, бутик 135В',
     addressLocality: 'Алматы',
+    addressRegion: 'Алматы',
+    postalCode: '050000',
     addressCountry: 'KZ',
   },
   geo: { '@type': 'GeoCoordinates', latitude: 43.238949, longitude: 76.889709 },
+  areaServed: [
+    { '@type': 'City', name: 'Алматы' },
+    { '@type': 'Country', name: 'Казахстан' },
+  ],
   openingHoursSpecification: [
     { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], opens: '09:00', closes: '17:00' },
     { '@type': 'OpeningHoursSpecification', dayOfWeek: ['Sunday'], opens: '11:00', closes: '16:00' },
@@ -131,6 +142,7 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   sameAs: ['https://www.instagram.com/myavto.kz_', 'https://www.tiktok.com/@myavto.kz'],
   priceRange: '₸₸',
   paymentAccepted: 'Перевод, Наличные, Безналичный расчёт',
+  currenciesAccepted: 'KZT',
 })} />
 
 {jsonLd && (
