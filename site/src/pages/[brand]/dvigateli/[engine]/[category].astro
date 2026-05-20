@@ -227,13 +227,16 @@ const jsonLd = [
     brand: partsBrandList.length ? partsBrandList.map((b) => ({ '@type': 'Brand', name: b })) : [{ '@type': 'Brand', name: 'TEIKIN' }],
     image: 'https://my-avto.kz/assets/og-image.jpg',
     sku: tknNumbers[0]?.number_value || oemNumbers[0]?.number_value || `${engine.engine_code}-${categoryCode}`,
-    offers: {
-      '@type': 'AggregateOffer',
-      priceCurrency: 'KZT',
-      availability: 'https://schema.org/InStock',
-      seller: { '@type': 'AutoPartsStore', name: 'MY AVTO' },
-      url: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/${categorySlug[categoryCode]}/`,
-    },
+    ...(categoryCode === 'PISTON' ? {
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'KZT',
+        lowPrice: '15000',
+        availability: 'https://schema.org/InStock',
+        seller: { '@type': 'AutoPartsStore', name: 'MY AVTO' },
+        url: `https://my-avto.kz/${brandSl}/dvigateli/${engSl}/${categorySlug[categoryCode]}/`,
+      },
+    } : {}),
   },
   {
     '@context': 'https://schema.org',
@@ -298,6 +301,12 @@ const jsonLd = [
           )}
           <div class="hv2-fact"><span class="hv2-fact-l">Топливо</span><span class="hv2-fact-v">{engine.is_diesel ? 'Дизель' : 'Бензин'}</span></div>
         </div>
+        {categoryCode === 'PISTON' && (
+          <div class="hv2-price">
+            <span class="hv2-price-from">Цена за комплект</span>
+            <span class="hv2-price-val">от 15 000 ₸</span>
+          </div>
+        )}
         <div class="hv2-cta-row">
           <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer" class="btn hv2-cta-primary">Узнать цену в WhatsApp</a>
           <a href="tel:+77015509377" class="hv2-cta-phone">+7 701 550-93-77</a>
@@ -810,6 +819,9 @@ const jsonLd = [
   .hv2-fact-v { font-size: 1.02rem; font-weight: 700; color: var(--c-text); }
   .hv2-cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .hv2-cta-primary { padding: 14px 24px; font-size: 1rem; }
+  .hv2-price { display: flex; align-items: baseline; gap: 10px; }
+  .hv2-price-from { font-size: .9rem; color: var(--c-text-muted, #6b7280); }
+  .hv2-price-val { font-size: 1.5rem; font-weight: 800; color: var(--c-text); }
   .hv2-cta-phone {
     font-weight: 700;
     font-size: 1.02rem;
