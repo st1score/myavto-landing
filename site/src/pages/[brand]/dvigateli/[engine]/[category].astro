@@ -1,4 +1,6 @@
 ---
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import Base from '../../../../layouts/Base.astro';
 import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
 import {
@@ -136,6 +138,10 @@ const catalogNumbers = numbers.filter((n) => n.number_type.startsWith('catalog_'
 const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
 const engSl = engineSlug(engine.engine_code);
 
+// TEIKIN-каталоговое изображение (если есть)
+const catalogImgPath = resolve(process.cwd(), `public/teikin-catalog/${engSl}.png`);
+const heroImg = existsSync(catalogImgPath) ? `/teikin-catalog/${engSl}.png` : null;
+
 // Список других категорий для этого двигателя (для внутренней перелинковки)
 const allPartsIdx = await getEnginePartsIndex();
 const otherCategories = allPartsIdx
@@ -144,6 +150,14 @@ const otherCategories = allPartsIdx
 
 // SEO: оптимизированные тексты под запросы вида "{категория} {код двигателя}"
 const catLower = catLabel.toLowerCase();
+
+// Лонг-форма про мотор для SEO (генерируется из данных)
+const longIntroPara = {
+  PISTON: `${engine.brand_name} ${engine.engine_code} — ${engine.is_diesel ? 'дизельный' : 'бензиновый'} двигатель${engine.volume_l ? ` объёмом ${fmtNum(engine.volume_l)} литра` : ''}${engine.cylinder_count ? `, ${engine.cylinder_count} цилиндра` : ''}${engine.valve_count ? `, ${engine.valve_count} клапанов` : ''}. При капитальном ремонте этого мотора в первую очередь меняют поршни — это расходная деталь, которая работает на износ. Мы возим оригинальные японские поршни брендов TEIKIN, ND, IZUMI, NM, а также OEM-номера ${engine.brand_name}.`,
+  RING: `Поршневые кольца ${engine.brand_name} ${engine.engine_code} — комплект из 3 колец на каждый цилиндр (компрессионное, маслосъёмное, ножевое). При капремонте всегда меняются вместе с поршнями. Возим японские бренды RIK, TP, NPR с гарантией производителя${engine.cylinder_count ? ` (на ${engine.cylinder_count} цилиндров — ${engine.cylinder_count * 3} колец в комплекте)` : ''}.`,
+}[categoryCode] ?? '';
+
+const longSecondPara = `Размер ${catLower} определяет моторист после расточки блока цилиндров: если износ небольшой — берут STD (стандартный заводской диаметр), если блок шлифовался — ремонтный размер 0.25, 0.50, 0.75 или 1.00 мм. Точная подборка — по фактическому диаметру цилиндра после расточки. Если не уверены — пришлите в WhatsApp измерения от моториста, подберём комплект.`;
 const seoTitle = `${catLabel} ${engine.brand_name} ${engine.engine_code} купить в Алматы — ${partsBrandList[0] || 'TEIKIN'} | MY AVTO`;
 const brandNamesForSeo = (partsBrandList.length ? partsBrandList : allBrandsForCategory.map((b) => b.display)).join(', ');
 const seoDesc = `${catLabel} на двигатель ${engine.brand_name} ${engine.engine_code}${engine.volume_l ? `, ${fmtNum(engine.volume_l)} л` : ''}. Бренды: ${brandNamesForSeo}. Размеры: ${availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75'}. Цена и наличие — в WhatsApp.`;
@@ -240,37 +254,64 @@ const jsonLd = [
   jsonLd={jsonLd}
   stickyWaText={`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`}
 >
-  <!-- Hero header — dark slice -->
-  <div class="page-hero">
-    <div class="page-hero-bg">
-      <div class="ph-glow"></div>
-    </div>
-    <div class="container">
-      <Breadcrumbs items={[
-        { name: 'Главная', href: '/' },
-        { name: engine.brand_name, href: `/${brandSl}/` },
-        { name: engine.engine_code, href: `/${brandSl}/dvigateli/${engSl}/` },
-        { name: catLabel },
-      ]} />
-      <div class="ph-content reveal">
-        <div class="ph-tags">
-          <span class="ph-tag">{engine.brand_name}</span>
-          <span class="ph-tag">{engine.engine_code}</span>
-          {engine.volume_l && <span class="ph-tag">{fmtNum(engine.volume_l)} л</span>}
-          {engine.is_diesel && <span class="ph-tag">Дизель</span>}
+  <!-- Hero v2 — light, 2-column with TEIKIN catalog image -->
+  <div class="container hero-v2">
+    <Breadcrumbs items={[
+      { name: 'Главная', href: '/' },
+      { name: engine.brand_name, href: `/${brandSl}/` },
+      { name: engine.engine_code, href: `/${brandSl}/dvigateli/${engSl}/` },
+      { name: catLabel },
+    ]} />
+    <div class="hv2-grid">
+      <div class="hv2-img-wrap">
+        {heroImg
+          ? <img src={heroImg} alt={`Каталог TEIKIN ${engine.engine_code}`} class="hv2-img" loading="eager" />
+          : <div class="hv2-img-placeholder">⚙️</div>}
+        {stockedSkus.length > 0 && (
+          <span class="hv2-stock-pill">● В наличии — {stockedSkus.length} {stockedSkus.length === 1 ? 'позиция' : 'позиций'}</span>
+        )}
+      </div>
+      <div class="hv2-body">
+        <div class="hv2-tags">
+          <span class="hv2-tag">{engine.brand_name}</span>
+          <span class="hv2-tag mono">{engine.engine_code}</span>
+          {engine.volume_l && <span class="hv2-tag">{fmtNum(engine.volume_l)} л</span>}
+          {engine.is_diesel ? <span class="hv2-tag hv2-tag-diesel">Дизель</span> : <span class="hv2-tag">Бензин</span>}
         </div>
-        <h1>
-          {catLabel} на двигатель<br />
-          <span class="accent-text">{engine.brand_name} {engine.engine_code}</span>
+        <h1 class="hv2-h1">
+          {catLabel} на двигатель <span class="hv2-engine">{engine.brand_name} {engine.engine_code}</span> в Алматы
         </h1>
-        <p class="ph-lead">
-          Купить {catLower} {engine.engine_code} в Алматы. Доступные бренды: {(partsBrandList.length > 0 ? partsBrandList.map(brandDisplay) : allBrandsForCategory.map((b) => b.display)).join(', ')}. Размеры: {availableSizes.length > 0 ? availableSizes.join(', ') : 'STD, 0.25, 0.50, 0.75, 1.00'}. Цена и наличие — в WhatsApp.
+        <p class="hv2-lead">
+          Купить {catLower} {engine.engine_code} в Алматы с подбором по размеру и бренду.
+          Доступные бренды: <strong>{(partsBrandList.length > 0 ? partsBrandList.map(brandDisplay) : allBrandsForCategory.map((b) => b.display)).join(', ')}</strong>.
+          Размеры: <strong>{availableSizes.join(', ') || 'STD, 0.25, 0.50, 0.75, 1.00'}</strong>.
         </p>
-        <div class="ph-meta">
-          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer" class="btn">Узнать цену в WhatsApp</a>
+        <div class="hv2-quick-facts">
+          {attrMap.piston_diameter && (
+            <div class="hv2-fact"><span class="hv2-fact-l">Диаметр поршня</span><span class="hv2-fact-v">Ø{fmtNum(attrMap.piston_diameter)} мм</span></div>
+          )}
+          {engine.cylinder_count && (
+            <div class="hv2-fact"><span class="hv2-fact-l">Цилиндров</span><span class="hv2-fact-v">{engine.cylinder_count}</span></div>
+          )}
+          {engine.valve_count && (
+            <div class="hv2-fact"><span class="hv2-fact-l">Клапанов</span><span class="hv2-fact-v">{engine.valve_count}</span></div>
+          )}
+          <div class="hv2-fact"><span class="hv2-fact-l">Топливо</span><span class="hv2-fact-v">{engine.is_diesel ? 'Дизель' : 'Бензин'}</span></div>
+        </div>
+        <div class="hv2-cta-row">
+          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer" class="btn hv2-cta-primary">Узнать цену в WhatsApp</a>
+          <a href="tel:+77015509377" class="hv2-cta-phone">+7 701 550-93-77</a>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Long-form intro для SEO -->
+  <div class="container">
+    <section class="reveal long-intro">
+      <p>{longIntroPara}</p>
+      <p>{longSecondPara}</p>
+    </section>
   </div>
 
   <div class="container">
@@ -698,6 +739,97 @@ const jsonLd = [
   @media (max-width: 480px) {
     .rings-grid { grid-template-columns: 1fr; }
   }
+
+  /* Hero v2 — light, 2-col */
+  .hero-v2 { padding-top: 16px; padding-bottom: 8px; }
+  .hv2-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 40px;
+    align-items: center;
+    margin-top: 24px;
+  }
+  @media (max-width: 900px) {
+    .hv2-grid { grid-template-columns: 1fr; gap: 20px; }
+  }
+  .hv2-img-wrap {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--c-bg-soft, #f7f7f8);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hv2-img { width: 100%; height: 100%; object-fit: contain; padding: 20px; }
+  .hv2-img-placeholder { font-size: 4rem; color: var(--c-text-faint); }
+  .hv2-stock-pill {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: #16a34a;
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+  .hv2-body { display: flex; flex-direction: column; gap: 18px; }
+  .hv2-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hv2-tag {
+    padding: 4px 10px;
+    background: var(--c-bg-soft, #f7f7f8);
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .hv2-tag.mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+  .hv2-tag-diesel { background: #fef3c7; color: #92400e; }
+  .hv2-h1 {
+    font-size: clamp(1.8rem, 3.8vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .hv2-engine { color: var(--c-red); white-space: nowrap; }
+  .hv2-lead { font-size: 1.02rem; color: var(--c-text-dim); margin: 0; line-height: 1.55; }
+  .hv2-lead strong { color: var(--c-text); font-weight: 600; }
+  .hv2-quick-facts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 14px;
+    background: var(--c-bg-soft, #f7f7f8);
+    border-radius: 12px;
+  }
+  .hv2-fact { display: flex; flex-direction: column; gap: 2px; }
+  .hv2-fact-l { font-size: .72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-text-faint); font-weight: 600; }
+  .hv2-fact-v { font-size: 1.02rem; font-weight: 700; color: var(--c-text); }
+  .hv2-cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .hv2-cta-primary { padding: 14px 24px; font-size: 1rem; }
+  .hv2-cta-phone {
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  .hv2-cta-phone:hover { color: var(--c-red); }
+
+  /* Long-form intro */
+  .long-intro {
+    max-width: 800px;
+    margin: 36px auto 28px;
+    color: var(--c-text-dim);
+    font-size: 1.02rem;
+    line-height: 1.65;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .long-intro p { margin: 0; }
 
   /* Picks (brands + sizes consolidated) */
   .picks {
