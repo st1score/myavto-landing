@@ -1,5 +1,7 @@
 # build output
 dist/
+# generated search index (rebuilt by prebuild)
+public/search-index.json
 # generated types
 .astro/
 

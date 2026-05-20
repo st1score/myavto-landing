@@ -1,0 +1,178 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const title = 'Поиск запчастей по артикулу или коду двигателя — MY AVTO';
+const description = 'Введите артикул TEIKIN, OEM-номер или код двигателя — найдём подходящие запчасти из каталога MY AVTO в Алматы.';
+---
+<Base title={title} description={description} noindex>
+  <div class="container poisk-page">
+    <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: 'Поиск' }]} />
+    <h1 id="searchH1">Поиск</h1>
+    <form class="poisk-form" action="/poisk/" method="get" id="poiskForm">
+      <input
+        type="search"
+        name="q"
+        id="poiskInput"
+        placeholder="Артикул TEIKIN, OEM-номер или код двигателя (например, 1KZ или 13101-67050)"
+        autocomplete="off"
+        autofocus
+      />
+      <button type="submit" class="btn">Искать</button>
+    </form>
+    <p class="muted" id="poiskHint">Начните вводить артикул или код двигателя — покажем подходящие позиции.</p>
+    <div id="poiskResults" class="poisk-results"></div>
+    <div class="poisk-fallback">
+      <p>Не нашли свой артикул? Напишите нам — поможем подобрать.</p>
+      <a href="https://wa.me/77015509377?text=Здравствуйте!%20Не%20нашёл%20нужный%20артикул%20на%20сайте,%20помогите%20с%20подбором." target="_blank" rel="noopener noreferrer" class="btn">Спросить в WhatsApp</a>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .poisk-page { padding: 24px 0 64px; }
+  .poisk-page h1 { margin: 16px 0 24px; font-size: clamp(1.6rem, 4vw, 2.2rem); }
+  .poisk-form {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .poisk-form input {
+    flex: 1;
+    padding: 14px 18px;
+    font-size: 1rem;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    background: #fff;
+    outline: 0;
+  }
+  .poisk-form input:focus { border-color: var(--c-red); box-shadow: 0 0 0 3px rgba(229,9,20,0.08); }
+  .poisk-form .btn { padding: 14px 24px; }
+  #poiskHint { margin-bottom: 24px; }
+  .poisk-results { display: grid; gap: 12px; margin-bottom: 32px; }
+  .poisk-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 20px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--c-text);
+    transition: border-color var(--t-fast), transform var(--t-fast);
+  }
+  .poisk-card:hover { border-color: var(--c-red); transform: translateY(-1px); }
+  .poisk-card .pc-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .poisk-card .pc-tag {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .poisk-card .pc-tag.engine { background: #e0f2fe; color: #0369a1; }
+  .poisk-card .pc-tag.article { background: #fef3c7; color: #92400e; }
+  .poisk-card .pc-sub { color: var(--c-text-faint); font-size: .92rem; }
+  .poisk-empty {
+    padding: 32px;
+    text-align: center;
+    background: var(--c-bg-soft, #f5f5f7);
+    border-radius: 12px;
+    color: var(--c-text-faint);
+  }
+  .poisk-fallback {
+    margin-top: 24px;
+    padding: 24px;
+    background: var(--c-bg-soft, #f5f5f7);
+    border-radius: 12px;
+    text-align: center;
+  }
+  .poisk-fallback p { margin-bottom: 12px; }
+</style>
+
+<script>
+  (() => {
+    const input = document.getElementById('poiskInput') as HTMLInputElement | null;
+    const results = document.getElementById('poiskResults');
+    const hint = document.getElementById('poiskHint');
+    const h1 = document.getElementById('searchH1');
+    if (!input || !results || !hint || !h1) return;
+
+    type Item = { t: 'e' | 'a'; q: string; l: string; s: string; u: string };
+    let index: Item[] | null = null;
+
+    function normalize(s: string): string { return s.toLowerCase().replace(/[\s\-]/g, ''); }
+
+    function search(q: string, idx: Item[]): Item[] {
+      const nq = normalize(q);
+      if (nq.length < 2) return [];
+      const exact: Item[] = [];
+      const starts: Item[] = [];
+      const contains: Item[] = [];
+      for (const it of idx) {
+        if (it.q === nq) exact.push(it);
+        else if (it.q.startsWith(nq)) starts.push(it);
+        else if (it.q.includes(nq)) contains.push(it);
+      }
+      return [...exact, ...starts, ...contains].slice(0, 50);
+    }
+
+    function render(items: Item[], query: string) {
+      if (items.length === 0) {
+        results!.innerHTML = `<div class="poisk-empty">Ничего не найдено по запросу «${query}». Попробуйте другой артикул или напишите в WhatsApp.</div>`;
+        return;
+      }
+      results!.innerHTML = items.map((it) => {
+        const tag = it.t === 'e' ? '<span class="pc-tag engine">Двигатель</span>' : '<span class="pc-tag article">Артикул</span>';
+        return `<a class="poisk-card" href="${it.u}">
+          <span class="pc-label">${tag}<span>${it.l}</span></span>
+          <span class="pc-sub">${it.s}</span>
+        </a>`;
+      }).join('');
+    }
+
+    async function loadAndSearch(q: string) {
+      if (!q || q.length < 2) {
+        results!.innerHTML = '';
+        hint!.style.display = '';
+        return;
+      }
+      hint!.style.display = 'none';
+      h1!.textContent = `Поиск: «${q}»`;
+      if (!index) {
+        results!.innerHTML = '<div class="poisk-empty">Загрузка индекса…</div>';
+        try {
+          const r = await fetch('/search-index.json');
+          const data = await r.json();
+          index = data.items as Item[];
+        } catch {
+          results!.innerHTML = '<div class="poisk-empty">Не удалось загрузить индекс. Попробуйте обновить страницу.</div>';
+          return;
+        }
+      }
+      render(search(q, index), q);
+    }
+
+    // initial query from URL
+    const params = new URLSearchParams(window.location.search);
+    const initialQ = params.get('q')?.trim() ?? '';
+    if (initialQ) {
+      input.value = initialQ;
+      loadAndSearch(initialQ);
+    }
+
+    let timer: number | undefined;
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => loadAndSearch(input.value.trim()), 150);
+    });
+  })();
+</script>
