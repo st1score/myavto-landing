@@ -1,23 +1,42 @@
 ---
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getEngines } from '../../lib/db';
-import { brandSlug } from '../../lib/slugs';
+import { getEngines, getEnginePartsIndex, getPistonProductsInStock } from '../../lib/db';
+import { brandSlug, engineSlug } from '../../lib/slugs';
 import { fmtNum } from '../../lib/format';
 
 export async function getStaticPaths() {
   const engines = await getEngines();
+  const partsIdx = await getEnginePartsIndex();
+  const hasParts = new Set(partsIdx.map((p) => p.engine_code));
+  const stockProducts = await getPistonProductsInStock();
+  const inStock = new Set(stockProducts.map((p) => p.engine_code));
   const brands = [...new Set(engines.map((e) => e.brand_name))];
-  return brands.map((brand) => ({
-    params: { brand: brandSlug[brand] ?? brand.toLowerCase() },
-    props: { brand, engines: engines.filter((e) => e.brand_name === brand) },
-  }));
+  return brands.map((brand) => {
+    const brandEngines = engines.filter((e) => e.brand_name === brand);
+    const brandHasParts = brandEngines.filter((e) => hasParts.has(e.engine_code)).map((e) => e.engine_code);
+    const brandInStock = brandEngines.filter((e) => inStock.has(e.engine_code)).map((e) => e.engine_code);
+    return {
+      params: { brand: brandSlug[brand] ?? brand.toLowerCase() },
+      props: { brand, engines: brandEngines, hasParts: brandHasParts, inStock: brandInStock },
+    };
+  });
 }
 
-const { brand, engines } = Astro.props;
+const { brand, engines, hasParts, inStock } = Astro.props;
+const hasPartsSet = new Set(hasParts);
+const inStockSet = new Set(inStock);
+
+const catalogDir = resolve(process.cwd(), 'public/teikin-catalog');
+function engineImg(code: string): string | null {
+  const slug = engineSlug(code);
+  return existsSync(`${catalogDir}/${slug}.png`) ? `/teikin-catalog/${slug}.png` : null;
+}
 
 function engineUrl(code: string) {
-  return `/${brandSlug[brand]}/dvigateli/${code.toLowerCase().replace(/[\/\s]+/g, '-')}/`;
+  return `/${brandSlug[brand]}/dvigateli/${engineSlug(code)}/`;
 }
 
 const petrol = engines.filter((e) => !e.is_diesel);
@@ -50,18 +69,30 @@ const diesel = engines.filter((e) => e.is_diesel);
           <h2>Бензиновые двигатели</h2>
           <span class="badge">{petrol.length} {petrol.length === 1 ? 'модель' : 'моделей'}</span>
         </div>
-        <div class="grid cols-4">
-          {petrol.map((e, i) => (
-            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
-              <h3>{e.engine_code}</h3>
-              <p class="muted small">
-                {e.volume_l && `${fmtNum(e.volume_l)} л`}
-                {e.valve_count && ` · ${e.valve_count}V`}
-                {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
-              </p>
-              <span class="card-arrow">→</span>
-            </a>
-          ))}
+        <div class="engine-grid">
+          {petrol.map((e) => {
+            const img = engineImg(e.engine_code);
+            const stocked = inStockSet.has(e.engine_code);
+            const catalog = hasPartsSet.has(e.engine_code);
+            return (
+              <a href={engineUrl(e.engine_code)} class="engine-card reveal">
+                <div class="ec-img-wrap">
+                  {img ? <img src={img} alt={`Каталог TEIKIN ${e.engine_code}`} loading="lazy" /> : <div class="ec-img-placeholder">⚙️</div>}
+                  {stocked
+                    ? <span class="ec-stock ec-stock-in">● В наличии</span>
+                    : catalog && <span class="ec-stock ec-stock-order">Под заказ</span>}
+                </div>
+                <div class="ec-body">
+                  <h3>{e.engine_code}</h3>
+                  <p class="muted small">
+                    {e.volume_l && `${fmtNum(e.volume_l)} л`}
+                    {e.valve_count && ` · ${e.valve_count}V`}
+                    {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
     )}
@@ -72,14 +103,26 @@ const diesel = engines.filter((e) => e.is_diesel);
           <h2>Дизельные двигатели</h2>
           <span class="badge">{diesel.length} {diesel.length === 1 ? 'модель' : 'моделей'}</span>
         </div>
-        <div class="grid cols-4">
-          {diesel.map((e, i) => (
-            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
-              <h3>{e.engine_code}</h3>
-              <p class="muted small">{e.volume_l && `${fmtNum(e.volume_l)} л`} · Дизель</p>
-              <span class="card-arrow">→</span>
-            </a>
-          ))}
+        <div class="engine-grid">
+          {diesel.map((e) => {
+            const img = engineImg(e.engine_code);
+            const stocked = inStockSet.has(e.engine_code);
+            const catalog = hasPartsSet.has(e.engine_code);
+            return (
+              <a href={engineUrl(e.engine_code)} class="engine-card reveal">
+                <div class="ec-img-wrap">
+                  {img ? <img src={img} alt={`Каталог TEIKIN ${e.engine_code}`} loading="lazy" /> : <div class="ec-img-placeholder">⚙️</div>}
+                  {stocked
+                    ? <span class="ec-stock ec-stock-in">● В наличии</span>
+                    : catalog && <span class="ec-stock ec-stock-order">Под заказ</span>}
+                </div>
+                <div class="ec-body">
+                  <h3>{e.engine_code}</h3>
+                  <p class="muted small">{e.volume_l && `${fmtNum(e.volume_l)} л`} · Дизель</p>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
     )}
@@ -149,15 +192,73 @@ const diesel = engines.filter((e) => e.is_diesel);
     margin-bottom: 32px;
   }
   .section-head h2 { margin: 0; }
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 56px;
+  }
+  @media (max-width: 640px) {
+    .engine-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  }
   .engine-card {
-    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--c-text);
+    transition: border-color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+  }
+  .engine-card:hover {
+    border-color: var(--c-red);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+  }
+  .ec-img-wrap {
     position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--c-bg-soft, #f5f5f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .ec-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+  }
+  .ec-img-placeholder {
+    font-size: 2.4rem;
+    color: var(--c-text-faint);
+  }
+  .ec-stock {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    color: #fff;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .ec-stock-in { background: rgba(22,163,74,0.95); }
+  .ec-stock-order { background: rgba(100,116,139,0.92); }
+  .ec-body {
+    padding: 14px 16px 16px;
   }
   .engine-card h3 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin-bottom: 6px;
+    margin: 0 0 4px;
   }
+  .ec-body .muted { margin: 0; }
   .info-section { max-width: 800px; }
 </style>
