@@ -6,7 +6,7 @@ import pg from 'pg';
 import dotenv from 'dotenv';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: resolve(__dirname, '../../.env') });
@@ -67,17 +67,27 @@ await pool.end();
 //   u: ссылка
 const items = [];
 
+const catalogDir = resolve(__dirname, '../public/teikin-catalog');
+function engineImage(engineCode) {
+  const slug = engineSlug(engineCode);
+  const path = `${catalogDir}/${slug}.png`;
+  return existsSync(path) ? `/teikin-catalog/${slug}.png` : null;
+}
+
 for (const e of engines) {
   const bSlug = brandSlug[e.brand_name] ?? e.brand_name.toLowerCase();
   const ePath = `/${bSlug}/dvigateli/${engineSlug(e.engine_code)}/`;
   const vol = e.volume_l ? ` ${e.volume_l}L` : '';
   const fuel = e.is_diesel ? ' дизель' : '';
+  const img = engineImage(e.engine_code);
   items.push({
     t: 'e',
     q: `${e.engine_code} ${e.brand_name} ${e.engine_name ?? ''}`.toLowerCase().replace(/[\s\-]/g, ''),
     l: e.engine_code,
     s: `${e.brand_name}${vol}${fuel}`,
     u: ePath,
+    b: e.brand_name,
+    ...(img ? { i: img } : {}),
   });
 }
 
@@ -90,12 +100,17 @@ for (const p of partNumbers) {
   // Показываем только если категория реально есть (иначе ссылка ведёт в никуда)
   if (!enginePartsAvail.has(`${p.engine_code}|${p.category_code}`)) continue;
   const catLabel = p.category_code === 'PISTON' ? 'Поршни' : 'Кольца';
+  const img = engineImage(p.engine_code);
   items.push({
     t: 'a',
     q: p.number_value.toLowerCase().replace(/[\s\-]/g, ''),
     l: p.number_value,
     s: `${p.number_type} · ${catLabel} ${p.brand_name} ${p.engine_code}`,
     u: path,
+    b: p.brand_name,
+    nt: p.number_type,
+    c: p.category_code,
+    ...(img ? { i: img } : {}),
   });
 }
 
