@@ -105,6 +105,17 @@ for (const v of variantList) for (const s of v.sizes) allSizes.add(s);
 const sizesOrder = ['STD', '0.25', '0.50', '0.75', '1.00'];
 const availableSizes = sizesOrder.filter((s) => allSizes.has(s));
 
+// SKUs со стоком — компактная список «В наличии сейчас»
+type StockedSku = { brand: string; size: string; insertType: string; url: string };
+const stockedSkus: StockedSku[] = [];
+for (const v of variantList) {
+  for (const s of v.sizes) {
+    if (!inStock.has(`${v.brand}|${s}|${v.insertType}`)) continue;
+    const url = productUrl(v.brand, s, v.insertType);
+    if (url) stockedSkus.push({ brand: v.brand, size: s, insertType: v.insertType, url });
+  }
+}
+
 // Брендов запчастей под этот двигатель (из БД — то что реально есть)
 const partsBrandList = [...new Set(variantList.map((v) => v.brand))];
 
@@ -356,51 +367,44 @@ const jsonLd = [
     <section class="reveal">
       <h2>Доступные бренды и размеры</h2>
       <p class="muted">
-        Под этот двигатель {catLower} могут быть {allBrandsForCategory.length > 0 ? `следующих брендов` : 'разных брендов'}.
-        Размеры — STD (стандарт) и ремонтные: 0.25, 0.50, 0.75, 1.00 мм.
-        <strong>Цена и точное наличие — по WhatsApp</strong> (отправьте код двигателя и желаемый размер).
+        Под этот двигатель {catLower} есть у нескольких брендов и в разных ремонтных размерах.
+        <strong>Цена и точное наличие — в WhatsApp</strong> (отправьте код двигателя и нужный размер).
       </p>
 
-      {variantList.length > 0 ? (
-        <div class="variants-grid">
-          {variantList.map((v) => (
-            <div class="variant-card">
-              <div class="variant-head">
-                <strong class="variant-brand">{brandDisplay(v.brand)}</strong>
-                <span class="badge">{insertTypeLabel[v.insertType] ?? v.insertType}</span>
-              </div>
-              <div class="variant-sizes">
-                {sizesOrder.filter((s) => v.sizes.has(s)).map((s) => {
-                  const has = inStock.has(`${v.brand}|${s}|${v.insertType}`);
-                  const url = has ? productUrl(v.brand, s, v.insertType) : null;
-                  return url ? (
-                    <a href={url} class="size-chip size-chip-link" title={`${brandDisplay(v.brand)} ${s} — открыть товар`}>
-                      {s} <span class="size-chip-mark">●</span>
-                    </a>
-                  ) : (
-                    <span class="size-chip">{s}</span>
-                  );
-                })}
-              </div>
-              {[...v.sizes].some((s) => inStock.has(`${v.brand}|${s}|${v.insertType}`)) && (
-                <div class="variant-foot">● — есть в наличии, открыть карточку товара</div>
-              )}
-            </div>
-          ))}
+      <div class="picks">
+        <div class="picks-row">
+          <span class="picks-label">Бренды</span>
+          <div class="picks-chips">
+            {(partsBrandList.length ? partsBrandList : allBrandsForCategory.map((b) => b.display)).map((b) => (
+              <span class="picks-chip">{brandDisplay(b)}</span>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div class="variants-grid">
-          {allBrandsForCategory.map((b) => (
-            <div class="variant-card">
-              <div class="variant-head">
-                <strong class="variant-brand">{b.display}</strong>
-                <span class="badge muted small">{b.country}</span>
-              </div>
-              <div class="variant-sizes">
-                {sizesOrder.map((s) => <span class="size-chip">{s}</span>)}
-              </div>
-            </div>
-          ))}
+        <div class="picks-row">
+          <span class="picks-label">Размеры</span>
+          <div class="picks-chips">
+            {sizesOrder.map((s) => {
+              const hasAny = allSizes.has(s);
+              const inStockAny = [...variantList].some((v) => v.sizes.has(s) && inStock.has(`${v.brand}|${s}|${v.insertType}`));
+              return <span class={`picks-chip ${!hasAny ? 'picks-chip-faded' : ''}`}>{s}{inStockAny && <span class="picks-dot">●</span>}</span>;
+            })}
+          </div>
+        </div>
+      </div>
+
+      {stockedSkus.length > 0 && (
+        <div class="stocked">
+          <h3 class="stocked-title">В наличии сейчас <span class="muted small">— открыть карточку товара</span></h3>
+          <div class="stocked-grid">
+            {stockedSkus.map((it) => (
+              <a href={it.url} class="stocked-card">
+                <span class="sc-brand">{brandDisplay(it.brand)}</span>
+                <span class="sc-size">{it.size}</span>
+                {it.insertType !== 'plain' && <span class="sc-insert">{insertTypeLabel[it.insertType] ?? it.insertType}</span>}
+                <span class="sc-dot">●</span>
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
@@ -695,7 +699,86 @@ const jsonLd = [
     .rings-grid { grid-template-columns: 1fr; }
   }
 
-  /* Variant cards */
+  /* Picks (brands + sizes consolidated) */
+  .picks {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 22px;
+    background: var(--c-bg-soft, #f7f7f8);
+    border-radius: 14px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+  }
+  .picks-row { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .picks-label {
+    flex-shrink: 0;
+    min-width: 80px;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-text-faint);
+    font-weight: 600;
+    padding-top: 6px;
+  }
+  .picks-chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+  .picks-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--c-text);
+  }
+  .picks-chip-faded { opacity: .35; }
+  .picks-dot { color: #16a34a; font-size: .7rem; }
+
+  /* In-stock SKU shortcuts */
+  .stocked { margin-bottom: 24px; }
+  .stocked-title {
+    font-size: 1rem;
+    margin: 0 0 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .stocked-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .stocked-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--c-text);
+    font-size: .9rem;
+    transition: border-color var(--t-fast), transform var(--t-fast);
+  }
+  .stocked-card:hover { border-color: var(--c-red); transform: translateY(-1px); }
+  .sc-brand { font-weight: 700; }
+  .sc-size { font-family: 'JetBrains Mono', monospace; color: var(--c-text-dim); }
+  .sc-insert {
+    padding: 1px 6px;
+    background: var(--c-bg-soft);
+    border-radius: 999px;
+    font-size: .7rem;
+    color: var(--c-text-faint);
+  }
+  .sc-dot { margin-left: auto; color: #16a34a; font-size: .7rem; }
+
+  /* Variant cards (legacy, kept for fallback) */
   .variants-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
