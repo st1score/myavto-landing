@@ -164,6 +164,22 @@ const faqItems = [
     q: `Есть ли ${catLower} в наличии в Алматы?`,
     a: `Самые ходовые позиции в наличии в магазине: Алматы, ТЦ CarCity, 3 ярус, бутик 135В. Редкие размеры — под заказ из Японии, срок 7-14 дней. Точное наличие проверим по коду двигателя в WhatsApp.`,
   },
+  {
+    q: `Чем отличаются TEIKIN, IZUMI и оригинал?`,
+    a: `TEIKIN и IZUMI — японские aftermarket-производители уровня OEM: на их заводах разливают поршни для большинства японских автоконцернов. Качество и ресурс не уступают оригиналу. Оригинальные ${engine.brand_name} — те же поршни в фирменной упаковке, цена выше в 2–3 раза. Для капремонта почти всегда выбирают TEIKIN.`,
+  },
+  {
+    q: `Есть ли гарантия на ${catLower}?`,
+    a: `Да, на все запчасти TEIKIN, IZUMI, NPR, RIK, Taiho даём гарантию от производителя. Если деталь окажется бракованной или не подойдёт по размеру — обменяем или вернём деньги. Подробнее на странице «Гарантия и возврат».`,
+  },
+  {
+    q: `Доставка по Казахстану из Алматы — как и сколько?`,
+    a: `По Алматы — курьер в день оплаты (300–1500 ₸). По Казахстану — автобус, авиа, Kazpost, InDriver. Срок 1–3 дня, стоимость зависит от города. Оплачивается отдельно по тарифу транспортной компании. Уточним при заказе.`,
+  },
+  {
+    q: `Как заказать ${catLower} на ${engine.engine_code}?`,
+    a: `Напишите в WhatsApp +7 701 550 9377 код двигателя (${engine.engine_code}) и нужный размер. Менеджер пришлёт варианты с ценой и наличием в течение 15 минут в рабочее время. Оплата — перевод, наличные при самовывозе или безнал для юр.лиц с НДС.`,
+  },
 ];
 
 const jsonLd = [
@@ -467,6 +483,32 @@ const jsonLd = [
         </div>
       </section>
     )}
+
+    <section class="reveal trust-section">
+      <h2>Почему берут у нас</h2>
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-icon">📍</div>
+          <h3>Магазин в Алматы</h3>
+          <p>ТЦ CarCity, 3 ярус, бутик 135В. Можно посмотреть и забрать в день оплаты.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🇯🇵</div>
+          <h3>Прямые поставки из Японии</h3>
+          <p>TEIKIN, IZUMI, NPR, RIK, Taiho. Без перекупов и подделок — гарантия от производителя.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">⚡</div>
+          <h3>Ответ за 15 минут</h3>
+          <p>Менеджер в WhatsApp в рабочее время Пн–Сб 9–17, Вс 11–16. Без долгого ожидания.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-icon">🚚</div>
+          <h3>Доставка по РК</h3>
+          <p>По Алматы курьер в день оплаты. По Казахстану — автобус, авиа, Kazpost за 1–3 дня.</p>
+        </div>
+      </div>
+    </section>
 
     <section class="reveal faq-section">
       <h2>Частые вопросы про {catLower} {engine.engine_code}</h2>
@@ -823,6 +865,24 @@ const jsonLd = [
     border-color: var(--c-red);
     transform: translateY(-2px);
   }
+
+  /* Trust */
+  .trust-section { margin-top: 48px; }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .trust-item {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+  }
+  .trust-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .trust-item h3 { font-size: 1rem; margin: 0 0 6px; font-weight: 700; }
+  .trust-item p { margin: 0; color: var(--c-text-faint); font-size: .9rem; line-height: 1.45; }
 
   /* FAQ */
   .faq-section { margin-top: 48px; }
