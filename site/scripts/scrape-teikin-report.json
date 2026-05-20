@@ -1,0 +1,2050 @@
+{
+  "matched": [
+    {
+      "engine_code": "B3",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "B3",
+      "articles": [
+        "42127"
+      ],
+      "pdf": "/catalog/MAZ/42127.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/b3.png"
+    },
+    {
+      "engine_code": "B6 16V",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "B6",
+      "articles": [
+        "42171"
+      ],
+      "pdf": "/catalog/MAZ/42171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/b6-16v.png"
+    },
+    {
+      "engine_code": "B6 8V",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "B6",
+      "articles": [
+        "42171"
+      ],
+      "pdf": "/catalog/MAZ/42171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/b6-8v.png"
+    },
+    {
+      "engine_code": "BP",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "BP-II",
+      "articles": [
+        "42200"
+      ],
+      "pdf": "/catalog/MAZ/42200.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/bp.png"
+    },
+    {
+      "engine_code": "BP Dohs",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "BP-II",
+      "articles": [
+        "42200"
+      ],
+      "pdf": "/catalog/MAZ/42200.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/bp-dohs.png"
+    },
+    {
+      "engine_code": "E3",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "E3",
+      "articles": [
+        "42131"
+      ],
+      "pdf": "/catalog/MAZ/42131.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/e3.png"
+    },
+    {
+      "engine_code": "F2 12V",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "F2",
+      "articles": [
+        "42164"
+      ],
+      "pdf": "/catalog/MAZ/42164.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/f2-12v.png"
+    },
+    {
+      "engine_code": "F6",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "F6",
+      "articles": [
+        "42159"
+      ],
+      "pdf": "/catalog/MAZ/42159.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/f6.png"
+    },
+    {
+      "engine_code": "FE 8V / F8",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "FE",
+      "articles": [
+        "42157"
+      ],
+      "pdf": "/catalog/MAZ/42157.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/fe-8v-f8.png"
+    },
+    {
+      "engine_code": "FE DOHC",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "FE",
+      "articles": [
+        "42157"
+      ],
+      "pdf": "/catalog/MAZ/42157.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/fe-dohc.png"
+    },
+    {
+      "engine_code": "FS/FP",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "FS",
+      "articles": [
+        "42166"
+      ],
+      "pdf": "/catalog/MAZ/42166.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/fs-fp.png"
+    },
+    {
+      "engine_code": "GY",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "GY",
+      "articles": [
+        "42199"
+      ],
+      "pdf": "/catalog/MAZ/42199.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/gy.png"
+    },
+    {
+      "engine_code": "KF",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "KF",
+      "articles": [
+        "42665"
+      ],
+      "pdf": "/catalog/MAZ/42665.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/kf.png"
+    },
+    {
+      "engine_code": "KL",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "KL",
+      "articles": [
+        "42664"
+      ],
+      "pdf": "/catalog/MAZ/42664.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/kl.png"
+    },
+    {
+      "engine_code": "L3",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "L3",
+      "articles": [
+        "42205"
+      ],
+      "pdf": "/catalog/MAZ/42205.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/l3.png"
+    },
+    {
+      "engine_code": "L3-T I",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "L3",
+      "articles": [
+        "42205"
+      ],
+      "pdf": "/catalog/MAZ/42205.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/l3-t-i.png"
+    },
+    {
+      "engine_code": "LF",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "LF",
+      "articles": [
+        "42210"
+      ],
+      "pdf": "/catalog/MAZ/42210.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/lf.png"
+    },
+    {
+      "engine_code": "R2 II",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "R2",
+      "articles": [
+        "42167",
+        "42167A"
+      ],
+      "pdf": "/catalog/MAZ/42167.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/r2-ii.png"
+    },
+    {
+      "engine_code": "RF/R2",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "RF",
+      "articles": [
+        "42610AG"
+      ],
+      "pdf": "/catalog/MAZ/42610AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/rf-r2.png"
+    },
+    {
+      "engine_code": "RF7 16V",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "RF7",
+      "articles": [
+        "42675AG"
+      ],
+      "pdf": "/catalog/MAZ/42675AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/rf7-16v.png"
+    },
+    {
+      "engine_code": "UC",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "UC",
+      "articles": [
+        "42600"
+      ],
+      "pdf": "/catalog/MAZ/42600.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/uc.png"
+    },
+    {
+      "engine_code": "WL",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "WL-T",
+      "articles": [
+        "42185",
+        "42185A",
+        "42185AG"
+      ],
+      "pdf": "/catalog/MAZ/42185.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/wl.png"
+    },
+    {
+      "engine_code": "WL Turbo",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "WL-T",
+      "articles": [
+        "42185",
+        "42185A",
+        "42185AG"
+      ],
+      "pdf": "/catalog/MAZ/42185.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/wl-turbo.png"
+    },
+    {
+      "engine_code": "Z5 Dohs",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "Z5",
+      "articles": [
+        "42173"
+      ],
+      "pdf": "/catalog/MAZ/42173.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/z5-dohs.png"
+    },
+    {
+      "engine_code": "ZL",
+      "brand_name": "Mazda",
+      "oems": [],
+      "teikin_model": "ZL-VE",
+      "articles": [
+        "42672"
+      ],
+      "pdf": "/catalog/MAZ/42672.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/zl.png"
+    },
+    {
+      "engine_code": "4A31",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4A31",
+      "articles": [
+        "43680"
+      ],
+      "pdf": "/catalog/MIT/43680.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4a31.png"
+    },
+    {
+      "engine_code": "4A91",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4A91 MIVEC",
+      "articles": [
+        "43303"
+      ],
+      "pdf": "/catalog/MIT/43303.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4a91.png"
+    },
+    {
+      "engine_code": "4B11/10",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4B11",
+      "articles": [
+        "43692"
+      ],
+      "pdf": "/catalog/MIT/43692.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4b11-10.png"
+    },
+    {
+      "engine_code": "4B12",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4B12",
+      "articles": [
+        "43694"
+      ],
+      "pdf": "/catalog/MIT/43694.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4b12.png"
+    },
+    {
+      "engine_code": "4D55 New",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D55 / 4D56",
+      "articles": [
+        "43171",
+        "43171A"
+      ],
+      "pdf": "/catalog/MIT/43171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d55-new.png"
+    },
+    {
+      "engine_code": "4D55/56",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D55 / 4D56",
+      "articles": [
+        "43171",
+        "43171A"
+      ],
+      "pdf": "/catalog/MIT/43171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d55-56.png"
+    },
+    {
+      "engine_code": "4D55T",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D55T/4D56T-II",
+      "articles": [
+        "43672AG"
+      ],
+      "pdf": "/catalog/MIT/43672AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d55t.png"
+    },
+    {
+      "engine_code": "4D56 L200",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D55 / 4D56",
+      "articles": [
+        "43171",
+        "43171A"
+      ],
+      "pdf": "/catalog/MIT/43171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d56-l200.png"
+    },
+    {
+      "engine_code": "4D56TNew",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D55 / 4D56",
+      "articles": [
+        "43171",
+        "43171A"
+      ],
+      "pdf": "/catalog/MIT/43171.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d56tnew.png"
+    },
+    {
+      "engine_code": "4D68",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D68",
+      "articles": [
+        "43613",
+        "43613A"
+      ],
+      "pdf": "/catalog/MIT/43613.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d68.png"
+    },
+    {
+      "engine_code": "4D68T",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4D68T",
+      "articles": [
+        "43612",
+        "43612AG"
+      ],
+      "pdf": "/catalog/MIT/43612.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4d68t.png"
+    },
+    {
+      "engine_code": "4G13",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G13-II",
+      "articles": [
+        "43257"
+      ],
+      "pdf": "/catalog/MIT/43257.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g13.png"
+    },
+    {
+      "engine_code": "4G15 12V II",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G15",
+      "articles": [
+        "43217"
+      ],
+      "pdf": "/catalog/MIT/43217.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g15-12v-ii.png"
+    },
+    {
+      "engine_code": "4G15 8V",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G15",
+      "articles": [
+        "43217"
+      ],
+      "pdf": "/catalog/MIT/43217.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g15-8v.png"
+    },
+    {
+      "engine_code": "4G15New",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G15",
+      "articles": [
+        "43217"
+      ],
+      "pdf": "/catalog/MIT/43217.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g15new.png"
+    },
+    {
+      "engine_code": "4G18 II",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G18",
+      "articles": [
+        "43281"
+      ],
+      "pdf": "/catalog/MIT/43281.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g18-ii.png"
+    },
+    {
+      "engine_code": "4G37",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G37",
+      "articles": [
+        "43219"
+      ],
+      "pdf": "/catalog/MIT/43219.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g37.png"
+    },
+    {
+      "engine_code": "4G54",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G54",
+      "articles": [
+        "43153"
+      ],
+      "pdf": "/catalog/MIT/43153.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g54.png"
+    },
+    {
+      "engine_code": "4G63  II",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G63 OLD",
+      "articles": [
+        "43155"
+      ],
+      "pdf": "/catalog/MIT/43155.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g63-ii.png"
+    },
+    {
+      "engine_code": "4G63 III",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G63 OLD",
+      "articles": [
+        "43155"
+      ],
+      "pdf": "/catalog/MIT/43155.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g63-iii.png"
+    },
+    {
+      "engine_code": "4G63BK",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G63 OLD",
+      "articles": [
+        "43155"
+      ],
+      "pdf": "/catalog/MIT/43155.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g63bk.png"
+    },
+    {
+      "engine_code": "4G63K",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G63K",
+      "articles": [
+        "43261"
+      ],
+      "pdf": "/catalog/MIT/43261.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g63k.png"
+    },
+    {
+      "engine_code": "4G63K II",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G63K",
+      "articles": [
+        "43261"
+      ],
+      "pdf": "/catalog/MIT/43261.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g63k-ii.png"
+    },
+    {
+      "engine_code": "4G69 I",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G69",
+      "articles": [
+        "43287"
+      ],
+      "pdf": "/catalog/MIT/43287.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g69-i.png"
+    },
+    {
+      "engine_code": "4G92",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G92S-H",
+      "articles": [
+        "43657"
+      ],
+      "pdf": "/catalog/MIT/43657.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g92.png"
+    },
+    {
+      "engine_code": "4G93",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4G93",
+      "articles": [
+        "43658"
+      ],
+      "pdf": "/catalog/MIT/43658.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4g93.png"
+    },
+    {
+      "engine_code": "4M40",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4M40-T",
+      "articles": [
+        "43232",
+        "43232A",
+        "43232AG"
+      ],
+      "pdf": "/catalog/MIT/43232.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4m40.png"
+    },
+    {
+      "engine_code": "4M40 #2",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4M40-T",
+      "articles": [
+        "43232",
+        "43232A",
+        "43232AG"
+      ],
+      "pdf": "/catalog/MIT/43232.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4m40-2.png"
+    },
+    {
+      "engine_code": "4M40T",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4M40-T",
+      "articles": [
+        "43232",
+        "43232A",
+        "43232AG"
+      ],
+      "pdf": "/catalog/MIT/43232.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4m40t.png"
+    },
+    {
+      "engine_code": "4M41",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "4M41-T",
+      "articles": [
+        "43663AG"
+      ],
+      "pdf": "/catalog/MIT/43663AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4m41.png"
+    },
+    {
+      "engine_code": "6A12",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6A12",
+      "articles": [
+        "43677"
+      ],
+      "pdf": "/catalog/MIT/43677.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6a12.png"
+    },
+    {
+      "engine_code": "6B31",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6B31",
+      "articles": [
+        "43297"
+      ],
+      "pdf": "/catalog/MIT/43297.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6b31.png"
+    },
+    {
+      "engine_code": "6G72 12V",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6G72",
+      "articles": [
+        "43218"
+      ],
+      "pdf": "/catalog/MIT/43218.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6g72-12v.png"
+    },
+    {
+      "engine_code": "6G74",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6G74",
+      "articles": [
+        "43247"
+      ],
+      "pdf": "/catalog/MIT/43247.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6g74.png"
+    },
+    {
+      "engine_code": "6G74 III",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6G74-III",
+      "articles": [
+        "43284"
+      ],
+      "pdf": "/catalog/MIT/43284.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6g74-iii.png"
+    },
+    {
+      "engine_code": "6G75",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "teikin_model": "6G75",
+      "articles": [
+        "43290"
+      ],
+      "pdf": "/catalog/MIT/43290.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/6g75.png"
+    },
+    {
+      "engine_code": "CA18",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "CA18",
+      "articles": [
+        "44190"
+      ],
+      "pdf": "/catalog/NIS/44190.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ca18.png"
+    },
+    {
+      "engine_code": "CA20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "CA20",
+      "articles": [
+        "44193"
+      ],
+      "pdf": "/catalog/NIS/44193.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ca20.png"
+    },
+    {
+      "engine_code": "CD20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "CD20",
+      "articles": [
+        "44602",
+        "44602A"
+      ],
+      "pdf": "/catalog/NIS/44602.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/cd20.png"
+    },
+    {
+      "engine_code": "CD20T NEW",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "CD20-T",
+      "articles": [
+        "44681AG"
+      ],
+      "pdf": "/catalog/NIS/44681AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/cd20t-new.png"
+    },
+    {
+      "engine_code": "E13/15",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "E13",
+      "articles": [
+        "44611"
+      ],
+      "pdf": "/catalog/NIS/44611.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/e13-15.png"
+    },
+    {
+      "engine_code": "GA14DS",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "GA14DS",
+      "articles": [
+        "44614"
+      ],
+      "pdf": "/catalog/NIS/44614.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ga14ds.png"
+    },
+    {
+      "engine_code": "GA15DS",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "GA15DS-II",
+      "articles": [
+        "44337"
+      ],
+      "pdf": "/catalog/NIS/44337.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ga15ds.png"
+    },
+    {
+      "engine_code": "GA16DE",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "GA16DE",
+      "articles": [
+        "44260"
+      ],
+      "pdf": "/catalog/NIS/44260.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ga16de.png"
+    },
+    {
+      "engine_code": "KA24DE",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "KA24DE",
+      "articles": [
+        "44321"
+      ],
+      "pdf": "/catalog/NIS/44321.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ka24de.png"
+    },
+    {
+      "engine_code": "KA24E II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "KA24E",
+      "articles": [
+        "44271"
+      ],
+      "pdf": "/catalog/NIS/44271.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ka24e-ii.png"
+    },
+    {
+      "engine_code": "LD20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "LD20",
+      "articles": [
+        "44176",
+        "44176A"
+      ],
+      "pdf": "/catalog/NIS/44176.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/ld20.png"
+    },
+    {
+      "engine_code": "MR20DE",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "MR20DE",
+      "articles": [
+        "44350"
+      ],
+      "pdf": "/catalog/NIS/44350.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/mr20de.png"
+    },
+    {
+      "engine_code": "QD32",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "QD32",
+      "articles": [
+        "44297",
+        "44297A",
+        "44297A"
+      ],
+      "pdf": "/catalog/NIS/44297.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/qd32.png"
+    },
+    {
+      "engine_code": "QG18DE-II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "QG18DE-II",
+      "articles": [
+        "44333"
+      ],
+      "pdf": "/catalog/NIS/44333.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/qg18de-ii.png"
+    },
+    {
+      "engine_code": "QR20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "QR20DE",
+      "articles": [
+        "44342"
+      ],
+      "pdf": "/catalog/NIS/44342.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/qr20.png"
+    },
+    {
+      "engine_code": "QR25 I",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "QR25DE",
+      "articles": [
+        "44328"
+      ],
+      "pdf": "/catalog/NIS/44328.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/qr25-i.png"
+    },
+    {
+      "engine_code": "QR25 II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "QR25DE",
+      "articles": [
+        "44328"
+      ],
+      "pdf": "/catalog/NIS/44328.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/qr25-ii.png"
+    },
+    {
+      "engine_code": "RD28",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "RD28",
+      "articles": [
+        "44606"
+      ],
+      "pdf": "/catalog/NIS/44606.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/rd28.png"
+    },
+    {
+      "engine_code": "RD28T",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "RD28-T",
+      "articles": [
+        "44623AG"
+      ],
+      "pdf": "/catalog/NIS/44623AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/rd28t.png"
+    },
+    {
+      "engine_code": "RD28T New",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "RD28-T",
+      "articles": [
+        "44623AG"
+      ],
+      "pdf": "/catalog/NIS/44623AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/rd28t-new.png"
+    },
+    {
+      "engine_code": "SR20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "SR20DE",
+      "articles": [
+        "44601"
+      ],
+      "pdf": "/catalog/NIS/44601.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/sr20.png"
+    },
+    {
+      "engine_code": "TD27",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "TD27",
+      "articles": [
+        "44267",
+        "44267A"
+      ],
+      "pdf": "/catalog/NIS/44267.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/td27.png"
+    },
+    {
+      "engine_code": "TD27T",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "TD27-T - II",
+      "articles": [
+        "44296",
+        "44296A",
+        "44296AG",
+        "44296AG"
+      ],
+      "pdf": "/catalog/NIS/44296.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/td27t.png"
+    },
+    {
+      "engine_code": "TD27T III",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "TD27-T - II",
+      "articles": [
+        "44296",
+        "44296A",
+        "44296AG",
+        "44296AG"
+      ],
+      "pdf": "/catalog/NIS/44296.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/td27t-iii.png"
+    },
+    {
+      "engine_code": "TD27T IV",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "TD27-T - II",
+      "articles": [
+        "44296",
+        "44296A",
+        "44296AG",
+        "44296AG"
+      ],
+      "pdf": "/catalog/NIS/44296.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/td27t-iv.png"
+    },
+    {
+      "engine_code": "VK56 DE",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VK56VD",
+      "articles": [
+        "44366"
+      ],
+      "pdf": "/catalog/NIS/44366.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vk56-de.png"
+    },
+    {
+      "engine_code": "VQ20",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ20",
+      "articles": [
+        "44689"
+      ],
+      "pdf": "/catalog/NIS/44689.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq20.png"
+    },
+    {
+      "engine_code": "VQ30 I",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ30DE",
+      "articles": [
+        "44273"
+      ],
+      "pdf": "/catalog/NIS/44273.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq30-i.png"
+    },
+    {
+      "engine_code": "VQ30 II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ30DE",
+      "articles": [
+        "44273"
+      ],
+      "pdf": "/catalog/NIS/44273.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq30-ii.png"
+    },
+    {
+      "engine_code": "VQ35",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ35DE-II",
+      "articles": [
+        "44331"
+      ],
+      "pdf": "/catalog/NIS/44331.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq35.png"
+    },
+    {
+      "engine_code": "VQ35 II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ35DE-II",
+      "articles": [
+        "44331"
+      ],
+      "pdf": "/catalog/NIS/44331.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq35-ii.png"
+    },
+    {
+      "engine_code": "VQ40",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "VQ40DE",
+      "articles": [
+        "44341"
+      ],
+      "pdf": "/catalog/NIS/44341.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/vq40.png"
+    },
+    {
+      "engine_code": "ZD30 = TD27 III 34137",
+      "brand_name": "Nissan",
+      "oems": [],
+      "teikin_model": "ZD30",
+      "articles": [
+        "44672AG"
+      ],
+      "pdf": "/catalog/NIS/44672AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/zd30-td27-iii-34137.png"
+    },
+    {
+      "engine_code": "1A/3A",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1A",
+      "articles": [
+        "46658"
+      ],
+      "pdf": "/catalog/TOY/46658.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1a-3a.png"
+    },
+    {
+      "engine_code": "1AD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1AD-FTV",
+      "articles": [
+        "46678AG"
+      ],
+      "pdf": "/catalog/TOY/46678AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1ad.png"
+    },
+    {
+      "engine_code": "1AR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1AR-FE",
+      "articles": [
+        "46697"
+      ],
+      "pdf": "/catalog/TOY/46697.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1ar.png"
+    },
+    {
+      "engine_code": "1AZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1AZ-FSE",
+      "articles": [
+        "46365"
+      ],
+      "pdf": "/catalog/TOY/46365.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1az.png"
+    },
+    {
+      "engine_code": "1AZ FSE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1AZ-FSE",
+      "articles": [
+        "46365"
+      ],
+      "pdf": "/catalog/TOY/46365.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1az-fse.png"
+    },
+    {
+      "engine_code": "1AZ II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1AZ-FSE",
+      "articles": [
+        "46365"
+      ],
+      "pdf": "/catalog/TOY/46365.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1az-ii.png"
+    },
+    {
+      "engine_code": "1C",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1C",
+      "articles": [
+        "46112"
+      ],
+      "pdf": "/catalog/TOY/46112.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1c.png"
+    },
+    {
+      "engine_code": "1CD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1CD-FTV",
+      "articles": [
+        "46680AG"
+      ],
+      "pdf": "/catalog/TOY/46680AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1cd.png"
+    },
+    {
+      "engine_code": "1FZ 100",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1FZ-FE",
+      "articles": [
+        "46270"
+      ],
+      "pdf": "/catalog/TOY/46270.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1fz-100.png"
+    },
+    {
+      "engine_code": "1FZ 80",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1FZ-FE",
+      "articles": [
+        "46270"
+      ],
+      "pdf": "/catalog/TOY/46270.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1fz-80.png"
+    },
+    {
+      "engine_code": "1FZ 80 (2)",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1FZ-FE",
+      "articles": [
+        "46270"
+      ],
+      "pdf": "/catalog/TOY/46270.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1fz-80-2.png"
+    },
+    {
+      "engine_code": "1GFE II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1G-FE",
+      "articles": [
+        "46377"
+      ],
+      "pdf": "/catalog/TOY/46377.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1gfe-ii.png"
+    },
+    {
+      "engine_code": "1GR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1GR-FE",
+      "articles": [
+        "46368"
+      ],
+      "pdf": "/catalog/TOY/46368.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1gr.png"
+    },
+    {
+      "engine_code": "1GR 150/200",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1GR-FE",
+      "articles": [
+        "46368"
+      ],
+      "pdf": "/catalog/TOY/46368.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1gr-150-200.png"
+    },
+    {
+      "engine_code": "1HD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1HD-T LATE",
+      "articles": [
+        "46268",
+        "46268A"
+      ],
+      "pdf": "/catalog/TOY/46268.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1hd.png"
+    },
+    {
+      "engine_code": "1HDFTE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1HD-FTE",
+      "articles": [
+        "46674AG"
+      ],
+      "pdf": "/catalog/TOY/46674AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1hdfte.png"
+    },
+    {
+      "engine_code": "1HZ 80",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1HZ, 1PZ",
+      "articles": [
+        "46257",
+        "46257A"
+      ],
+      "pdf": "/catalog/TOY/46257.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1hz-80.png"
+    },
+    {
+      "engine_code": "1KD I",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1KD-FTV",
+      "articles": [
+        "46675AG"
+      ],
+      "pdf": "/catalog/TOY/46675AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1kd-i.png"
+    },
+    {
+      "engine_code": "1KD II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1KD-FTV",
+      "articles": [
+        "46675AG"
+      ],
+      "pdf": "/catalog/TOY/46675AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1kd-ii.png"
+    },
+    {
+      "engine_code": "1KR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1KR-FE",
+      "articles": [
+        "46677"
+      ],
+      "pdf": "/catalog/TOY/46677.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1kr.png"
+    },
+    {
+      "engine_code": "1KZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1KZ-TE, 1KZ",
+      "articles": [
+        "46283",
+        "46283A",
+        "46283AG",
+        "46283G"
+      ],
+      "pdf": "/catalog/TOY/46283.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1kz.png"
+    },
+    {
+      "engine_code": "1KZ NEW",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1KZ-TE, 1KZ",
+      "articles": [
+        "46283",
+        "46283A",
+        "46283AG",
+        "46283G"
+      ],
+      "pdf": "/catalog/TOY/46283.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1kz-new.png"
+    },
+    {
+      "engine_code": "1MZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1MZFE",
+      "articles": [
+        "46288"
+      ],
+      "pdf": "/catalog/TOY/46288.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1mz.png"
+    },
+    {
+      "engine_code": "1NRFE I",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1NR-FE",
+      "articles": [
+        "46702"
+      ],
+      "pdf": "/catalog/TOY/46702.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1nrfe-i.png"
+    },
+    {
+      "engine_code": "1NZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1NZ-FXE",
+      "articles": [
+        "46370"
+      ],
+      "pdf": "/catalog/TOY/46370.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1nz.png"
+    },
+    {
+      "engine_code": "1S",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1S",
+      "articles": [
+        "46116"
+      ],
+      "pdf": "/catalog/TOY/46116.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1s.png"
+    },
+    {
+      "engine_code": "1SZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1SZFE",
+      "articles": [
+        "46341"
+      ],
+      "pdf": "/catalog/TOY/46341.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1sz.png"
+    },
+    {
+      "engine_code": "1UR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1UR-FE",
+      "articles": [
+        "46399"
+      ],
+      "pdf": "/catalog/TOY/46399.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1ur.png"
+    },
+    {
+      "engine_code": "1VD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1VD-FTV",
+      "articles": [
+        "46691AG"
+      ],
+      "pdf": "/catalog/TOY/46691AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1vd.png"
+    },
+    {
+      "engine_code": "1ZR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1ZR-FE",
+      "articles": [
+        "46382"
+      ],
+      "pdf": "/catalog/TOY/46382.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1zr.png"
+    },
+    {
+      "engine_code": "1ZZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "1ZZFE",
+      "articles": [
+        "46334"
+      ],
+      "pdf": "/catalog/TOY/46334.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/1zz.png"
+    },
+    {
+      "engine_code": "2A",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2A",
+      "articles": [
+        "46604"
+      ],
+      "pdf": "/catalog/TOY/46604.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2a.png"
+    },
+    {
+      "engine_code": "2AD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2AD-FHV",
+      "articles": [
+        "46679AG"
+      ],
+      "pdf": "/catalog/TOY/46679AG.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2ad.png"
+    },
+    {
+      "engine_code": "2AR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2AR-FXE",
+      "articles": [
+        "46400"
+      ],
+      "pdf": "/catalog/TOY/46400.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2ar.png"
+    },
+    {
+      "engine_code": "2AZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2AZFE",
+      "articles": [
+        "46343"
+      ],
+      "pdf": "/catalog/TOY/46343.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2az.png"
+    },
+    {
+      "engine_code": "2AZ 40",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2AZFE",
+      "articles": [
+        "46343"
+      ],
+      "pdf": "/catalog/TOY/46343.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2az-40.png"
+    },
+    {
+      "engine_code": "2C IV",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2C",
+      "articles": [
+        "46260",
+        "46260A"
+      ],
+      "pdf": "/catalog/TOY/46260.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2c-iv.png"
+    },
+    {
+      "engine_code": "2C/3C",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2C",
+      "articles": [
+        "46260",
+        "46260A"
+      ],
+      "pdf": "/catalog/TOY/46260.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2c-3c.png"
+    },
+    {
+      "engine_code": "2E",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2E",
+      "articles": [
+        "46141"
+      ],
+      "pdf": "/catalog/TOY/46141.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2e.png"
+    },
+    {
+      "engine_code": "2GR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2GR-FE",
+      "articles": [
+        "46363",
+        "46363-4"
+      ],
+      "pdf": "/catalog/TOY/46363.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2gr.png"
+    },
+    {
+      "engine_code": "2GRFSE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2GR-FSE",
+      "articles": [
+        "46396"
+      ],
+      "pdf": "/catalog/TOY/46396.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2grfse.png"
+    },
+    {
+      "engine_code": "2JZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2JZGE",
+      "articles": [
+        "46330"
+      ],
+      "pdf": "/catalog/TOY/46330.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2jz.png"
+    },
+    {
+      "engine_code": "2JZ II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2JZGE",
+      "articles": [
+        "46330"
+      ],
+      "pdf": "/catalog/TOY/46330.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2jz-ii.png"
+    },
+    {
+      "engine_code": "2KD",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2KD - FTV",
+      "articles": [
+        "46348A",
+        "46348AG"
+      ],
+      "pdf": "/catalog/TOY/46348A.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2kd.png"
+    },
+    {
+      "engine_code": "2L",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2L",
+      "articles": [
+        "46240",
+        "46240A"
+      ],
+      "pdf": "/catalog/TOY/46240.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2l.png"
+    },
+    {
+      "engine_code": "2L T",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2L",
+      "articles": [
+        "46240",
+        "46240A"
+      ],
+      "pdf": "/catalog/TOY/46240.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2l-t.png"
+    },
+    {
+      "engine_code": "2L T (2)",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2L",
+      "articles": [
+        "46240",
+        "46240A"
+      ],
+      "pdf": "/catalog/TOY/46240.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2l-t-2.png"
+    },
+    {
+      "engine_code": "2NZ II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2NZ-FE",
+      "articles": [
+        "46354"
+      ],
+      "pdf": "/catalog/TOY/46354.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2nz-ii.png"
+    },
+    {
+      "engine_code": "2TR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2TR-FE",
+      "articles": [
+        "46360"
+      ],
+      "pdf": "/catalog/TOY/46360.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2tr.png"
+    },
+    {
+      "engine_code": "2TZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2TZ-FE",
+      "articles": [
+        "46313"
+      ],
+      "pdf": "/catalog/TOY/46313.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2tz.png"
+    },
+    {
+      "engine_code": "2UZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2UZFE",
+      "articles": [
+        "46337"
+      ],
+      "pdf": "/catalog/TOY/46337.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2uz.png"
+    },
+    {
+      "engine_code": "2UZ II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "2UZFE",
+      "articles": [
+        "46337"
+      ],
+      "pdf": "/catalog/TOY/46337.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/2uz-ii.png"
+    },
+    {
+      "engine_code": "3C",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3C",
+      "articles": [
+        "46629A",
+        "46629AG",
+        "46629G"
+      ],
+      "pdf": "/catalog/TOY/46629A.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3c.png"
+    },
+    {
+      "engine_code": "3GR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3GR-FE",
+      "articles": [
+        "46386"
+      ],
+      "pdf": "/catalog/TOY/46386.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3gr.png"
+    },
+    {
+      "engine_code": "3GRFSE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3GR-FSE",
+      "articles": [
+        "46397"
+      ],
+      "pdf": "/catalog/TOY/46397.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3grfse.png"
+    },
+    {
+      "engine_code": "3L",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3L",
+      "articles": [
+        "46256",
+        "46256A"
+      ],
+      "pdf": "/catalog/TOY/46256.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3l.png"
+    },
+    {
+      "engine_code": "3MZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3MZFE",
+      "articles": [
+        "46357"
+      ],
+      "pdf": "/catalog/TOY/46357.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3mz.png"
+    },
+    {
+      "engine_code": "3NRFE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3NR-FE",
+      "articles": [
+        "46387"
+      ],
+      "pdf": "/catalog/TOY/46387.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3nrfe.png"
+    },
+    {
+      "engine_code": "3RZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3RZ-FE, 3RZ-FZ",
+      "articles": [
+        "46312"
+      ],
+      "pdf": "/catalog/TOY/46312.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3rz.png"
+    },
+    {
+      "engine_code": "3S",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3S-FSE",
+      "articles": [
+        "46378"
+      ],
+      "pdf": "/catalog/TOY/46378.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3s.png"
+    },
+    {
+      "engine_code": "3S II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3S-FSE",
+      "articles": [
+        "46378"
+      ],
+      "pdf": "/catalog/TOY/46378.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3s-ii.png"
+    },
+    {
+      "engine_code": "3S New",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3S-FSE",
+      "articles": [
+        "46378"
+      ],
+      "pdf": "/catalog/TOY/46378.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3s-new.png"
+    },
+    {
+      "engine_code": "3SFSE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3S-FSE",
+      "articles": [
+        "46378"
+      ],
+      "pdf": "/catalog/TOY/46378.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3sfse.png"
+    },
+    {
+      "engine_code": "3UR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3UR-FE",
+      "articles": [
+        "46388"
+      ],
+      "pdf": "/catalog/TOY/46388.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3ur.png"
+    },
+    {
+      "engine_code": "3VZ Cam",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3VZ-FE",
+      "articles": [
+        "46281"
+      ],
+      "pdf": "/catalog/TOY/46281.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3vz-cam.png"
+    },
+    {
+      "engine_code": "3VZ Ran",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3VZ-FE",
+      "articles": [
+        "46281"
+      ],
+      "pdf": "/catalog/TOY/46281.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3vz-ran.png"
+    },
+    {
+      "engine_code": "3Y",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3Y",
+      "articles": [
+        "46120"
+      ],
+      "pdf": "/catalog/TOY/46120.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3y.png"
+    },
+    {
+      "engine_code": "3ZR",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3ZR-FE",
+      "articles": [
+        "46384"
+      ],
+      "pdf": "/catalog/TOY/46384.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3zr.png"
+    },
+    {
+      "engine_code": "3ZZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "3ZZ-FE",
+      "articles": [
+        "46367"
+      ],
+      "pdf": "/catalog/TOY/46367.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/3zz.png"
+    },
+    {
+      "engine_code": "4A 8V",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4A",
+      "articles": [
+        "46336"
+      ],
+      "pdf": "/catalog/TOY/46336.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4a-8v.png"
+    },
+    {
+      "engine_code": "4AF",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4AFE, 4AG",
+      "articles": [
+        "46262"
+      ],
+      "pdf": "/catalog/TOY/46262.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4af.png"
+    },
+    {
+      "engine_code": "4AFE",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4AFE, 4AG",
+      "articles": [
+        "46262"
+      ],
+      "pdf": "/catalog/TOY/46262.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4afe.png"
+    },
+    {
+      "engine_code": "4E",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4E-FE-II",
+      "articles": [
+        "46346"
+      ],
+      "pdf": "/catalog/TOY/46346.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4e.png"
+    },
+    {
+      "engine_code": "4S",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4SFI",
+      "articles": [
+        "46289"
+      ],
+      "pdf": "/catalog/TOY/46289.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4s.png"
+    },
+    {
+      "engine_code": "4S II",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4SFI",
+      "articles": [
+        "46289"
+      ],
+      "pdf": "/catalog/TOY/46289.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4s-ii.png"
+    },
+    {
+      "engine_code": "4ZZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "4ZZFE",
+      "articles": [
+        "46342"
+      ],
+      "pdf": "/catalog/TOY/46342.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/4zz.png"
+    },
+    {
+      "engine_code": "5A",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5AF",
+      "articles": [
+        "46290"
+      ],
+      "pdf": "/catalog/TOY/46290.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5a.png"
+    },
+    {
+      "engine_code": "5E",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5E-FE",
+      "articles": [
+        "46258"
+      ],
+      "pdf": "/catalog/TOY/46258.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5e.png"
+    },
+    {
+      "engine_code": "5L",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5L",
+      "articles": [
+        "46273",
+        "46273A",
+        "46273AG",
+        "46273G"
+      ],
+      "pdf": "/catalog/TOY/46273.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5l.png"
+    },
+    {
+      "engine_code": "5S 10",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5SFE",
+      "articles": [
+        "46279"
+      ],
+      "pdf": "/catalog/TOY/46279.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5s-10.png"
+    },
+    {
+      "engine_code": "5S 20",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5SFE",
+      "articles": [
+        "46279"
+      ],
+      "pdf": "/catalog/TOY/46279.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5s-20.png"
+    },
+    {
+      "engine_code": "5VZ",
+      "brand_name": "Toyota",
+      "oems": [],
+      "teikin_model": "5VZ-FE",
+      "articles": [
+        "46666"
+      ],
+      "pdf": "/catalog/TOY/46666.pdf",
+      "png": "/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/site/public/teikin-catalog/5vz.png"
+    }
+  ],
+  "unmatched": [
+    {
+      "engine_code": "RFT III",
+      "brand_name": "Mazda",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "4D56TNew III",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "4G64K",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "64K II Аутл",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "6G72K 24V",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "6G72K 24V #3",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    },
+    {
+      "engine_code": "D4BA",
+      "brand_name": "Mitsubishi",
+      "oems": [],
+      "reason": "no engine_model match"
+    }
+  ],
+  "errors": [
+    {
+      "engine_code": "YD22 II",
+      "brand_name": "Nissan",
+      "oems": [],
+      "error": "Not a PDF: http://www.teikin.com/catalog/NIS/44685.pdf (1190b)"
+    },
+    {
+      "engine_code": "1ND",
+      "brand_name": "Toyota",
+      "oems": [],
+      "error": "Not a PDF: http://www.teikin.com/catalog/TOY/46676.pdf (1190b)"
+    }
+  ]
+}

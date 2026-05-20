@@ -257,16 +257,19 @@ const waText = encodeURIComponent(
             <dt>Ремонтный размер</dt>
             <dd>{sizeLabel}{product.size_code !== 'STD' && <span class="unit">+{sizeLabel.replace('0.', '')} мм</span>}</dd>
           </div>
-          {teikinEntry?.cc && (
+          {(teikinEntry?.cc || engine.volume_l) && (
             <div class="ph-fact">
               <dt>Двигатель</dt>
-              <dd>{ccToLiters(teikinEntry.cc)} л · {teikinEntry.cyl} цил.</dd>
+              <dd>
+                {teikinEntry?.cc ? ccToLiters(teikinEntry.cc) : fmtNum(engine.volume_l!)} л
+                {(teikinEntry?.cyl || engine.cylinder_count) && <> · {teikinEntry?.cyl ?? engine.cylinder_count} цил.</>}
+              </dd>
             </div>
           )}
-          {teikinEntry?.fuel && (
+          {(teikinEntry?.fuel || engine.is_diesel !== null) && (
             <div class="ph-fact">
               <dt>Топливо</dt>
-              <dd>{FUEL_LABEL[teikinEntry.fuel]}</dd>
+              <dd>{teikinEntry?.fuel ? FUEL_LABEL[teikinEntry.fuel] : (engine.is_diesel ? 'дизель' : 'бензин')}</dd>
             </div>
           )}
         </dl>
