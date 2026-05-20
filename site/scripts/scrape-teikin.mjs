@@ -86,13 +86,26 @@ function getEngineModels(brand) {
 }
 
 function searchByBrandEngine(brand, engineModel) {
-  const raw = curl([
-    '-b', COOKIE_FILE,
-    '-X', 'POST', `${BASE}/pages/search_by_brand_engine`,
-    '--data-urlencode', `brand=${brand}`,
-    '--data-urlencode', `engine=${engineModel}`,
-  ]);
-  return parseJson(raw).data;
+  // С ретраем — у teikin.com иногда таймаутит первый запрос
+  let lastErr;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const raw = execFileSync('curl', [
+        '-s', '--max-time', '60', '-A', UA,
+        '-b', COOKIE_FILE,
+        '-X', 'POST', `${BASE}/pages/search_by_brand_engine`,
+        '--data-urlencode', `brand=${brand}`,
+        '--data-urlencode', `engine=${engineModel}`,
+      ], { encoding: 'utf8' });
+      return parseJson(raw).data;
+    } catch (e) {
+      lastErr = e;
+      const wait = 1500 * (i + 1);
+      console.warn(`[retry] search ${brand}/${engineModel} attempt ${i + 1}/3 (${e.code || 'err'})`);
+      execFileSync('sleep', [String(wait / 1000)]);
+    }
+  }
+  throw lastErr;
 }
 
 function downloadPdf(brandFile, dst) {
@@ -148,23 +161,87 @@ async function getEnginesWithPistonStock() {
 }
 
 // ---------- matching ----------
-// TEIKIN-модели бывают кластерами: "1KZ-TE, 1KZ" / "5L, 5LE" / "4D55, 4D56".
-// Совпадение по точному токену (split по запятым/пробелам/слэшам).
-function tokenizeTeikinModel(m) {
-  return m
-    .split(/[,/]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+// БД хранит engine_code в формате типа "B6 16V", "4D56 L200", "FE 8V / F8".
+// TEIKIN отдельно хранит "B6", "B6 - II", "FE", "JE-48 / JE-27".
+// Стратегия: нормализуем оба источника (убираем валвинг/ревизии), сравниваем токены.
+
+// Меты, которые нужно срезать (валвинг, ревизия, варианты — TEIKIN их не различает в имени модели).
+const STRIP_TOKENS = /\s*(\#\d+|8V|10V|12V|16V|24V|32V|Dohs?|DOHC|SOHC|MIVEC|NEW|OLD|Turbo|II|III|IV|VI|VII|\bV\b|\bI\b|ALFIN|Аутл|L200|TNew|АКПП|МКПП|BK\b|VVT(-I|i)?)\s*/gi;
+
+function normalizeStr(s) {
+  return s.replace(STRIP_TOKENS, ' ').replace(/[-_]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+function generateCandidates(code) {
+  const out = new Set();
+  const u = code.toUpperCase().trim();
+  out.add(u);
+  out.add(normalizeStr(code));
+  // split на "/"
+  for (const part of code.split('/').map((s) => s.trim())) {
+    out.add(part.toUpperCase());
+    out.add(normalizeStr(part));
+  }
+  // первый токен (до пробела)
+  out.add(code.split(/\s+/)[0].toUpperCase());
+  // базовый код в форме "4D55", "1KZ", "4G63" — буквы+цифры+буквы
+  const baseM = code.match(/^([0-9]?[A-Z]+[0-9]+[A-Z]*)/i);
+  if (baseM) {
+    out.add(baseM[1].toUpperCase());
+    // также со стрипом всех неалфанумерик
+    out.add(baseM[1].replace(/[^A-Z0-9]/gi, '').toUpperCase());
+  }
+  return [...out].filter(Boolean);
+}
+
+function tokensFromTeikinModel(m) {
+  const out = new Set();
+  // Разделители: запятая, слэш, "- " (как в "B6 - II"), "/"
+  const parts = m.split(/[,/]+/).map((s) => s.trim());
+  for (const t of parts) {
+    out.add(t.toUpperCase());
+    out.add(normalizeStr(t));
+    // Срезаем хвост " - X" (NEW/OLD/II часто стоят через дефис)
+    const noDashTail = t.replace(/\s*-\s*[A-Z0-9 ]+$/i, '').trim();
+    if (noDashTail) {
+      out.add(noDashTail.toUpperCase());
+      out.add(normalizeStr(noDashTail));
+    }
+    // Без дефисов вообще: 4M40-T → 4M40T
+    out.add(t.replace(/[-_\s]/g, '').toUpperCase());
+  }
+  return [...out].filter(Boolean);
 }
 
 function findTeikinModel(engineCode, teikinModels) {
-  const code = engineCode.toUpperCase().trim();
-  // 1. точное совпадение токена
-  for (const m of teikinModels) {
-    if (tokenizeTeikinModel(m).some((t) => t.toUpperCase() === code)) return m;
+  const candidates = generateCandidates(engineCode);
+  candidates.sort((a, b) => b.length - a.length);
+
+  // 1. Точное совпадение нормализованных токенов
+  for (const cand of candidates) {
+    if (!cand) continue;
+    for (const m of teikinModels) {
+      if (tokensFromTeikinModel(m).includes(cand)) return m;
+    }
   }
-  // 2. fallback: точное совпадение всей строки
-  for (const m of teikinModels) if (m.toUpperCase() === code) return m;
+
+  // 2. Префиксный матч: 1MZ → "1MZFE", 2JZ → "2JZGE/GTE", 1ZZ → "1ZZFE".
+  //    TEIKIN добавляет суффикс варианта (FE/GE/GTE/DE/AG/TVD/SE/FX/FSE/TI и т.п.).
+  //    База = первый токен (до пробела/дефиса/слэша), без чистки метаданных.
+  const baseRaw = engineCode.toUpperCase().split(/[\s\-\/]/)[0].replace(/[^A-Z0-9]/g, '');
+  if (baseRaw && baseRaw.length >= 2) {
+    for (const m of teikinModels) {
+      for (const t of tokensFromTeikinModel(m)) {
+        const flat = t.replace(/[-_\s]/g, '');
+        if (flat.startsWith(baseRaw) && flat.length > baseRaw.length) {
+          const suffix = flat.slice(baseRaw.length);
+          // Хвост: 1-5 символов, alphanumeric, без особых конструкций
+          if (suffix.length <= 5 && /^[A-Z0-9IVX]+$/.test(suffix)) return m;
+        }
+      }
+    }
+  }
+
   return null;
 }
 
@@ -208,11 +285,14 @@ async function main() {
       const pdfPath = resolve(PDF_CACHE, `${slug}.pdf`);
       const pngPath = resolve(PNG_OUT, `${slug}.png`);
 
-      downloadPdf(pdfRel, pdfPath);
-      cropTop(pdfPath, pngPath);
+      const cached = existsSync(pngPath) && existsSync(pdfPath);
+      if (!cached) {
+        downloadPdf(pdfRel, pdfPath);
+        cropTop(pdfPath, pngPath);
+      }
 
       report.matched.push({ ...eng, teikin_model: tm, articles, pdf: pdfRel, png: pngPath });
-      console.log(`[ok] ${eng.brand_name}/${eng.engine_code} -> ${tm} -> ${articles.join(',')}`);
+      console.log(`[${cached ? 'cached' : 'ok'}] ${eng.brand_name}/${eng.engine_code} -> ${tm} -> ${articles.join(',')}`);
     } catch (e) {
       report.errors.push({ ...eng, error: e.message });
       console.warn(`[err] ${eng.engine_code}: ${e.message}`);

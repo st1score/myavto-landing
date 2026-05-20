@@ -66,7 +66,9 @@ export type TeikinEntry = {
   models?: string[];
 };
 
-export const teikinCatalog: Record<string, TeikinEntry> = {
+// Ручные записи (приоритетные) — здесь храним «эталонные» моторы с полным набором полей.
+// Остальные подтягиваются из auto-каталога ниже.
+const handwritten: Record<string, TeikinEntry> = {
   '1KZ': {
     display_name: 'Toyota 1KZ-TE / 1KZ',
     catalog_page: 389,
@@ -112,6 +114,16 @@ export const teikinCatalog: Record<string, TeikinEntry> = {
       'Toyota 4Runner KZN185 (1KZ-TE)',
     ],
   },
+};
+
+// Авто-сгенерированный каталог (вытянут со scrape-teikin.mjs + pdftotext).
+// Если файла нет (например в свежем чекауте) — fallback на пустой объект.
+import { teikinAutoCatalog } from './teikin-catalog-auto';
+
+// Финальный каталог: handwritten перезаписывает auto.
+export const teikinCatalog: Record<string, Partial<TeikinEntry>> = {
+  ...teikinAutoCatalog,
+  ...handwritten,
 };
 
 // Человекочитаемые подписи
