@@ -1,0 +1,241 @@
+---
+// Глобальный поиск по артикулу TEIKIN/OEM и коду двигателя.
+// Индекс /search-index.json генерируется скриптом gen-search-index.mjs.
+---
+<div class="search-box" id="searchBox">
+  <form class="search-form" role="search" action="/poisk/" method="get">
+    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input
+      type="search"
+      name="q"
+      id="searchInput"
+      class="search-input"
+      placeholder="Артикул, OEM или код двигателя"
+      autocomplete="off"
+      aria-label="Поиск по артикулу или коду двигателя"
+    />
+    <button type="button" class="search-clear" id="searchClear" aria-label="Очистить" hidden>×</button>
+  </form>
+  <div class="search-results" id="searchResults" hidden role="listbox" aria-label="Результаты поиска"></div>
+</div>
+
+<style>
+  .search-box {
+    position: relative;
+    flex: 1;
+    max-width: 480px;
+    min-width: 0;
+  }
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--c-bg-soft, #f5f5f7);
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  .search-form:focus-within {
+    border-color: var(--c-red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(229,9,20,0.08);
+  }
+  .search-icon { color: var(--c-text-faint); flex-shrink: 0; }
+  .search-input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    font-size: .94rem;
+    color: var(--c-text);
+    min-width: 0;
+  }
+  .search-input::placeholder { color: var(--c-text-faint); }
+  .search-clear {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--c-text-faint);
+    font-size: 1.4rem;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .search-clear:hover { color: var(--c-red); }
+
+  .search-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0; right: 0;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg, 0 12px 32px rgba(0,0,0,0.12));
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: 60;
+    padding: 6px;
+  }
+  .search-results.empty { padding: 16px; text-align: center; color: var(--c-text-faint); font-size: .9rem; }
+
+  .sr-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--c-text);
+  }
+  .sr-item:hover, .sr-item.active { background: var(--c-bg-soft, #f5f5f7); }
+  .sr-item .sr-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: .94rem;
+  }
+  .sr-item .sr-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .sr-item .sr-tag.engine { background: #e0f2fe; color: #0369a1; }
+  .sr-item .sr-tag.article { background: #fef3c7; color: #92400e; }
+  .sr-item .sr-sub {
+    font-size: .82rem;
+    color: var(--c-text-faint);
+    font-family: var(--font-mono, monospace);
+  }
+  .sr-more {
+    padding: 10px 12px;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--c-text-faint);
+    border-top: 1px solid var(--c-border);
+    margin-top: 4px;
+  }
+  .sr-more a { color: var(--c-red); font-weight: 600; }
+
+  @media (max-width: 900px) {
+    .search-box { max-width: none; width: 100%; }
+  }
+</style>
+
+<script>
+  (() => {
+    const box = document.getElementById('searchBox');
+    const input = document.getElementById('searchInput') as HTMLInputElement | null;
+    const results = document.getElementById('searchResults');
+    const clearBtn = document.getElementById('searchClear');
+    const form = box?.querySelector('form') as HTMLFormElement | null;
+    if (!box || !input || !results || !clearBtn || !form) return;
+
+    type Item = { t: 'e' | 'a'; q: string; l: string; s: string; u: string };
+    let index: Item[] | null = null;
+    let indexLoading: Promise<Item[]> | null = null;
+    let activeIdx = -1;
+
+    async function loadIndex(): Promise<Item[]> {
+      if (index) return index;
+      if (indexLoading) return indexLoading;
+      indexLoading = fetch('/search-index.json')
+        .then((r) => r.json())
+        .then((data) => { index = data.items as Item[]; return index!; })
+        .catch(() => { indexLoading = null; return []; });
+      return indexLoading;
+    }
+
+    function normalize(s: string): string {
+      return s.toLowerCase().replace(/[\s\-]/g, '');
+    }
+
+    function search(q: string, idx: Item[]): Item[] {
+      const nq = normalize(q);
+      if (nq.length < 2) return [];
+      const exact: Item[] = [];
+      const starts: Item[] = [];
+      const contains: Item[] = [];
+      for (const it of idx) {
+        if (it.q === nq) exact.push(it);
+        else if (it.q.startsWith(nq)) starts.push(it);
+        else if (it.q.includes(nq)) contains.push(it);
+        if (exact.length + starts.length >= 20) break;
+      }
+      return [...exact, ...starts, ...contains].slice(0, 8);
+    }
+
+    function render(items: Item[], query: string) {
+      activeIdx = -1;
+      if (query.length < 2) {
+        results.hidden = true;
+        return;
+      }
+      results.hidden = false;
+      results.classList.remove('empty');
+      if (items.length === 0) {
+        results.classList.add('empty');
+        results.innerHTML = `Ничего не найдено. <br><a href="/poisk/?q=${encodeURIComponent(query)}" style="color:var(--c-red);font-weight:600;">Показать все результаты →</a>`;
+        return;
+      }
+      const html = items.map((it, i) => {
+        const tag = it.t === 'e' ? '<span class="sr-tag engine">Двигатель</span>' : '<span class="sr-tag article">Артикул</span>';
+        return `<a class="sr-item" data-idx="${i}" href="${it.u}">
+          <span class="sr-label">${tag}<span>${it.l}</span></span>
+          <span class="sr-sub">${it.s}</span>
+        </a>`;
+      }).join('');
+      results.innerHTML = html + `<div class="sr-more"><a href="/poisk/?q=${encodeURIComponent(query)}">Все результаты по «${query}» →</a></div>`;
+    }
+
+    async function onInput() {
+      const q = input!.value.trim();
+      clearBtn!.hidden = q.length === 0;
+      if (q.length < 2) { results!.hidden = true; return; }
+      const idx = await loadIndex();
+      render(search(q, idx), q);
+    }
+
+    input.addEventListener('focus', () => { loadIndex(); });
+    input.addEventListener('input', onInput);
+
+    input.addEventListener('keydown', (e) => {
+      const items = results.querySelectorAll<HTMLElement>('.sr-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        activeIdx = Math.min(items.length - 1, activeIdx + 1);
+        items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+        items[activeIdx]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        activeIdx = Math.max(-1, activeIdx - 1);
+        items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+      } else if (e.key === 'Enter') {
+        if (activeIdx >= 0 && items[activeIdx]) {
+          e.preventDefault();
+          window.location.href = items[activeIdx].getAttribute('href') || '/';
+        }
+        // иначе — submit form → /poisk?q=...
+      } else if (e.key === 'Escape') {
+        results.hidden = true;
+        input.blur();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.hidden = true;
+      results.hidden = true;
+      input.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!box.contains(e.target as Node)) results.hidden = true;
+    });
+  })();
+</script>

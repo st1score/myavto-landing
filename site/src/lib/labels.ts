@@ -55,8 +55,9 @@ export function brandDisplay(name: string): string {
 
 export const insertTypeLabel: Record<string, string> = {
   plain: 'Стандарт',
-  A: 'Вставка A',
-  AG: 'Антизадирный обод (AG)',
+  A: 'ALFIN-вставка (A)',
+  G: 'Масляная галерея (G)',
+  AG: 'ALFIN + галерея (AG)',
 };
 
 export const warehouseLabel: Record<string, string> = {

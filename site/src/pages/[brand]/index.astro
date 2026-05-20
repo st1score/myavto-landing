@@ -1,67 +1,176 @@
 ---
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getEngines } from '../../lib/db';
-import { brandSlug } from '../../lib/slugs';
+import { getEngines, getEnginePartsIndex, getPistonProductsInStock } from '../../lib/db';
+import { brandSlug, engineSlug } from '../../lib/slugs';
 import { fmtNum } from '../../lib/format';
 
 export async function getStaticPaths() {
   const engines = await getEngines();
+  const partsIdx = await getEnginePartsIndex();
+  const hasParts = new Set(partsIdx.map((p) => p.engine_code));
+  const stockProducts = await getPistonProductsInStock();
+  const inStock = new Set(stockProducts.map((p) => p.engine_code));
   const brands = [...new Set(engines.map((e) => e.brand_name))];
-  return brands.map((brand) => ({
-    params: { brand: brandSlug[brand] ?? brand.toLowerCase() },
-    props: { brand, engines: engines.filter((e) => e.brand_name === brand) },
-  }));
+  return brands.map((brand) => {
+    const brandEngines = engines.filter((e) => e.brand_name === brand);
+    const brandHasParts = brandEngines.filter((e) => hasParts.has(e.engine_code)).map((e) => e.engine_code);
+    const brandInStock = brandEngines.filter((e) => inStock.has(e.engine_code)).map((e) => e.engine_code);
+    return {
+      params: { brand: brandSlug[brand] ?? brand.toLowerCase() },
+      props: { brand, engines: brandEngines, hasParts: brandHasParts, inStock: brandInStock },
+    };
+  });
 }
 
-const { brand, engines } = Astro.props;
+const { brand, engines, hasParts, inStock } = Astro.props;
+const hasPartsSet = new Set(hasParts);
+const inStockSet = new Set(inStock);
+
+const catalogDir = resolve(process.cwd(), 'public/teikin-catalog');
+function engineImg(code: string): string | null {
+  const slug = engineSlug(code);
+  return existsSync(`${catalogDir}/${slug}.png`) ? `/teikin-catalog/${slug}.png` : null;
+}
 
 function engineUrl(code: string) {
-  return `/${brandSlug[brand]}/dvigateli/${code.toLowerCase().replace(/[\/\s]+/g, '-')}/`;
+  return `/${brandSlug[brand]}/dvigateli/${engineSlug(code)}/`;
 }
 
 const petrol = engines.filter((e) => !e.is_diesel);
 const diesel = engines.filter((e) => e.is_diesel);
+
+const stockedCount = inStock.length;
+const catalogCount = hasParts.length;
+
+// Лонг-форма про марку (SEO-вес)
+const brandBlurb: Record<string, { intro: string; about: string }> = {
+  Toyota: {
+    intro: `Toyota — самый массовый японский автоконцерн в Казахстане. Через нас на капремонт проходят моторы от классических 2E и 4A-FE до современных VVT-i (1ZZ, 2ZZ, 1NZ) и дизелей серии KZ/KD (1KZ, 2KD, 1HD). Под капиталку Toyota ставим японские поршни TEIKIN или OEM, кольца RIK/NPR, вкладыши Taiho и NDC — те же поршни, что заливаются на конвейере, но в формате aftermarket.`,
+    about: `На Toyota чаще всего меняют: поршни и кольца у 1KZ-TE и 2L-T (дизеля, часто после 250-300 тыс км), 1ZZ/2ZZ из-за маслосъёмных колец, 3S-FE/4A-FE по классическому износу. У нас есть OEM-артикулы 13101-* для большинства моторов — пришлите в WhatsApp код двигателя или артикул, подскажем точный комплект.`,
+  },
+  Nissan: {
+    intro: `Nissan — второй по популярности японский бренд в Казахстане. Возим запчасти на всю линейку: бензиновые QG/HR (15A, 16A), MR/QR (MR20, QR25), легендарные RB (RB25, RB26), VG/VQ (VG30, VQ35), а также дизели YD22, YD25, ZD30. Поршни TEIKIN, ND, IZUMI, NM, кольца RIK/NPR/TP, вкладыши Taiho/NDC.`,
+    about: `Самые ходовые позиции по Nissan — VQ35DE (поршни, кольца, вкладыши), QR25DE (часто проблемы с цепью + капиталка), YD25 (дизеля Pathfinder/Navara). На редкие моторы вроде RB26DETT возим под заказ из Японии за 7-14 дней. Скиньте код двигателя — пришлём актуальную цену и наличие.`,
+  },
+  Mitsubishi: {
+    intro: `Mitsubishi — основной поставщик внедорожников в Казахстан (Pajero, L200, Outlander). Под капиталку их моторов 4G, 6G, 4D, 4M есть полный комплект: поршни TEIKIN и оригинальные ME-артикулы, кольца NPR, вкладыши Taiho/NDC. Дизеля 4M40T и 4D56T — самые частые случаи.`,
+    about: `Под Mitsubishi у нас в наличии большинство популярных поршневых сборок: 4G63 (Lancer/Galant), 4G64 (Outlander/Eclipse), 6G72/6G74 (Pajero V-series), 4M40T (Pajero 2). Размеры от STD до 1.00. По дизелям 4D56 — это самая частая капиталка Pajero Sport, всегда в наличии.`,
+  },
+  Mazda: {
+    intro: `Mazda — японский премиум, моторы которой требуют внимательного подбора поршней и колец. Возим под все популярные семейства: B6 (1.6 16V), F8/F2 (1.8/2.0 8V), FE/FS (2.0), RF (2.2 дизель), L3-VE (2.3 MZR). Бренды — TEIKIN, IZUMI, оригинальные Mazda.`,
+    about: `Самые востребованные позиции Mazda — B6-DOHC (323/Familia), FS-DE (626/Capella), RF-дизель (Bongo/Premacy). Под старые карбюраторные моторы (B6 8V, F8 8V) тоже есть поршни — это редкость на рынке. Размеры от STD до 1.00 мм.`,
+  },
+};
+
+const brandText = brandBlurb[brand] ?? {
+  intro: `${brand} — один из японских автоконцернов, моторы которого мы обслуживаем по капитальному ремонту. В каталоге ${engines.length} двигателей ${brand}, под большинство есть поршни и кольца от японских производителей.`,
+  about: `Под каждый мотор ${brand} возим японские поршни (TEIKIN, ND, IZUMI), кольца (RIK, NPR, TP) и вкладыши (Taiho, NDC). Размеры от STD до 1.00 мм. Цена и наличие — в WhatsApp.`,
+};
+
+const brandFaq = [
+  {
+    q: `Какие поршни и кольца подходят на ${brand}?`,
+    a: `На все моторы ${brand} мы поставляем японские поршни TEIKIN, ND, IZUMI, NM, кольца — RIK, NPR, TP, вкладыши коленвала — Taiho и NDC. Под старые модели возим OEM-номера ${brand}. Точный комплект под ваш мотор — присылайте код двигателя в WhatsApp.`,
+  },
+  {
+    q: `Есть ли запчасти ${brand} в наличии в Алматы?`,
+    a: `Да, ${stockedCount} двигателей ${brand} имеют позиции на складе прямо сейчас (бейдж «● В наличии» на карточке). Остальные ${catalogCount - stockedCount} — под заказ из Японии за 7-14 дней. Магазин: ТЦ CarCity, 3 ярус, бутик 135В.`,
+  },
+  {
+    q: `Какие моторы ${brand} самые ходовые на капиталку?`,
+    a: brandText.about,
+  },
+  {
+    q: `Можно ли заказать оригинальные запчасти ${brand}?`,
+    a: `Да, под заказ можем привезти оригинальные ${brand}-артикулы (OEM 13101-*, MD-*, FS-* и т.п.). Срок 7-14 дней, цена выше aftermarket в 2-3 раза. Для большинства капремонтов выбирают TEIKIN — это те же поршни, но в aftermarket-упаковке.`,
+  },
+];
+
+const brandFaqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: brandFaq.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
 ---
 
 <Base
   title={`Запчасти для двигателей ${brand} в Алматы | Поршни и кольца — MY AVTO`}
   description={`Запчасти для капитального ремонта двигателей ${brand}: поршни, поршневые кольца, ремкомплекты. ${engines.length} двигателей в каталоге. Наличие в Алматы, доставка по Казахстану.`}
   keywords={`запчасти ${brand} Алматы, поршни ${brand}, кольца поршневые ${brand}, капиталка двигателя ${brand}`}
+  jsonLd={brandFaqJsonLd}
+  stickyWaText={`Здравствуйте! Интересуют запчасти ${brand} — помогите с подбором.`}
 >
-  <div class="page-hero">
-    <div class="ph-glow"></div>
-    <div class="container">
-      <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: brand }]} />
-      <div class="ph-content reveal">
-        <span class="eyebrow eyebrow-light">Каталог</span>
-        <h1>Запчасти для<br /><span class="accent-text">двигателей {brand}</span></h1>
-        <p class="ph-lead">
-          <strong>{engines.length} двигателей {brand}</strong> с подбором запчастей. Поршни и гильзы — TEIKIN, ND, IZUMI. Кольца — RIK, TP, NPR. Вкладыши — Taiho, NDC. Все ремонтные размеры. Цена и наличие — в WhatsApp.
-        </p>
+  <div class="container brand-hero-v2">
+    <Breadcrumbs items={[{ name: 'Главная', href: '/' }, { name: brand }]} />
+    <div class="bh2-grid">
+      <div class="bh2-body">
+        <span class="bh2-eyebrow">Каталог запчастей</span>
+        <h1 class="bh2-h1">Запчасти для двигателей <span class="bh2-accent">{brand}</span> в Алматы</h1>
+        <p class="bh2-lead">{brandText.intro}</p>
+        <div class="bh2-cta-row">
+          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересуют запчасти ${brand} — помогите с подбором.`)}`} target="_blank" rel="noopener noreferrer" class="btn">Написать в WhatsApp</a>
+          <a href="#engines" class="bh2-cta-secondary">↓ Выбрать двигатель</a>
+        </div>
+      </div>
+      <div class="bh2-stats">
+        <div class="bh2-stat">
+          <span class="bh2-stat-n">{engines.length}</span>
+          <span class="bh2-stat-l">двигателей<br />в каталоге</span>
+        </div>
+        <div class="bh2-stat bh2-stat-accent">
+          <span class="bh2-stat-n">{stockedCount}</span>
+          <span class="bh2-stat-l">в наличии<br />прямо сейчас</span>
+        </div>
+        <div class="bh2-stat">
+          <span class="bh2-stat-n">{petrol.length}</span>
+          <span class="bh2-stat-l">бензиновых</span>
+        </div>
+        <div class="bh2-stat">
+          <span class="bh2-stat-n">{diesel.length}</span>
+          <span class="bh2-stat-l">дизельных</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="container">
+  <div class="container" id="engines">
     {petrol.length > 0 && (
       <section class="reveal">
         <div class="section-head">
           <h2>Бензиновые двигатели</h2>
           <span class="badge">{petrol.length} {petrol.length === 1 ? 'модель' : 'моделей'}</span>
         </div>
-        <div class="grid cols-4">
-          {petrol.map((e, i) => (
-            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
-              <h3>{e.engine_code}</h3>
-              <p class="muted small">
-                {e.volume_l && `${fmtNum(e.volume_l)} л`}
-                {e.valve_count && ` · ${e.valve_count}V`}
-                {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
-              </p>
-              <span class="card-arrow">→</span>
-            </a>
-          ))}
+        <div class="engine-grid">
+          {petrol.map((e) => {
+            const img = engineImg(e.engine_code);
+            const stocked = inStockSet.has(e.engine_code);
+            const catalog = hasPartsSet.has(e.engine_code);
+            return (
+              <a href={engineUrl(e.engine_code)} class="engine-card reveal">
+                <div class="ec-img-wrap">
+                  {img ? <img src={img} alt={`Каталог TEIKIN ${e.engine_code}`} loading="lazy" /> : <div class="ec-img-placeholder">⚙️</div>}
+                  {stocked
+                    ? <span class="ec-stock ec-stock-in">● В наличии</span>
+                    : catalog && <span class="ec-stock ec-stock-order">Под заказ</span>}
+                </div>
+                <div class="ec-body">
+                  <h3>{e.engine_code}</h3>
+                  <p class="muted small">
+                    {e.volume_l && `${fmtNum(e.volume_l)} л`}
+                    {e.valve_count && ` · ${e.valve_count}V`}
+                    {e.cylinder_count && ` · ${e.cylinder_count} цил.`}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
     )}
@@ -72,36 +181,147 @@ const diesel = engines.filter((e) => e.is_diesel);
           <h2>Дизельные двигатели</h2>
           <span class="badge">{diesel.length} {diesel.length === 1 ? 'модель' : 'моделей'}</span>
         </div>
-        <div class="grid cols-4">
-          {diesel.map((e, i) => (
-            <a href={engineUrl(e.engine_code)} class={`card engine-card reveal reveal-delay-${i % 4}`}>
-              <h3>{e.engine_code}</h3>
-              <p class="muted small">{e.volume_l && `${fmtNum(e.volume_l)} л`} · Дизель</p>
-              <span class="card-arrow">→</span>
-            </a>
-          ))}
+        <div class="engine-grid">
+          {diesel.map((e) => {
+            const img = engineImg(e.engine_code);
+            const stocked = inStockSet.has(e.engine_code);
+            const catalog = hasPartsSet.has(e.engine_code);
+            return (
+              <a href={engineUrl(e.engine_code)} class="engine-card reveal">
+                <div class="ec-img-wrap">
+                  {img ? <img src={img} alt={`Каталог TEIKIN ${e.engine_code}`} loading="lazy" /> : <div class="ec-img-placeholder">⚙️</div>}
+                  {stocked
+                    ? <span class="ec-stock ec-stock-in">● В наличии</span>
+                    : catalog && <span class="ec-stock ec-stock-order">Под заказ</span>}
+                </div>
+                <div class="ec-body">
+                  <h3>{e.engine_code}</h3>
+                  <p class="muted small">{e.volume_l && `${fmtNum(e.volume_l)} л`} · Дизель</p>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
     )}
 
     <section class="info-section reveal">
       <h2>О запчастях {brand}</h2>
-      <p>
-        Мы поставляем запчасти для капитального ремонта двигателей {brand} в Алматы с 2010 года.
-        В наличии — поршни в сборе, поршневые кольца, ремкомплекты для всех популярных моторов.
-      </p>
+      <p>{brandText.about}</p>
       <p>
         Работаем с проверенными японскими брендами: <strong>TEIKIN</strong> (основной aftermarket),
-        <strong>IZUMI</strong>, <strong>ND</strong>, а также с производителями колец
-        <strong>NPR</strong>, <strong>RIK</strong>, <strong>TP</strong>. Под заказ — оригинальные
+        <strong>IZUMI</strong>, <strong>ND</strong>, <strong>NM</strong>, а также с производителями колец
+        <strong>NPR</strong>, <strong>RIK</strong>, <strong>TP</strong> и вкладышей <strong>Taiho</strong>, <strong>NDC</strong>. Под заказ — оригинальные
         запчасти {brand}.
       </p>
-      <a href="https://wa.me/77015509377" class="btn">Связаться в WhatsApp</a>
+      <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересуют запчасти ${brand}. Помогите с подбором.`)}`} target="_blank" rel="noopener noreferrer" class="btn">Связаться в WhatsApp</a>
+    </section>
+
+    <section class="reveal brand-faq-section">
+      <h2>Частые вопросы про запчасти {brand}</h2>
+      <div class="faq-list">
+        {brandFaq.map((f) => (
+          <details class="faq-item">
+            <summary>{f.q}</summary>
+            <p>{f.a}</p>
+          </details>
+        ))}
+      </div>
     </section>
   </div>
 </Base>
 
 <style>
+  /* Brand hero v2 — light, with stats */
+  .brand-hero-v2 { padding: 16px 24px 32px; }
+  .bh2-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+    margin-top: 16px;
+  }
+  @media (max-width: 900px) {
+    .bh2-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+  .bh2-body { display: flex; flex-direction: column; gap: 18px; }
+  .bh2-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-red);
+    font-size: .78rem;
+    font-weight: 700;
+  }
+  .bh2-h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.12;
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+  .bh2-accent {
+    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .bh2-lead { color: var(--c-text-dim); font-size: 1.02rem; line-height: 1.55; margin: 0; }
+  .bh2-cta-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .bh2-cta-secondary {
+    color: var(--c-text);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: .96rem;
+  }
+  .bh2-cta-secondary:hover { color: var(--c-red); }
+  .bh2-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .bh2-stat {
+    padding: 18px;
+    background: var(--c-bg-soft, #f7f7f8);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bh2-stat-accent { background: #ecfdf5; }
+  .bh2-stat-accent .bh2-stat-n { color: #16a34a; }
+  .bh2-stat-n { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; }
+  .bh2-stat-l { color: var(--c-text-faint); font-size: .82rem; line-height: 1.3; }
+
+  /* Brand FAQ */
+  .brand-faq-section { margin-top: 48px; }
+  .brand-faq-section .faq-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .brand-faq-section .faq-item {
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .brand-faq-section .faq-item summary {
+    list-style: none;
+    padding: 16px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    position: relative;
+    padding-right: 40px;
+  }
+  .brand-faq-section .faq-item summary::-webkit-details-marker { display: none; }
+  .brand-faq-section .faq-item summary::after {
+    content: '+';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--c-text-faint);
+    font-size: 1.4rem;
+    transition: transform var(--t-fast);
+  }
+  .brand-faq-section .faq-item[open] summary::after { content: '−'; }
+  .brand-faq-section .faq-item p { padding: 0 20px 16px; margin: 0; color: var(--c-text-dim); line-height: 1.6; }
+
   .page-hero {
     position: relative;
     background: var(--c-black);
@@ -149,15 +369,73 @@ const diesel = engines.filter((e) => e.is_diesel);
     margin-bottom: 32px;
   }
   .section-head h2 { margin: 0; }
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 56px;
+  }
+  @media (max-width: 640px) {
+    .engine-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  }
   .engine-card {
-    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--c-text);
+    transition: border-color var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+  }
+  .engine-card:hover {
+    border-color: var(--c-red);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+  }
+  .ec-img-wrap {
     position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--c-bg-soft, #f5f5f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .ec-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 10px;
+  }
+  .ec-img-placeholder {
+    font-size: 2.4rem;
+    color: var(--c-text-faint);
+  }
+  .ec-stock {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    color: #fff;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .ec-stock-in { background: rgba(22,163,74,0.95); }
+  .ec-stock-order { background: rgba(100,116,139,0.92); }
+  .ec-body {
+    padding: 14px 16px 16px;
   }
   .engine-card h3 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin-bottom: 6px;
+    margin: 0 0 4px;
   }
+  .ec-body .muted { margin: 0; }
   .info-section { max-width: 800px; }
 </style>

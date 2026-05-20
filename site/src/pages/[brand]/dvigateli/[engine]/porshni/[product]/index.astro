@@ -191,15 +191,15 @@ const breadcrumbsJsonLd = {
   ],
 };
 
-const waText = encodeURIComponent(
-  `Здравствуйте! Интересует поршень ${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}${insertDisplay} на двигатель ${engine.brand_name} ${engine.engine_code}. Подскажите цену и наличие.`
-);
+const waTextRaw = `Здравствуйте! Интересует поршень ${partsBrandDisplay}${mainArticle ? ' ' + mainArticle : ''} ${sizeLabel}${insertDisplay} на двигатель ${engine.brand_name} ${engine.engine_code}. Подскажите цену и наличие.`;
+const waText = encodeURIComponent(waTextRaw);
 ---
 <Base
   title={seoTitle}
   description={seoDesc}
   keywords={seoKw}
   jsonLd={[productJsonLd, breadcrumbsJsonLd, faqJsonLd]}
+  stickyWaText={waTextRaw}
 >
   <div class="container product-page">
     <Breadcrumbs items={[

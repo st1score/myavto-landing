@@ -1,7 +1,10 @@
 ---
 import { brandSlug } from '../lib/slugs';
+import { CONTACTS } from '../lib/contacts';
 import Logo from './Logo.astro';
+import SearchBox from './SearchBox.astro';
 const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
+const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна помощь с подбором запчастей для двигателя.');
 ---
 <header class="site-header" id="site-header">
   <div class="container header-inner">
@@ -27,11 +30,14 @@ const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
       <a href="tel:+77015509377" class="phone-link" aria-label="Позвонить">
         <span class="phone-dot"></span>+7 701 550-93-77
       </a>
-      <a href="https://wa.me/77015509377" class="btn btn-sm" target="_blank" rel="noopener">WhatsApp</a>
+      <a href={waUrl} class="btn btn-sm" target="_blank" rel="noopener">WhatsApp</a>
     </div>
     <button class="burger" id="burger" aria-label="Меню">
       <span></span><span></span><span></span>
     </button>
+  </div>
+  <div class="container header-search-row">
+    <SearchBox />
   </div>
   <div class="mobile-menu" id="mobile-menu">
     <a href="/zapchasti/porshni/">Поршни</a>
@@ -44,7 +50,7 @@ const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
     <a href="/dostavka/">Доставка</a>
     <a href="/o-nas/">О нас</a>
     <a href="/kontakty/">Контакты</a>
-    <a href="https://wa.me/77015509377" class="btn" style="margin-top: 8px;">WhatsApp</a>
+    <a href={waUrl} class="btn" style="margin-top: 8px;">WhatsApp</a>
   </div>
 </header>
 
@@ -78,6 +84,14 @@ const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
     padding: 16px 24px;
   }
   @media (max-width: 640px) { .header-inner { padding: 14px 16px; gap: 16px; } }
+
+  .header-search-row {
+    padding: 0 24px 12px;
+    display: flex;
+    justify-content: center;
+  }
+  .header-search-row :global(.search-box) { max-width: 720px; width: 100%; }
+  @media (max-width: 640px) { .header-search-row { padding: 0 16px 12px; } }
 
   :global(.site-header .myavto-logo) { flex-shrink: 0; }
   @media (max-width: 640px) {
