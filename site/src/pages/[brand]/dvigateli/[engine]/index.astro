@@ -178,7 +178,7 @@ const jsonLd = [
         <div class="cta-content">
           <h2>Не нашли нужный размер?</h2>
           <p>Напишите номер двигателя — подберём поршни и кольца под капиталку.</p>
-          <a href="https://wa.me/77015509377" class="btn">Написать в WhatsApp</a>
+          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Нужны запчасти на двигатель ${engine.brand_name} ${engine.engine_code}. Подскажите наличие и цену.`)}`} target="_blank" rel="noopener noreferrer" class="btn">Написать в WhatsApp</a>
         </div>
       </div>
     </section>

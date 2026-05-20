@@ -1,9 +1,14 @@
 ---
 import { CONTACTS } from '../lib/contacts';
 import SocialIcon from './SocialIcon.astro';
+interface Props { waText?: string }
+const { waText } = Astro.props as Props;
+const waHref = waText
+  ? CONTACTS.whatsappWithText(waText)
+  : CONTACTS.whatsappWithText('Здравствуйте! Нужна помощь с подбором запчастей.');
 ---
 <div class="sticky-cta" id="stickyCTA" aria-label="Быстрые контакты">
-  <a href={CONTACTS.whatsapp} target="_blank" rel="noopener noreferrer" class="cta-tile cta-wa" aria-label="WhatsApp">
+  <a href={waHref} target="_blank" rel="noopener noreferrer" class="cta-tile cta-wa" aria-label="WhatsApp">
     <SocialIcon name="whatsapp" />
     <span>WhatsApp</span>
   </a>

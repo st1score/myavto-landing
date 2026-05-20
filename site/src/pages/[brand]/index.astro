@@ -96,7 +96,7 @@ const diesel = engines.filter((e) => e.is_diesel);
         <strong>NPR</strong>, <strong>RIK</strong>, <strong>TP</strong>. Под заказ — оригинальные
         запчасти {brand}.
       </p>
-      <a href="https://wa.me/77015509377" class="btn">Связаться в WhatsApp</a>
+      <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересуют запчасти ${brand}. Помогите с подбором.`)}`} target="_blank" rel="noopener noreferrer" class="btn">Связаться в WhatsApp</a>
     </section>
   </div>
 </Base>

@@ -1,7 +1,9 @@
 ---
 import SocialIcon from './SocialIcon.astro';
 import Logo from './Logo.astro';
+import { CONTACTS } from '../lib/contacts';
 const year = new Date().getFullYear();
+const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна помощь с подбором запчастей для двигателя.');
 ---
 <footer class="site-footer">
   <div class="footer-glow"></div>
@@ -13,7 +15,7 @@ const year = new Date().getFullYear();
         </div>
         <p class="muted">Запчасти для капитального ремонта двигателя японских автомобилей. Алматы, ТЦ CarCity.</p>
         <div class="socials">
-          <a href="https://wa.me/77015509377" aria-label="WhatsApp" target="_blank" rel="noopener" class="social wa">
+          <a href={waUrl} aria-label="WhatsApp" target="_blank" rel="noopener" class="social wa">
             <SocialIcon name="whatsapp" />
           </a>
           <a href="https://t.me/+B9HzpYNs7QpiZDAy" aria-label="Telegram канал" target="_blank" rel="noopener" class="social tg">
@@ -57,7 +59,7 @@ const year = new Date().getFullYear();
         <ul class="contact-list">
           <li>📍 Алматы, ТЦ «CarCity»<br><span class="muted small">3 ярус, бутик 135В</span></li>
           <li>📞 <a href="tel:+77015509377">+7 (701) 550-93-77</a></li>
-          <li>💬 <a href="https://wa.me/77015509377" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li>💬 <a href={waUrl} target="_blank" rel="noopener">WhatsApp</a></li>
           <li class="muted small">Пн–Сб: 9:00–17:00 · Вс: 11:00–16:00</li>
         </ul>
       </div>
