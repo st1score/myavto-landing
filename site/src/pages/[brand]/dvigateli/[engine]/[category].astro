@@ -11,6 +11,7 @@ import {
 } from '../../../../lib/db';
 import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../../../lib/slugs';
 import { categoryLabel, brandDisplay, insertTypeLabel } from '../../../../lib/labels';
+import { teikinCatalog } from '../../../../data/teikin-catalog';
 import { fmtNum } from '../../../../lib/format';
 import { brandsForCategory, CATEGORY_SLUG_MAP, CATEGORY_LABELS, type PartCategory } from '../../../../lib/parts-brands';
 // Цены не выводим — только характеристики, бренды, размеры и артикулы.
@@ -41,11 +42,40 @@ export async function getStaticPaths() {
 const { engine, categoryCode } = Astro.props;
 const catLabel = categoryLabel[categoryCode];
 
-const [variants, numbers, attrs] = await Promise.all([
+const [variants, numbers, attrs, stockItems] = await Promise.all([
   getVariantSizes(engine.engine_code, categoryCode),
   getPartNumbers(engine.engine_code, categoryCode),
   getAttributes(engine.engine_code, categoryCode),
+  getStock(engine.engine_code, categoryCode),
 ]);
+
+// Карта «есть остаток» по комбинации бренд|размер|insert.
+// Только для этих комбинаций существуют per-SKU product-страницы.
+const inStock = new Set<string>(
+  stockItems.filter((s) => s.qty > 0).map((s) => `${s.brand_name}|${s.size_code}|${s.insert_type}`)
+);
+
+// Для PISTON: построим URL на product-page как делает /porshni/[product]/index.astro.
+const SIZE_SLUG: Record<string, string> = {
+  STD: 'std', '0.25': '025', '0.50': '050', '0.75': '075', '1.00': '100',
+};
+const brandSlugLower = (b: string) => b.toLowerCase().replace(/[^a-z0-9]/g, '-');
+const insertSlugFn = (it: string) => (it === 'plain' ? '' : '-' + it.toLowerCase());
+const teikinEntry = teikinCatalog[engine.engine_code];
+
+function productUrl(brand: string, size: string, insertType: string): string | null {
+  if (categoryCode !== 'PISTON') return null;
+  const sizeSl = SIZE_SLUG[size];
+  if (!sizeSl) return null;
+  let slug: string;
+  if (brand === 'TEIKIN' && teikinEntry?.teikin_pistons?.[0]) {
+    const article = teikinEntry.teikin_pistons[0].toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    slug = `teikin-${article}${insertSlugFn(insertType)}-${sizeSl}`;
+  } else {
+    slug = `${brandSlugLower(brand)}${insertSlugFn(insertType)}-${sizeSl}`;
+  }
+  return `/${brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase()}/dvigateli/${engineSlug(engine.engine_code)}/porshni/${slug}/`;
+}
 
 const attrMap = Object.fromEntries(
   attrs.map((a) => [a.attribute_code, a.value_text ?? a.value_number ?? a.value_integer])
@@ -323,10 +353,21 @@ const jsonLd = [
                 <span class="badge">{insertTypeLabel[v.insertType] ?? v.insertType}</span>
               </div>
               <div class="variant-sizes">
-                {sizesOrder.filter((s) => v.sizes.has(s)).map((s) => (
-                  <span class="size-chip">{s}</span>
-                ))}
+                {sizesOrder.filter((s) => v.sizes.has(s)).map((s) => {
+                  const has = inStock.has(`${v.brand}|${s}|${v.insertType}`);
+                  const url = has ? productUrl(v.brand, s, v.insertType) : null;
+                  return url ? (
+                    <a href={url} class="size-chip size-chip-link" title={`${brandDisplay(v.brand)} ${s} — открыть товар`}>
+                      {s} <span class="size-chip-mark">●</span>
+                    </a>
+                  ) : (
+                    <span class="size-chip">{s}</span>
+                  );
+                })}
               </div>
+              {[...v.sizes].some((s) => inStock.has(`${v.brand}|${s}|${v.insertType}`)) && (
+                <div class="variant-foot">● — есть в наличии, открыть карточку товара</div>
+              )}
             </div>
           ))}
         </div>
@@ -634,7 +675,9 @@ const jsonLd = [
   .variant-brand { font-size: 1.05rem; }
   .variant-sizes { display: flex; flex-wrap: wrap; gap: 6px; }
   .size-chip {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 5px 10px;
     background: var(--c-bg-soft);
     border: 1px solid var(--c-border);
@@ -642,6 +685,27 @@ const jsonLd = [
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: .82rem;
     font-weight: 600;
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  /* «●» — зелёная точка-индикатор наличия */
+  .size-chip-link {
+    background: #fff;
+    border-color: #0066cc;
+    color: #0066cc;
+    transition: background var(--t-fast), transform var(--t-fast);
+  }
+  .size-chip-link:hover {
+    background: #0066cc;
+    color: #fff !important;
+    transform: translateY(-1px);
+  }
+  .size-chip-link:hover .size-chip-mark { color: #fff; }
+  .size-chip-mark { color: #16a34a; font-size: .65rem; }
+  .variant-foot {
+    margin-top: 10px;
+    font-size: .76rem;
+    color: var(--c-text-faint);
   }
 
   .numbers-grid {
