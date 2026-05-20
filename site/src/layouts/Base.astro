@@ -12,6 +12,7 @@ export interface Props {
   jsonLd?: Record<string, any> | Record<string, any>[];
   noindex?: boolean;
   heroDark?: boolean;
+  stickyWaText?: string;
 }
 
 const {
@@ -22,6 +23,7 @@ const {
   ogImage = '/assets/og-image.jpg',
   jsonLd,
   noindex = false,
+  stickyWaText,
 } = Astro.props;
 
 const siteUrl = 'https://my-avto.kz';
@@ -432,7 +434,7 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   <slot />
 </main>
 <Footer />
-<StickyMobileCTA />
+<StickyMobileCTA waText={stickyWaText} />
 
 <script>
   // Scroll-reveal через IntersectionObserver
