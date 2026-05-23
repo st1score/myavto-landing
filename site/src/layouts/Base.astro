@@ -2,6 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import StickyMobileCTA from '../components/StickyMobileCTA.astro';
+import '../styles/global.css';
 
 export interface Props {
   title: string;
@@ -108,8 +109,8 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
 
 <script type="application/ld+json" set:html={JSON.stringify({
   '@context': 'https://schema.org',
@@ -411,12 +412,47 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   .reveal-delay-2 { transition-delay: 160ms; }
   .reveal-delay-3 { transition-delay: 240ms; }
 
+  /* Stagger reveal — для списков карточек/чипов.
+     Индекс задаётся через --i из JS (см. inline script). Делает плавный
+     fade-up «по очереди» при появлении в viewport. Только transform/opacity — дёшево для мобильного. */
+  .stagger-item {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 500ms var(--ease), transform 500ms var(--ease);
+    transition-delay: calc(var(--i, 0) * 45ms);
+  }
+  .stagger-item.is-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Tap-press feedback — мобильный «нажал/отпустил». GPU-friendly. */
+  .tap-press {
+    transition: transform 120ms var(--ease), box-shadow 200ms var(--ease);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .tap-press:active { transform: scale(0.97); }
+
+  /* Зелёная точка «в наличии» — мягкая пульсация. */
+  @keyframes mya-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.25); opacity: 0.7; }
+  }
+  .pulse-dot {
+    display: inline-block;
+    animation: mya-pulse 2.2s var(--ease) infinite;
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
-    .reveal { opacity: 1; transform: none; }
+    .reveal, .stagger-item { opacity: 1; transform: none; }
+    .pulse-dot { animation: none; }
   }
 
   /* Numbers (catalog) */
@@ -459,6 +495,30 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
     }
   }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // Stagger: проставляем --i внутри каждой stagger-группы и анимируем при появлении.
+  // Группа — любой родитель с data-stagger; если нет, берётся прямой родитель .stagger-item.
+  const sio = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('is-in');
+        sio.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+  document.querySelectorAll('[data-stagger]').forEach((group) => {
+    const items = group.querySelectorAll(':scope > .stagger-item');
+    items.forEach((el, i) => {
+      (el as HTMLElement).style.setProperty('--i', String(Math.min(i, 14))); // cap delay
+      sio.observe(el);
+    });
+  });
+  // Одиночные .stagger-item без data-stagger — без задержки
+  document.querySelectorAll('.stagger-item:not([data-staggered])').forEach((el) => {
+    if (!(el.parentElement && el.parentElement.hasAttribute('data-stagger'))) {
+      sio.observe(el);
+    }
+  });
 
   // Анимация счётчиков [data-counter]
   const cio = new IntersectionObserver((entries) => {

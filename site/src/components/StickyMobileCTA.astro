@@ -8,11 +8,11 @@ const waHref = waText
   : CONTACTS.whatsappWithText('Здравствуйте! Нужна помощь с подбором запчастей.');
 ---
 <div class="sticky-cta" id="stickyCTA" aria-label="Быстрые контакты">
-  <a href={waHref} target="_blank" rel="noopener noreferrer" class="cta-tile cta-wa" aria-label="WhatsApp">
+  <a href={waHref} target="_blank" rel="noopener noreferrer" class="cta-tile cta-wa tap-press" aria-label="WhatsApp">
     <SocialIcon name="whatsapp" />
     <span>WhatsApp</span>
   </a>
-  <a href={`tel:${CONTACTS.phoneE164}`} class="cta-tile cta-call" aria-label="Позвонить">
+  <a href={`tel:${CONTACTS.phoneE164}`} class="cta-tile cta-call tap-press" aria-label="Позвонить">
     <SocialIcon name="phone" />
     <span>Позвонить</span>
   </a>

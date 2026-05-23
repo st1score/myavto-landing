@@ -308,8 +308,8 @@ const jsonLd = [
           </div>
         )}
         <div class="hv2-cta-row">
-          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer" class="btn hv2-cta-primary">Узнать цену в WhatsApp</a>
-          <a href="tel:+77015509377" class="hv2-cta-phone">+7 701 550-93-77</a>
+          <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Интересует цена и наличие на ${catLower} для ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer" class="btn hv2-cta-primary tap-press">Узнать цену в WhatsApp</a>
+          <a href="tel:+77015509377" class="hv2-cta-phone tap-press">+7 701 550-93-77</a>
         </div>
       </div>
     </div>
@@ -424,19 +424,19 @@ const jsonLd = [
       <div class="picks">
         <div class="picks-row">
           <span class="picks-label">Бренды</span>
-          <div class="picks-chips">
+          <div class="picks-chips" data-stagger>
             {(partsBrandList.length ? partsBrandList : allBrandsForCategory.map((b) => b.display)).map((b) => (
-              <span class="picks-chip">{brandDisplay(b)}</span>
+              <span class="picks-chip stagger-item">{brandDisplay(b)}</span>
             ))}
           </div>
         </div>
         <div class="picks-row">
           <span class="picks-label">Размеры</span>
-          <div class="picks-chips">
+          <div class="picks-chips" data-stagger>
             {sizesOrder.map((s) => {
               const hasAny = allSizes.has(s);
               const inStockAny = [...variantList].some((v) => v.sizes.has(s) && inStock.has(`${v.brand}|${s}|${v.insertType}`));
-              return <span class={`picks-chip ${!hasAny ? 'picks-chip-faded' : ''}`}>{s}{inStockAny && <span class="picks-dot">●</span>}</span>;
+              return <span class={`picks-chip stagger-item ${!hasAny ? 'picks-chip-faded' : ''}`}>{s}{inStockAny && <span class="picks-dot pulse-dot">●</span>}</span>;
             })}
           </div>
         </div>
@@ -445,13 +445,13 @@ const jsonLd = [
       {stockedSkus.length > 0 && (
         <div class="stocked">
           <h3 class="stocked-title">В наличии сейчас <span class="muted small">— открыть карточку товара</span></h3>
-          <div class="stocked-grid">
+          <div class="stocked-grid" data-stagger>
             {stockedSkus.map((it) => (
-              <a href={it.url} class="stocked-card">
+              <a href={it.url} class="stocked-card stagger-item tap-press">
                 <span class="sc-brand">{brandDisplay(it.brand)}</span>
                 <span class="sc-size">{it.size}</span>
                 {it.insertType !== 'plain' && <span class="sc-insert">{insertTypeLabel[it.insertType] ?? it.insertType}</span>}
-                <span class="sc-dot">●</span>
+                <span class="sc-dot pulse-dot">●</span>
               </a>
             ))}
           </div>
@@ -465,7 +465,7 @@ const jsonLd = [
       </p>
 
       <div class="brands-cta">
-        <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20${encodeURIComponent(catLower)}%20на%20${engine.brand_name}%20${engine.engine_code},%20размер%20уточню`} class="btn" target="_blank" rel="noopener noreferrer">
+        <a href={`https://wa.me/77015509377?text=Здравствуйте,%20нужны%20${encodeURIComponent(catLower)}%20на%20${engine.brand_name}%20${engine.engine_code},%20размер%20уточню`} class="btn tap-press" target="_blank" rel="noopener noreferrer">
           Узнать цену в WhatsApp
         </a>
       </div>
