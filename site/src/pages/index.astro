@@ -4,6 +4,8 @@ import LogoMarquee from '../components/LogoMarquee.astro';
 import EnginePickerForm from '../components/EnginePickerForm.astro';
 import CarPicker from '../components/CarPicker.astro';
 import FAQ from '../components/FAQ.astro';
+import HeroAnimated from '../components/react/HeroAnimated.tsx';
+import ScrollProgress from '../components/react/ScrollProgress.tsx';
 import { getEngines, getBrandStats } from '../lib/db';
 import { brandSlug } from '../lib/slugs';
 
@@ -68,54 +70,8 @@ const brandLogoMap: Record<string, string> = {
   keywords="запчасти для капиталки двигателя Алматы, поршни Toyota Алматы, кольца поршневые, MY AVTO"
   canonical="/"
 >
-  <!-- HERO -->
-  <section class="hero" id="hero">
-    <div class="hero-bg" id="hero-bg">
-      <div class="glow glow-1"></div>
-      <div class="glow glow-2"></div>
-      <div class="grid-overlay"></div>
-    </div>
-    <div class="container hero-inner">
-      <div class="hero-eyebrow reveal">
-        <span class="dot"></span>В наличии · Алматы · Доставка по РК
-      </div>
-      <h1 class="hero-title reveal reveal-delay-1">
-        Запчасти для<br />
-        <span class="accent-text">капитального ремонта</span><br />
-        двигателя
-      </h1>
-      <p class="hero-sub reveal reveal-delay-2">
-        Поршни, кольца, вкладыши, прокладки ГБЦ для Toyota, Nissan, Mitsubishi, Mazda
-        и других японских авто. Японские бренды TEIKIN, IZUMI, NPR, RIK, Taiho, NDC.
-      </p>
-      <div class="hero-cta reveal reveal-delay-3">
-        <a href="#picker" class="btn">Подобрать запчасти</a>
-        <a href="/zapchasti/porshni/" class="btn btn-ghost btn-on-dark">Открыть каталог</a>
-      </div>
-    </div>
-
-    <div class="stat-bar container">
-      <div class="stat reveal">
-        <div class="stat-num" data-counter={totalEngines}>0</div>
-        <div class="stat-label">двигателей в каталоге</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat reveal reveal-delay-1">
-        <div class="stat-num" data-counter="20" data-suffix="+">0</div>
-        <div class="stat-label">брендов запчастей</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat reveal reveal-delay-2">
-        <div class="stat-num" data-counter="15" data-suffix=" лет">0</div>
-        <div class="stat-label">на рынке Алматы</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat reveal reveal-delay-3">
-        <div class="stat-num">24/7</div>
-        <div class="stat-label">приём заказов в WhatsApp</div>
-      </div>
-    </div>
-  </section>
+  <ScrollProgress client:load />
+  <HeroAnimated totalEngines={totalEngines} client:load />
 
   <!-- AUTO BRANDS MARQUEE -->
   <LogoMarquee
@@ -149,19 +105,19 @@ const brandLogoMap: Record<string, string> = {
         <p>От запроса до получения — обычно 1 день в Алматы, 2–5 в регионах</p>
       </div>
       <div class="steps">
-        <div class="step reveal">
+        <div class="step reveal tap-press">
           <div class="step-num">01</div>
           <h3>Напишите номер двигателя</h3>
           <p class="muted">WhatsApp или прямо на сайте найдите ваш двигатель — например, 1KZ или 2JZ.</p>
         </div>
         <div class="step-arrow">→</div>
-        <div class="step reveal reveal-delay-1">
+        <div class="step reveal reveal-delay-1 tap-press">
           <div class="step-num">02</div>
           <h3>Подбираем варианты</h3>
           <p class="muted">Покажем все доступные бренды (TEIKIN, IZUMI, NPR…) и размеры с актуальной ценой.</p>
         </div>
         <div class="step-arrow">→</div>
-        <div class="step reveal reveal-delay-2">
+        <div class="step reveal reveal-delay-2 tap-press">
           <div class="step-num">03</div>
           <h3>Получаете заказ</h3>
           <p class="muted">Курьер по Алматы в день оплаты. По РК — автобус, авиа, Kazpost, Indriver.</p>
@@ -204,7 +160,7 @@ const brandLogoMap: Record<string, string> = {
         <div class="cta-content">
           <h2>Не нашли свой двигатель?</h2>
           <p>Напишите код двигателя в WhatsApp — найдём, привезём, доставим.</p>
-          <a href="https://wa.me/77015509377?text=Здравствуйте!%20Не%20нашёл%20свой%20двигатель%20на%20сайте,%20помогите%20подобрать%20запчасти." class="btn" target="_blank" rel="noopener">Написать в WhatsApp</a>
+          <a href="https://wa.me/77015509377?text=Здравствуйте!%20Не%20нашёл%20свой%20двигатель%20на%20сайте,%20помогите%20подобрать%20запчасти." class="btn tap-press" target="_blank" rel="noopener">Написать в WhatsApp</a>
         </div>
       </div>
     </div>
@@ -212,160 +168,11 @@ const brandLogoMap: Record<string, string> = {
 </Base>
 
 <style>
-  /* HERO */
-  .hero {
-    position: relative;
-    background: var(--c-black);
-    color: #fff;
-    padding: 120px 0 0;
-    overflow: hidden;
-    isolation: isolate;
-  }
-  @media (max-width: 768px) { .hero { padding: 64px 0 0; } }
-  @media (max-width: 480px) { .hero { padding: 48px 0 0; } }
-  .hero-bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; transition: transform 200ms var(--ease); }
-  .glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.55;
-    animation: drift 20s ease-in-out infinite;
-    will-change: transform;
-  }
-  .glow-1 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, var(--c-red) 0%, transparent 70%);
-    top: -200px; right: -100px;
-  }
-  .glow-2 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, #6b0610 0%, transparent 70%);
-    bottom: -150px; left: -100px;
-    animation-delay: -10s;
-    animation-duration: 25s;
-  }
-  /* На мобиле упрощаем glow для производительности */
-  @media (max-width: 768px) {
-    .glow { filter: blur(60px); animation: none; }
-    .glow-1 { width: 360px; height: 360px; top: -120px; right: -60px; }
-    .glow-2 { width: 320px; height: 320px; bottom: -100px; left: -60px; }
-    .grid-overlay { background-size: 40px 40px; }
-  }
+  /* drift keyframe used by HeroAnimated backdrop blobs */
   @keyframes drift {
     0%, 100% { transform: translate(0,0) scale(1); }
     33% { transform: translate(40px, -30px) scale(1.08); }
     66% { transform: translate(-30px, 40px) scale(0.95); }
-  }
-  .grid-overlay {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 60px 60px;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-  }
-  .hero-inner {
-    position: relative;
-    text-align: center;
-    padding-bottom: 64px;
-  }
-  @media (max-width: 640px) { .hero-inner { padding-bottom: 40px; } }
-  .hero-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.12);
-    font-size: .82rem;
-    color: rgba(255,255,255,0.85);
-    margin-bottom: 32px;
-    backdrop-filter: blur(8px);
-  }
-  .hero-eyebrow .dot {
-    width: 6px; height: 6px;
-    background: #4ade80;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #4ade80;
-  }
-  .hero-title {
-    font-size: clamp(2.2rem, 7vw, 5.5rem);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.04em;
-    margin-bottom: 24px;
-    color: #fff;
-  }
-  @media (max-width: 480px) {
-    .hero-title { font-size: 2rem; line-height: 1.1; }
-    .hero-sub { font-size: 1rem; margin-bottom: 24px; }
-    .hero-eyebrow { font-size: .74rem; padding: 6px 12px; margin-bottom: 20px; }
-  }
-  .accent-text {
-    background: linear-gradient(135deg, var(--c-red) 0%, #ff5760 60%, #ff8a92 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-  }
-  .hero-sub {
-    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-    color: rgba(255,255,255,0.75);
-    max-width: 640px;
-    margin: 0 auto 40px;
-    line-height: 1.55;
-  }
-  .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  @media (max-width: 480px) {
-    .hero-cta { flex-direction: column; gap: 10px; }
-    .hero-cta .btn { width: 100%; }
-  }
-  .btn-on-dark { color: #fff !important; border-color: rgba(255,255,255,0.2); }
-  .btn-on-dark:hover {
-    background: #fff;
-    color: var(--c-black) !important;
-    border-color: #fff;
-  }
-
-  /* STAT BAR */
-  .stat-bar {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-    align-items: center;
-    gap: 24px;
-    padding: 32px 24px;
-    background: rgba(255,255,255,0.04);
-    backdrop-filter: blur(8px);
-    border-top: 1px solid rgba(255,255,255,0.08);
-    max-width: var(--maxw);
-  }
-  .stat { text-align: center; }
-  .stat-num {
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-bottom: 8px;
-    font-variant-numeric: tabular-nums;
-  }
-  .stat-label {
-    font-size: .85rem;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .stat-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.1); }
-  @media (max-width: 768px) {
-    .stat-bar { grid-template-columns: 1fr 1fr; gap: 24px 16px; padding: 24px 16px; }
-    .stat-divider { display: none; }
-  }
-  @media (max-width: 480px) {
-    .stat-num { font-size: 1.6rem; }
-    .stat-label { font-size: .72rem; }
   }
 
   /* BRAND CARDS */
@@ -530,19 +337,3 @@ const brandLogoMap: Record<string, string> = {
   }
 </style>
 
-<script>
-  // Mouse-parallax для hero фон (только desktop, не reduced motion)
-  const hero = document.getElementById('hero');
-  const heroBg = document.getElementById('hero-bg');
-  if (hero && heroBg && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && window.matchMedia('(pointer: fine)').matches) {
-    hero.addEventListener('mousemove', (e: MouseEvent) => {
-      const rect = hero.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      heroBg.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
-    });
-    hero.addEventListener('mouseleave', () => {
-      heroBg.style.transform = 'translate(0,0)';
-    });
-  }
-</script>
