@@ -1,0 +1,153 @@
+---
+import { CONTACTS } from '../lib/contacts';
+
+const categories = [
+  {
+    title: 'Поршни',
+    desc: 'TEIKIN, IZUMI, ND, NM — STD и ремонтные размеры.',
+    href: '/zapchasti/porshni/',
+    waText: 'Здравствуйте! Интересуют поршни. Подскажу код двигателя или VIN.',
+  },
+  {
+    title: 'Поршневые кольца',
+    desc: 'Комплекты на мотор: NPR, RIK, TP, TEIKIN.',
+    href: null,
+    waText: 'Здравствуйте! Нужны поршневые кольца. Подскажу код двигателя или VIN.',
+  },
+  {
+    title: 'Вкладыши коренные',
+    desc: 'Taiho, NDC, TEIKIN — STD и ремонтные размеры.',
+    href: null,
+    waText: 'Здравствуйте! Нужны коренные вкладыши. Подскажу код двигателя или VIN.',
+  },
+  {
+    title: 'Вкладыши шатунные',
+    desc: 'Taiho, NDC, TEIKIN — под ваш мотор и размер шейки.',
+    href: null,
+    waText: 'Здравствуйте! Нужны шатунные вкладыши. Подскажу код двигателя или VIN.',
+  },
+  {
+    title: 'Прокладки ГБЦ',
+    desc: 'Оригинал и заводские аналоги под номер двигателя.',
+    href: null,
+    waText: 'Здравствуйте! Нужна прокладка ГБЦ. Подскажу код двигателя или VIN.',
+  },
+  {
+    title: 'Гильзы',
+    desc: 'Гильзы блока цилиндров под капитальный ремонт.',
+    href: null,
+    waText: 'Здравствуйте! Нужны гильзы блока цилиндров. Подскажу код двигателя или VIN.',
+  },
+];
+---
+
+<section class="parts-cats-section" id="parts-categories" aria-labelledby="parts-cats-title">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow">Каталог</span>
+      <h2 id="parts-cats-title">Что продаём для капиталки двигателя</h2>
+      <p>Только моторные запчасти для японских авто — без масел, фильтров, подвески и кузовщины.</p>
+    </div>
+
+    <div class="cats-grid">
+      {categories.map((c, i) => (
+        <div class={`cat-card reveal reveal-delay-${i % 3} tap-press`}>
+          <h3>{c.title}</h3>
+          <p>{c.desc}</p>
+          <div class="cat-actions">
+            {c.href && (
+              <a class="cat-link" href={c.href}>Каталог →</a>
+            )}
+            <a
+              class="cat-cta"
+              href={CONTACTS.whatsappWithText(c.waText)}
+              target="_blank"
+              rel="noopener"
+              aria-label={`Узнать наличие: ${c.title}`}
+            >Узнать наличие</a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .parts-cats-section { background: var(--c-bg-soft); }
+  .cats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .cat-card {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color var(--t-med), box-shadow var(--t-med), transform var(--t-med);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cat-card:hover {
+      border-color: var(--c-black);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+  }
+  .cat-card h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .cat-card p {
+    color: var(--c-text-dim);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin: 0;
+    flex-grow: 1;
+  }
+  .cat-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .cat-link {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--c-text-dim);
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .cat-link:hover { color: var(--c-red); }
+  .cat-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 18px;
+    background: var(--c-black);
+    color: #fff;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: background var(--t-fast), color var(--t-fast);
+    margin-left: auto;
+  }
+  .cat-cta:hover { background: var(--c-red); color: #fff; }
+  @media (max-width: 900px) {
+    .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  }
+  @media (max-width: 560px) {
+    .cats-grid { grid-template-columns: 1fr; }
+    .cat-card { padding: 20px; }
+    .cat-cta { width: 100%; margin-left: 0; }
+    .cat-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+    .cat-link { justify-content: flex-start; }
+  }
+</style>

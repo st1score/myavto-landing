@@ -1,0 +1,85 @@
+---
+const steps = [
+  {
+    num: '01',
+    title: 'Отправьте данные',
+    text: 'Код двигателя, VIN или фото детали — в WhatsApp или через форму на сайте.',
+  },
+  {
+    num: '02',
+    title: 'Проверяем совместимость',
+    text: 'Сверяем размер, наличие на складе и подходит ли деталь под ваш мотор.',
+  },
+  {
+    num: '03',
+    title: 'Предлагаем варианты',
+    text: 'Бренды TEIKIN, NPR, RIK, Taiho и другие — со сравнением и нашей рекомендацией.',
+  },
+  {
+    num: '04',
+    title: 'Подтверждаете и забираете',
+    text: 'Заказ в WhatsApp. Забираете в CarCity бутик 135В или получаете доставкой по РК.',
+  },
+];
+---
+
+<section class="how-section" id="how-to-order">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow">Процесс</span>
+      <h2>Как проходит заказ</h2>
+    </div>
+
+    <ol class="how-steps">
+      {steps.map((s, i) => (
+        <li class={`how-step reveal reveal-delay-${i % 3} tap-press`}>
+          <div class="how-num">{s.num}</div>
+          <h3>{s.title}</h3>
+          <p>{s.text}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .how-section { background: var(--c-bg-soft); }
+  .how-steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .how-step {
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    padding: 26px;
+    transition: border-color var(--t-med), box-shadow var(--t-med), transform var(--t-med);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .how-step:hover { border-color: var(--c-black); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  }
+  .how-num {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--c-red);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-bottom: 14px;
+  }
+  .how-step h3 { font-size: 1.05rem; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.01em; }
+  .how-step p { color: var(--c-text-dim); font-size: 0.92rem; line-height: 1.5; margin: 0; }
+
+  @media (max-width: 1000px) {
+    .how-steps { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .how-steps { grid-template-columns: 1fr; gap: 12px; }
+    .how-step { padding: 22px; }
+    .how-num { font-size: 1.7rem; margin-bottom: 10px; }
+  }
+</style>

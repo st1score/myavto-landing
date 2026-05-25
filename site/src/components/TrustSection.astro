@@ -1,0 +1,86 @@
+---
+import { CONTACTS } from '../lib/contacts';
+
+const items = [
+  {
+    icon: '🔧',
+    title: 'Узкая специализация',
+    text: 'Только капиталка двигателя — не размениваемся на масла, фильтры и подвеску.',
+  },
+  {
+    icon: '🇯🇵',
+    title: 'Японские авто',
+    text: 'Toyota, Nissan, Mitsubishi, Mazda, Honda, Subaru, Suzuki, Isuzu — популярные моторы.',
+  },
+  {
+    icon: '🔍',
+    title: 'Подбор по VIN и коду',
+    text: 'Сверяем размеры, бренды и совместимость до того, как вы оплатите заказ.',
+  },
+  {
+    icon: '🏷',
+    title: 'Японские бренды',
+    text: 'TEIKIN, NPR, RIK, Taiho, NDC, NOK, GMB, NPW — с заводской гарантией.',
+  },
+  {
+    icon: '📍',
+    title: 'Алматы, CarCity',
+    text: '3 ярус, бутик 135В — можно забрать в день оплаты, посмотреть деталь руками.',
+  },
+  {
+    icon: '🚚',
+    title: 'Доставка по РК',
+    text: 'Автобус, СДЭК, Казпочта, AVS авиа — обычно 1–3 дня в регионы.',
+  },
+];
+---
+
+<section class="trust-section" id="why-myavto">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow">Почему мы</span>
+      <h2>Почему MY AVTO</h2>
+    </div>
+
+    <div class="trust-grid">
+      {items.map((it, i) => (
+        <div class={`trust-item reveal reveal-delay-${i % 3}`}>
+          <div class="trust-icon" aria-hidden="true">{it.icon}</div>
+          <h3>{it.title}</h3>
+          <p>{it.text}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .trust-section { background: var(--c-bg); }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 24px;
+  }
+  .trust-item {
+    padding: 4px;
+  }
+  .trust-icon {
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--c-bg-soft);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    font-size: 1.5rem;
+    margin-bottom: 14px;
+  }
+  .trust-item h3 { font-size: 1.05rem; margin: 0 0 6px; font-weight: 800; letter-spacing: -0.01em; }
+  .trust-item p { color: var(--c-text-dim); font-size: 0.93rem; line-height: 1.5; margin: 0; }
+
+  @media (max-width: 900px) {
+    .trust-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  }
+  @media (max-width: 560px) {
+    .trust-grid { grid-template-columns: 1fr; gap: 14px; }
+    .trust-icon { width: 44px; height: 44px; font-size: 1.25rem; margin-bottom: 10px; }
+  }
+</style>
