@@ -110,8 +110,11 @@ export default function HeroAnimated({ totalEngines }: Props) {
     <section ref={containerRef} className="relative isolate overflow-hidden bg-surface-950 text-white pt-[120px] max-md:pt-16 max-sm:pt-12">
       {/* Animated mesh-gradient backdrop */}
       <motion.div style={{ x: tx, y: ty }} className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-48 -right-24 w-[600px] h-[600px] rounded-full opacity-55 blur-[80px] bg-[radial-gradient(circle,var(--c-red)_0%,transparent_70%)] animate-[drift_20s_ease-in-out_infinite]" />
-        <div className="absolute -bottom-36 -left-24 w-[500px] h-[500px] rounded-full opacity-55 blur-[80px] bg-[radial-gradient(circle,#6b0610_0%,transparent_70%)] animate-[drift_25s_ease-in-out_-10s_infinite]" />
+        {/* Drift анимации только на md+ (desktop/tablet) — на мобиле большие
+            blur-пятна с infinite-анимацией создавали красное мерцание. На мобиле
+            те же blob'ы статичны (без animate-). */}
+        <div className="absolute -top-48 -right-24 w-[600px] h-[600px] rounded-full opacity-55 blur-[80px] bg-[radial-gradient(circle,var(--c-red)_0%,transparent_70%)] md:animate-[drift_20s_ease-in-out_infinite] max-md:w-[360px] max-md:h-[360px] max-md:-top-32 max-md:-right-16 max-md:blur-[60px]" />
+        <div className="absolute -bottom-36 -left-24 w-[500px] h-[500px] rounded-full opacity-55 blur-[80px] bg-[radial-gradient(circle,#6b0610_0%,transparent_70%)] md:animate-[drift_25s_ease-in-out_-10s_infinite] max-md:w-[320px] max-md:h-[320px] max-md:-bottom-24 max-md:-left-16 max-md:blur-[60px]" />
         <div className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)]" />
       </motion.div>
 
