@@ -910,7 +910,9 @@ const jsonLd = [
     font-size: .9rem;
     transition: border-color var(--t-fast), transform var(--t-fast);
   }
-  .stocked-card:hover { border-color: var(--c-red); transform: translateY(-1px); }
+  @media (hover: hover) and (pointer: fine) {
+    .stocked-card:hover { border-color: var(--c-red); transform: translateY(-1px); }
+  }
   .sc-brand { font-weight: 700; }
   .sc-size { font-family: 'JetBrains Mono', monospace; color: var(--c-text-dim); }
   .sc-insert {
@@ -936,7 +938,9 @@ const jsonLd = [
     padding: 16px 18px;
     transition: border-color var(--t-fast), box-shadow var(--t-fast);
   }
-  .variant-card:hover { border-color: var(--c-red); box-shadow: var(--shadow-sm); }
+  @media (hover: hover) and (pointer: fine) {
+    .variant-card:hover { border-color: var(--c-red); box-shadow: var(--shadow-sm); }
+  }
   .variant-head {
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px;
@@ -965,12 +969,14 @@ const jsonLd = [
     color: #0066cc;
     transition: background var(--t-fast), transform var(--t-fast);
   }
-  .size-chip-link:hover {
-    background: #0066cc;
-    color: #fff !important;
-    transform: translateY(-1px);
+  @media (hover: hover) and (pointer: fine) {
+    .size-chip-link:hover {
+      background: #0066cc;
+      color: #fff !important;
+      transform: translateY(-1px);
+    }
+    .size-chip-link:hover .size-chip-mark { color: #fff; }
   }
-  .size-chip-link:hover .size-chip-mark { color: #fff; }
   .size-chip-mark { color: #16a34a; font-size: .65rem; }
   .variant-foot {
     margin-top: 10px;
@@ -1088,9 +1094,11 @@ const jsonLd = [
   }
   .related-card strong { font-size: 1.05rem; }
   .related-card span { color: var(--c-text-faint); font-size: .9rem; }
-  .related-card:hover {
-    border-color: var(--c-red);
-    transform: translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    .related-card:hover {
+      border-color: var(--c-red);
+      transform: translateY(-2px);
+    }
   }
 
   /* Trust */

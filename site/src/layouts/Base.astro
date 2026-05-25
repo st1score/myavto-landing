@@ -274,12 +274,16 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
     transition: opacity var(--t-med);
     pointer-events: none;
   }
-  .card:hover {
-    transform: translateY(-4px);
-    border-color: var(--c-black);
-    box-shadow: var(--shadow-lg);
+  /* Heavy hover-эффекты — только на устройствах с настоящим hover (desktop с мышью).
+     На тач устройствах оставляем активное состояние через :active, а не «зависший» hover. */
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--c-black);
+      box-shadow: var(--shadow-lg);
+    }
+    .card:hover::before { opacity: 1; }
   }
-  .card:hover::before { opacity: 1; }
   a.card { display: block; color: inherit; }
   a.card:hover { color: inherit; }
   .card h3 { margin-bottom: 6px; }
@@ -292,9 +296,11 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
     color: var(--c-text-faint);
     transition: transform var(--t-med), color var(--t-med);
   }
-  .card:hover .card-arrow {
-    color: var(--c-red);
-    transform: translate(3px, -3px);
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover .card-arrow {
+      color: var(--c-red);
+      transform: translate(3px, -3px);
+    }
   }
 
   /* Buttons */
@@ -323,13 +329,15 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
     transition: transform var(--t-fast);
     display: inline-block;
   }
-  .btn:hover {
-    background: var(--c-red-dark);
-    color: #fff !important;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-red);
+  @media (hover: hover) and (pointer: fine) {
+    .btn:hover {
+      background: var(--c-red-dark);
+      color: #fff !important;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-red);
+    }
+    .btn:hover::after { transform: translateX(4px); }
   }
-  .btn:hover::after { transform: translateX(4px); }
 
   .btn-ghost {
     background: transparent;
@@ -434,25 +442,31 @@ const fullOg = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
   }
   .tap-press:active { transform: scale(0.97); }
 
-  /* Зелёная точка «в наличии» — мягкая пульсация. */
+  /* Зелёная точка «в наличии» — мягкая пульсация.
+     ОГРАНИЧЕНО 4 циклами вместо бесконечной — после первичного привлечения внимания
+     становится статичной. Только transform/opacity (без box-shadow/filter — иначе flicker). */
   @keyframes mya-pulse {
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.25); opacity: 0.7; }
   }
   .pulse-dot {
     display: inline-block;
-    animation: mya-pulse 2.2s var(--ease) infinite;
+    animation: mya-pulse 2.2s var(--ease) 4;
+    animation-fill-mode: forwards;
     transform-origin: center;
     will-change: transform, opacity;
   }
 
+  /* Жёсткий reset для пользователей с включённым prefers-reduced-motion.
+     Останавливает ВСЕ анимации (включая бесконечные). */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
       transition-duration: 0.01ms !important;
     }
     .reveal, .stagger-item { opacity: 1; transform: none; }
-    .pulse-dot { animation: none; }
   }
 
   /* Numbers (catalog) */
