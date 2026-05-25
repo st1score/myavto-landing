@@ -165,12 +165,19 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна п
     width: 8px; height: 8px;
     background: var(--c-red);
     border-radius: 50%;
-    animation: pulse 1.8s ease-in-out infinite;
-    box-shadow: 0 0 0 0 rgba(229,9,20, 0.5);
+    /* Lightweight opacity pulse — only on desktop, finite, no box-shadow flicker.
+       На мобиле статичная точка чтобы не было визуального мерцания.
+       Сделано как @media (hover: hover) — на тач устройствах никогда не запускается. */
   }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(229,9,20, 0.5); }
-    50% { box-shadow: 0 0 0 8px rgba(229,9,20, 0); }
+  @media (hover: hover) and (pointer: fine) {
+    .phone-dot {
+      animation: phone-dot-pulse 1.6s var(--ease) 4;
+      will-change: opacity;
+    }
+  }
+  @keyframes phone-dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
   }
 
   .burger {
@@ -178,7 +185,7 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна п
     background: transparent;
     border: 0;
     cursor: pointer;
-    width: 36px; height: 36px;
+    width: 44px; height: 44px; /* WCAG / iOS tap-target минимум 44×44 */
     padding: 0;
     flex-direction: column;
     justify-content: center;

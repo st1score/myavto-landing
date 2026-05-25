@@ -622,14 +622,16 @@ const waText = encodeURIComponent(waTextRaw);
     flex: 1 1 auto;
     min-width: 220px;
   }
-  .ph-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229,9,20,0.32); }
   .ph-btn-primary svg { flex-shrink: 0; }
   .ph-btn-secondary {
     background: #fff;
     color: var(--c-text) !important;
     border-color: var(--ph-border);
   }
-  .ph-btn-secondary:hover { border-color: var(--ph-blue); color: var(--ph-blue) !important; }
+  @media (hover: hover) and (pointer: fine) {
+    .ph-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229,9,20,0.32); }
+    .ph-btn-secondary:hover { border-color: var(--ph-blue); color: var(--ph-blue) !important; }
+  }
   .ph-btn-big { font-size: 1.05rem; padding: 16px 28px; }
 
   .ph-kit {
@@ -774,17 +776,19 @@ const waText = encodeURIComponent(waTextRaw);
     text-decoration: none;
     transition: all var(--t-fast);
   }
-  .ph-chip:hover {
-    border-color: var(--ph-blue);
-    color: var(--ph-blue);
-  }
   .ph-chip-cur {
     background: var(--ph-blue);
     color: #fff;
     border-color: var(--ph-blue);
     cursor: default;
   }
-  .ph-chip-cur:hover { color: #fff; }
+  @media (hover: hover) and (pointer: fine) {
+    .ph-chip:hover {
+      border-color: var(--ph-blue);
+      color: var(--ph-blue);
+    }
+    .ph-chip-cur:hover { color: #fff; }
+  }
 
   /* ───────── BRANDS strip ───────── */
   .ph-brands-grid {
@@ -802,7 +806,9 @@ const waText = encodeURIComponent(waTextRaw);
     border-radius: 10px;
     transition: background var(--t-fast);
   }
-  .ph-brand-card:hover { background: #fff; }
+  @media (hover: hover) and (pointer: fine) {
+    .ph-brand-card:hover { background: #fff; }
+  }
   .ph-brand-card img {
     width: 56px;
     height: 32px;

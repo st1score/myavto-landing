@@ -251,7 +251,9 @@ const brandLogoMap: Record<string, string> = {
     .step { padding: 24px; }
     .step-num { font-size: 2.2rem; margin-bottom: 10px; }
   }
-  .step:hover { border-color: var(--c-black); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+  @media (hover: hover) and (pointer: fine) {
+    .step:hover { border-color: var(--c-black); box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+  }
   .step-num {
     font-size: 3rem;
     font-weight: 800;
@@ -266,11 +268,17 @@ const brandLogoMap: Record<string, string> = {
     align-self: center;
     color: var(--c-text-faint);
     font-size: 2rem;
-    animation: arrow-pulse 2.5s ease-in-out infinite;
   }
-  @keyframes arrow-pulse {
-    0%, 100% { transform: translateX(0); opacity: 0.5; }
-    50% { transform: translateX(6px); opacity: 1; }
+  /* arrow pulse — только на desktop с реальным hover и в широком layout;
+     на тач отключено вместе с самой стрелкой ниже */
+  @media (hover: hover) and (pointer: fine) and (min-width: 901px) {
+    .step-arrow {
+      animation: arrow-pulse 2.5s ease-in-out 6;
+    }
+    @keyframes arrow-pulse {
+      0%, 100% { transform: translateX(0); opacity: 0.5; }
+      50% { transform: translateX(6px); opacity: 1; }
+    }
   }
   @media (max-width: 900px) {
     .steps { grid-template-columns: 1fr; }
@@ -289,10 +297,12 @@ const brandLogoMap: Record<string, string> = {
     margin-bottom: 20px;
     transition: all var(--t-med);
   }
-  .benefit:hover .benefit-icon {
-    background: var(--c-black);
-    color: #fff;
-    transform: rotate(-6deg) scale(1.05);
+  @media (hover: hover) and (pointer: fine) {
+    .benefit:hover .benefit-icon {
+      background: var(--c-black);
+      color: #fff;
+      transform: rotate(-6deg) scale(1.05);
+    }
   }
   .benefit h3 { font-size: 1.15rem; margin-bottom: 8px; }
   .benefit p { font-size: .95rem; margin: 0; }
@@ -322,7 +332,11 @@ const brandLogoMap: Record<string, string> = {
     inset: 0;
     background: radial-gradient(ellipse at 50% 0%, rgba(229,9,20,0.4) 0%, transparent 60%);
     z-index: -1;
-    animation: drift 16s ease-in-out infinite;
+  }
+  /* Drift активен ТОЛЬКО на широком экране — на мобиле большое красное пятно
+     с blur+infinite анимацией создавало визуальное мерцание. */
+  @media (min-width: 769px) {
+    .cta-glow { animation: drift 16s ease-in-out infinite; }
   }
   .cta-box h2 {
     color: #fff;
