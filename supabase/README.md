@@ -622,6 +622,42 @@ How to apply (manually):
    `data_source_links`) remains a separate, future step gated by
    `catalog_import_decisions`.
 
+### C2 review / diff (read-only)
+
+**File:** `reviews/review_otoba_1kz_fitment_diff.sql`
+
+After Otoba parser rows land in staging, this read-only review SQL
+compares them with the current `public.engine_fitments` +
+`public.vehicle_models` for `engine_code='1KZ'` and emits three
+buckets plus a summary:
+
+| Bucket | Meaning | Recommendation per row |
+|---|---|---|
+| **MATCHED_BY_MODEL_CHASSIS** | Already in master (matched on lower-trim model + coalesce-equal generation + chassis). | Update `confidence → 0.90`, `notes → 'verified from otoba.ru'`, insert `data_source_links(otoba_ru, entity_key)`. |
+| **OTOBA_ONLY** | In Otoba staging, missing from master. Likely new 4Runner generations and Hilux 6. | Create `vehicle_model` if missing; then create `engine_fitment` at `confidence=0.90, source=otoba_ru`. |
+| **MASTER_ONLY** | In master, no corresponding Otoba row. Likely Granvia, Regius, Land Cruiser, Dyna/Toyoace. | Keep as `needs verification`; do not delete; search another source; `confidence` stays `0.70`. |
+
+**SAFETY:** the file is strictly read-only.
+
+- No `INSERT` / `UPDATE` / `DELETE` / `DROP` / `TRUNCATE` / `ALTER` /
+  `GRANT` anywhere — only `WITH … SELECT …`.
+- Safe to re-run as many times as you want.
+- This is **not** promotion. After reviewing the three result sets, a
+  separate promotion SQL (yet to be written) will perform the actual
+  upserts into master, gated by `catalog_import_decisions`.
+
+How to use:
+
+1. Paste `supabase/reviews/review_otoba_1kz_fitment_diff.sql` into
+   Supabase SQL Editor.
+2. Run. Read all four result sets.
+3. For each row in MATCHED / OTOBA_ONLY, decide approve / merge /
+   skip.
+4. Record decisions in `catalog_import_decisions` (manual UPSERT —
+   not part of this review file).
+5. Only after that, prepare a promotion SQL that writes to
+   `engine_fitments` / `vehicle_models` / `data_source_links`.
+
 ### First real use after apply
 
 The first end-to-end pipeline through C1 will be the **Otoba.ru
