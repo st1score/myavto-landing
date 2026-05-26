@@ -9,3 +9,4 @@ dist/
 .astro/
 site/scripts/cache-teikin-pdfs/
 site/scripts/.teikin-cookies.txt
+tmp/
