@@ -658,6 +658,76 @@ How to use:
 5. Only after that, prepare a promotion SQL that writes to
    `engine_fitments` / `vehicle_models` / `data_source_links`.
 
+### C2 promotion (Otoba → master, 1KZ)
+
+**Files:**
+- `promotions/promote_otoba_1kz_fitments.sql`
+- `promotions/promote_otoba_1kz_fitments_rollback.sql`
+
+After the review file confirms the diff
+(`matched_count=2`, `otoba_only_count=5`, `master_only_count=6`,
+`engine_fitments(1KZ)=8`), promotion takes the 7 staging rows and
+writes them to master:
+
+| Step | Action |
+|------|--------|
+| 1 | Sanity checks (batch exists, staging_count=7, fitments_before=8) — `RAISE EXCEPTION` on mismatch. |
+| 2 | Insert 5 missing `vehicle_models` for OTOBA_ONLY (4Runner ×3, Hilux 6, HiAce 4). `year_from`/`year_to` from Otoba. ON CONFLICT DO NOTHING. |
+| 3 | Resolve `vehicle_model_id` per staging row. |
+| 4 | Resolve `existing_fitment_id` (per `(engine_code, vehicle_model_id)`) — independent of year window so Stage A NULL-year fitments are recognized. |
+| 5 | MATCHED: `UPDATE engine_fitments` for the 2 Prado fitments — set years from Otoba, `confidence=0.90`, `notes='verified from otoba.ru'`, `source_id=otoba_ru`. |
+| 6 | OTOBA_ONLY: `INSERT engine_fitments` for the 5 new ones. ON CONFLICT DO NOTHING. |
+| 7 | `INSERT data_source_links` (source=`otoba_ru`, `entity_key` from `normalized_json`) for all 7 rows. ON CONFLICT DO UPDATE on `raw_text`/`raw_json`/`confidence`/`source_url`. |
+
+**Expected outcome:** `engine_fitments(1KZ)` goes from **8 → 13**.
+
+**MASTER_ONLY rows are NOT deleted.** Granvia, Regius, Land Cruiser,
+Dyna/Toyoace, plus the Stage A "Hiace"/"Hilux Surf" rows with NULL
+generation/chassis stay at `confidence=0.70` with the original
+`needs verification` note. The final SELECT in the promotion file
+lists them under "master_only rows that still need verification" for
+follow-up via a different source (TEIKIN catalog, dealer EPC, …).
+
+**Safety inside the promotion file:**
+
+- BEGIN/COMMIT transaction wrapping the whole operation.
+- Hard sanity checks via `DO $$ … $$` before any write.
+- Uses only the existing unique indexes; no schema changes, no GRANT,
+  no RLS, no DROP/DELETE/TRUNCATE.
+- Reads only staging rows with `status IN ('normalized','approved')`.
+- TEMP table (`tmp_promo_rows`, `ON COMMIT DROP`) so nothing leaks
+  out of the transaction.
+
+**Rollback** (`promote_otoba_1kz_fitments_rollback.sql`):
+
+- Deletes `data_source_links` from `otoba_ru` for `entity_key LIKE '1KZ:%'`.
+- Deletes the 5 new `engine_fitments` — filtered by
+  `source_id=otoba_ru AND notes='verified from otoba.ru' AND
+  vehicle_model_id IN <set of created models>`. Manually-edited rows
+  are left alone.
+- Deletes the 5 created `vehicle_models` only when no other fitment
+  references them.
+- Reverts the 2 Prado fitments to Stage A baseline (`confidence=0.70`,
+  `notes='needs verification until otoba.ru parsed'`, `source_id=manual_myavto`,
+  `year_from=NULL`, `year_to=NULL`) — only if they still carry the
+  Otoba promotion marker.
+
+**Rollback does NOT** delete Stage A seed data, drop any table, or
+touch master_only rows / staging / decisions / batch.
+
+How to apply:
+
+1. Re-run `reviews/review_otoba_1kz_fitment_diff.sql`. Confirm the
+   counts.
+2. Open `promotions/promote_otoba_1kz_fitments.sql` in Supabase SQL
+   Editor.
+3. Execute. Read the four verification result sets at the bottom.
+4. If `engine_fitments_1kz_after = 13` and the listing looks correct,
+   you're done.
+5. If anything is wrong, run
+   `promotions/promote_otoba_1kz_fitments_rollback.sql` to restore the
+   pre-promotion state.
+
 ### First real use after apply
 
 The first end-to-end pipeline through C1 will be the **Otoba.ru
