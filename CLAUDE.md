@@ -102,9 +102,34 @@ Master database с одним правилом: **у каждого факта �
 - **Не выдумывать годы/совместимости** — все спорные данные с `confidence < 1.0` и `notes = 'needs verification'`. Источник истины по машинам — otoba.ru.
 - **Канонические `entity_key`-форматы** для `data_source_links` зафиксированы в [supabase/README.md](supabase/README.md) (формат `<engine>:<make>:<model-slug>:<generation>` и т.п.) — не менять формат произвольно, иначе ломаются индексы и аналитика.
 
-### Следующий этап — Stage B
+### Stage B1 prepared (not yet applied)
 
-**Status:** дизайн готов, SQL не написан. См. раздел "Next: Stage B" в [supabase/README.md](supabase/README.md).
+**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. [supabase/README.md#stage-b1](supabase/README.md).
+
+Файлы:
+- [supabase/migrations/20260526_stage_b1_products.sql](supabase/migrations/20260526_stage_b1_products.sql)
+- [supabase/seeds/seed_b1_1kz_products.sql](supabase/seeds/seed_b1_1kz_products.sql)
+- [supabase/checks/stage_b1_verify.sql](supabase/checks/stage_b1_verify.sql)
+- [supabase/rollbacks/20260526_stage_b1_products_rollback.sql](supabase/rollbacks/20260526_stage_b1_products_rollback.sql)
+
+**Что добавит B1:**
+- `sales_channels` — справочник каналов (website/kaspi/telegram/google_ads/n8n/retail/wholesale/promo).
+- `products` — стабильный SKU-слой поверх `part_variant_sizes` с тем же natural key.
+- 4 SQL-функции: `normalize_sku_part`, `size_code_to_sku`, `category_code_to_sku`, `generate_product_sku`.
+- Триггеры: `BEFORE INSERT` авто-заполняет sku, `BEFORE UPDATE` запрещает менять sku (immutable contract), `BEFORE UPDATE` обновляет `updated_at`.
+- Backfill seed для 1KZ PISTON из `part_variant_sizes`.
+
+**Формат SKU:** `MYA-{ENGINE}-{CAT}-{BRAND}-{VARIANT}[-{INSERT}]-{SIZE}` — например `MYA-1KZ-PSTN-TEIKIN-46283-AG-050`. `INSERT` опускается при `insert_type='plain'`. После генерации sku **immutable** — триггер отклоняет UPDATE.
+
+**Что B1 НЕ делает:**
+- Не меняет `part_variant_sizes`. **Сайт продолжает читать старые таблицы**, не products.
+- Не добавляет FK `products.engine_code → engines` (composite PK блокер).
+- Не вставляет цены, медиа, контент — это B2/B3/B4.
+- Не выдаёт GRANT/RLS, не меняет Astro-сборку.
+
+### Следующие этапы — Stage B2…B6
+
+**Status:** дизайн готов, SQL не написан. См. раздел "Future Stage B sub-stages" в [supabase/README.md](supabase/README.md).
 
 Stage B добавит SKU/commerce-слой поверх существующего каталога:
 - `products` — стабильный синтетический SKU (сайт продолжит читать `part_variant_sizes`; маркетплейсы — `products`).
