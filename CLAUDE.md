@@ -51,6 +51,74 @@ DATABASE_URL=postgresql://<user>:<password>@<supabase-pooler-host>:5432/postgres
 - `part_variants` + `part_variant_sizes` — варианты (brand × insert × size).
 - `stock_items` — реальные остатки (qty, warehouse_code). 185 моторов имеют поршни в наличии.
 
+---
+
+## Master Database Stage A Applied
+
+**Дата:** 2026-05-26. **Статус:** ✅ применено вручную в production Supabase. Seed `seed_1kz_master_example.sql` залит, все checks прошли. См. [supabase/README.md](supabase/README.md) и [supabase/migrations/20260526_stage_a_master_db_foundation.sql](supabase/migrations/20260526_stage_a_master_db_foundation.sql).
+
+### Что добавлено (11 новых таблиц + общий триггер `tg_touch_updated_at()`)
+
+Слой **vehicles** (применяемость двигателей к авто):
+- `vehicle_makes` — марки (Toyota, Nissan…)
+- `vehicle_models` — модель + generation + chassis_code (источник: otoba.ru)
+- `engine_fitments` — `engine_code` ↔ `vehicle_models.id`, с `confidence` и `source_id`
+- `vehicle_specs` — EAV-характеристики автомобиля (body_type, drive_type, power_hp, frame_code…)
+
+Слой **provenance** (откуда что пришло):
+- `data_sources` — каталоги/сайты/manual/AI/n8n (11 seed-источников)
+- `data_source_runs` — лог запусков парсеров/импортов
+- `data_source_links` — универсальная связь «источник → сущность» по `(entity_type, entity_key)`
+- `audit_log` — таблица создана, **триггеры НЕ подключены**
+
+Слой **aliases + crosses**:
+- `engine_aliases` — `1KZ-TE`/`1KZTE`/`1 KZ` → `engine_code='1KZ'`
+- `vehicle_model_aliases` — `J120`/`KZJ120`/`Prado 120` → model row
+- `part_number_crosses` — OEM ↔ TEIKIN ↔ NPR ↔ KP ↔ Taiho ↔ ACL
+
+### Зачем
+
+Master database с одним правилом: **у каждого факта есть источник**. От этой базы будут работать сайт, Kaspi, Telegram-бот, Google Ads, n8n, AI-агенты — все читают одну БД через свои views/RPC.
+
+- `engines` остаётся источником истины по моторам (не пересоздавать).
+- **otoba.ru** — авторитетный источник по машинам, годам, кузовам, фитментам.
+- Каталоги (TEIKIN/NPR/KP/Taiho/ACL) — источники по номерам и атрибутам запчастей.
+
+### Текущий статус 1KZ (reference engine)
+
+- 8 fitments в `engine_fitments` (Prado 90, Prado 120, Hiace, Hilux Surf, Granvia, Regius, Land Cruiser, Dyna/Toyoace) — все с `confidence = 0.70` и `notes = 'needs verification until otoba.ru parsed'`.
+- 2 эффективных alias в `engine_aliases` (`1KZ` и `1KZTE` после нормализации; в seed было 4, два схлопнулись по `(engine_code, alias_norm)` — **штатно**).
+- 4 alias для Prado 120 в `vehicle_model_aliases`.
+- 1 provenance link в `data_source_links` (`entity_key = '1KZ:toyota:land-cruiser-prado:120'`).
+
+Годы/кузова пока NULL — заполнятся после парсера otoba.ru.
+
+### Что нельзя ломать
+
+- **Не трогать существующие таблицы** (engines, brands, part_*, stock_items, warehouses, size_codes, attributes, category_attributes, engine_parts, engine_part_numbers, engine_part_attribute_values, part_variants, part_variant_sizes, v_piston_card). Сайт читает только их.
+- **Не удалять и не переименовывать Stage A таблицы.** Все будущие миграции — additive-only.
+- **Не добавлять GRANT/RLS на Stage A таблицы** до отдельного security-этапа — сейчас доступ только у owner/`postgres`. `anon` и `authenticated` намеренно без прав.
+- **Не подключать audit triggers** на горячие таблицы (`stock_items`, `part_variant_sizes`) без замеров — могут просадить bulk-импорты.
+- **Не выдумывать годы/совместимости** — все спорные данные с `confidence < 1.0` и `notes = 'needs verification'`. Источник истины по машинам — otoba.ru.
+- **Канонические `entity_key`-форматы** для `data_source_links` зафиксированы в [supabase/README.md](supabase/README.md) (формат `<engine>:<make>:<model-slug>:<generation>` и т.п.) — не менять формат произвольно, иначе ломаются индексы и аналитика.
+
+### Следующий этап — Stage B
+
+**Status:** дизайн готов, SQL не написан. См. раздел "Next: Stage B" в [supabase/README.md](supabase/README.md).
+
+Stage B добавит SKU/commerce-слой поверх существующего каталога:
+- `products` — стабильный синтетический SKU (сайт продолжит читать `part_variant_sizes`; маркетплейсы — `products`).
+- `prices` — multi-channel (retail/kaspi/wholesale/promo) с окнами действия.
+- `media_assets` + `product_media` + `engine_media` — единый медиа-слой (вместо хардкода `/teikin-catalog/*.png`, с fallback в коде).
+- `product_content` + `engine_content` — multi-locale, per-channel (Kaspi сможет переопределять копирайт без форка шаблонов).
+- `marketplace_categories` + `marketplace_mappings` — куда выгружать SKU на Kaspi/Google Merchant.
+- Export views: `v_kaspi_feed`, `v_google_merchant_feed`, `v_sitemap`, `v_telegram_search`.
+- `export_jobs` — лог исходящих выгрузок (для n8n).
+
+Stage B будет разбит на под-миграции B1…B6, каждая с отдельным seed/checks/rollback.
+
+---
+
 ### Helpers в [site/src/lib/db.ts](site/src/lib/db.ts)
 
 - `getEngines()`, `getCategories()`, `getEnginePartsIndex()`
