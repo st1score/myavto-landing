@@ -1,0 +1,13 @@
+{
+  "_comment": "Sample input for otoba_1kz_fitment_parser.ts. Copy to otoba_1kz_urls.json and update with real Otoba.ru URLs before running. URLs are placeholders — verify they exist on otoba.ru first.",
+  "urls": [
+    "https://otoba.ru/cars/toyota/land-cruiser-prado/120/",
+    "https://otoba.ru/cars/toyota/land-cruiser-prado/90/",
+    "https://otoba.ru/cars/toyota/hilux-surf/",
+    "https://otoba.ru/cars/toyota/hiace/",
+    "https://otoba.ru/cars/toyota/granvia/",
+    "https://otoba.ru/cars/toyota/regius/",
+    "https://otoba.ru/cars/toyota/land-cruiser/",
+    "https://otoba.ru/cars/toyota/dyna/"
+  ]
+}
