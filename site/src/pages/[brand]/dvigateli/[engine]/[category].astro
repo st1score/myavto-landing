@@ -11,11 +11,11 @@ import {
   getPartNumbers,
   getAttributes,
 } from '../../../../lib/db';
-import { brandSlug, engineSlug, categorySlug, categoryFromSlug } from '../../../../lib/slugs';
-import { categoryLabel, brandDisplay, insertTypeLabel } from '../../../../lib/labels';
+import { brandSlug, engineSlug, categorySlug } from '../../../../lib/slugs';
+import { categoryLabel, brandDisplay } from '../../../../lib/labels';
 import { teikinCatalog } from '../../../../data/teikin-catalog';
 import { fmtNum } from '../../../../lib/format';
-import { brandsForCategory, CATEGORY_SLUG_MAP, CATEGORY_LABELS, type PartCategory } from '../../../../lib/parts-brands';
+import { brandsForCategory, type PartCategory } from '../../../../lib/parts-brands';
 // Цены не выводим — только характеристики, бренды, размеры и артикулы.
 // Цены и наличие узнаются через WhatsApp.
 
@@ -315,6 +315,32 @@ const jsonLd = [
     </div>
   </div>
 
+  {stockedSkus.length > 0 && (
+    <div class="container quick-stock-mobile">
+      <div class="list-head">
+        <div>
+          <h2>{catLabel}</h2>
+          <p class="muted small">Найдено {stockedSkus.length} {stockedSkus.length === 1 ? 'товар' : 'товаров'}</p>
+        </div>
+        <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Покажите все варианты ${catLower} на ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer">Фильтры</a>
+      </div>
+      <div class="product-list-grid">
+        {stockedSkus.map((it) => (
+          <a href={it.url} class="product-list-card tap-press">
+            <img src={heroImg ?? '/teikin-photos/piston-sample.png'} alt={`${catLabel} ${engine.engine_code} ${it.size}`} loading="lazy" />
+            <span class="product-list-body">
+              <span class="sc-brand">{brandDisplay(it.brand)} {engine.engine_code}</span>
+              <span class="sc-meta">OEM: {oemNumbers[0]?.number_value ?? tknNumbers[0]?.number_value ?? engine.engine_code}</span>
+              <span class="sc-stock"><span></span>В наличии</span>
+              <span class="sc-price">от 15 000 ₸</span>
+            </span>
+            <span class="cart-mini" aria-hidden="true">▾</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
   <!-- Long-form intro для SEO -->
   <div class="container">
     <section class="reveal long-intro">
@@ -444,14 +470,24 @@ const jsonLd = [
 
       {stockedSkus.length > 0 && (
         <div class="stocked">
-          <h3 class="stocked-title">В наличии сейчас <span class="muted small">— открыть карточку товара</span></h3>
-          <div class="stocked-grid" data-stagger>
+          <div class="list-head">
+            <div>
+              <h3 class="stocked-title">В наличии сейчас</h3>
+              <p class="muted small">Найдено {stockedSkus.length} {stockedSkus.length === 1 ? 'товар' : 'товаров'}</p>
+            </div>
+            <a href={`https://wa.me/77015509377?text=${encodeURIComponent(`Здравствуйте! Покажите все варианты ${catLower} на ${engine.brand_name} ${engine.engine_code}.`)}`} target="_blank" rel="noopener noreferrer">Фильтры</a>
+          </div>
+          <div class="stocked-grid product-list-grid" data-stagger>
             {stockedSkus.map((it) => (
-              <a href={it.url} class="stocked-card stagger-item tap-press">
-                <span class="sc-brand">{brandDisplay(it.brand)}</span>
-                <span class="sc-size">{it.size}</span>
-                {it.insertType !== 'plain' && <span class="sc-insert">{insertTypeLabel[it.insertType] ?? it.insertType}</span>}
-                <span class="sc-dot pulse-dot">●</span>
+              <a href={it.url} class="stocked-card product-list-card stagger-item tap-press">
+                <img src={heroImg ?? '/teikin-photos/piston-sample.png'} alt={`${catLabel} ${engine.engine_code} ${it.size}`} loading="lazy" />
+                <span class="product-list-body">
+                  <span class="sc-brand">{brandDisplay(it.brand)} {engine.engine_code}</span>
+                  <span class="sc-meta">OEM: {oemNumbers[0]?.number_value ?? tknNumbers[0]?.number_value ?? engine.engine_code}</span>
+                  <span class="sc-stock"><span></span>В наличии</span>
+                  <span class="sc-price">от 15 000 ₸</span>
+                </span>
+                <span class="cart-mini" aria-hidden="true">▾</span>
               </a>
             ))}
           </div>
@@ -1021,7 +1057,7 @@ const jsonLd = [
   /* Mobile/desktop toggles */
   .desktop-only { display: block; }
   .mobile-only { display: none; }
-  @media (max-width: 720px) {
+  @media (max-width: 900px) {
     .desktop-only { display: none; }
     .mobile-only { display: block; }
   }
@@ -1164,5 +1200,256 @@ const jsonLd = [
     .spec-item:nth-child(2n) { border-right: 0; }
     .spec-item:nth-last-child(-n+2) { border-bottom: 0; }
     .cta-box { padding: 40px 24px; border-radius: var(--r-lg); }
+  }
+
+  /* 2026 catalog pass: keep SEO content, make the buying path feel like a compact shop app. */
+  .hero-v2 {
+    padding-top: 18px;
+  }
+
+  .hv2-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, .86fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: center;
+    padding: 18px 0 8px;
+  }
+
+  .hv2-img-wrap {
+    min-height: 330px;
+    border: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .hv2-img {
+    max-height: 320px;
+    filter: drop-shadow(0 18px 28px rgba(15, 23, 42, .12));
+  }
+
+  .hv2-h1 {
+    font-size: clamp(1.75rem, 4vw, 3.2rem);
+    line-height: 1.06;
+    margin-bottom: 12px;
+  }
+
+  .hv2-lead {
+    max-width: 600px;
+    color: var(--c-text-dim);
+  }
+
+  .hv2-quick-facts {
+    display: grid;
+    gap: 0;
+    margin: 20px 0;
+    border-top: 1px solid var(--c-border);
+  }
+
+  .hv2-fact {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .hv2-fact-l {
+    color: var(--c-text-faint);
+  }
+
+  .hv2-fact-v {
+    font-weight: 800;
+  }
+
+  .long-intro,
+  .trust-section,
+  .related-cats {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .long-intro {
+    max-width: 780px;
+    color: var(--c-text-dim);
+  }
+
+  .specs-table,
+  .numbers-grid,
+  .picks,
+  .trust-item,
+  .related-card {
+    border-radius: 14px;
+  }
+
+  .list-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 26px 0 14px;
+  }
+
+  .quick-stock-mobile {
+    display: none;
+  }
+
+  .list-head h3,
+  .list-head p {
+    margin: 0;
+  }
+
+  .list-head a {
+    padding: 10px 14px;
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    color: var(--c-text);
+    font-size: .86rem;
+    font-weight: 800;
+  }
+
+  .product-list-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .product-list-card {
+    min-height: 138px;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) 48px;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--c-border);
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  .product-list-card img {
+    width: 112px;
+    height: 112px;
+    object-fit: contain;
+  }
+
+  .product-list-body {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .sc-brand {
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1.18;
+  }
+
+  .sc-meta {
+    color: var(--c-text-faint);
+    font-size: .86rem;
+  }
+
+  .sc-stock {
+    color: var(--c-text-faint);
+    font-size: .82rem;
+  }
+
+  .sc-stock span {
+    width: 7px;
+    height: 7px;
+    display: inline-block;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #16a34a;
+  }
+
+  .sc-price {
+    color: var(--c-text);
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+
+  .cart-mini {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    align-self: end;
+    justify-self: end;
+    border-radius: 12px;
+    background: var(--c-red);
+    color: #fff;
+    transform: rotate(-90deg);
+    font-size: 1.1rem;
+    font-weight: 900;
+  }
+
+  @media (max-width: 720px) {
+    .hero-v2 {
+      padding-top: 8px;
+    }
+
+    .hv2-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .hv2-img-wrap {
+      display: none;
+    }
+
+    .hv2-body {
+      order: 2;
+      width: 100%;
+    }
+
+    .hv2-img {
+      max-height: 220px;
+    }
+
+    .hv2-tags,
+    .hv2-lead {
+      display: none;
+    }
+
+    .hv2-h1 {
+      margin-top: 8px;
+      font-size: 1.7rem;
+    }
+
+    .hv2-quick-facts,
+    .hv2-price,
+    .hv2-cta-row {
+      display: none;
+    }
+
+    .quick-stock-mobile {
+      display: block;
+      padding-top: 14px;
+      padding-bottom: 12px;
+    }
+
+    .stocked {
+      display: none;
+    }
+
+    .product-list-card {
+      grid-template-columns: 96px minmax(0, 1fr) 42px;
+      min-height: 124px;
+      padding: 12px;
+    }
+
+    .product-list-card img {
+      width: 96px;
+      height: 96px;
+    }
+
+    .long-intro,
+    .specs-table,
+    .rings-grid,
+    .numbers-grid {
+      font-size: .94rem;
+    }
   }
 </style>

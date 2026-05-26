@@ -155,6 +155,10 @@
       return s.toLowerCase().replace(/[\s\-]/g, '');
     }
 
+    function esc(s: string): string {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+    }
+
     function search(q: string, idx: Item[]): Item[] {
       const nq = normalize(q);
       if (nq.length < 2) return [];
@@ -173,24 +177,24 @@
     function render(items: Item[], query: string) {
       activeIdx = -1;
       if (query.length < 2) {
-        results.hidden = true;
+        results!.hidden = true;
         return;
       }
-      results.hidden = false;
-      results.classList.remove('empty');
+      results!.hidden = false;
+      results!.classList.remove('empty');
       if (items.length === 0) {
-        results.classList.add('empty');
-        results.innerHTML = `Ничего не найдено. <br><a href="/poisk/?q=${encodeURIComponent(query)}" style="color:var(--c-red);font-weight:600;">Показать все результаты →</a>`;
+        results!.classList.add('empty');
+        results!.innerHTML = `Ничего не найдено. <br><a href="/poisk/?q=${encodeURIComponent(query)}" style="color:var(--c-red);font-weight:600;">Показать все результаты →</a>`;
         return;
       }
       const html = items.map((it, i) => {
         const tag = it.t === 'e' ? '<span class="sr-tag engine">Двигатель</span>' : '<span class="sr-tag article">Артикул</span>';
-        return `<a class="sr-item" data-idx="${i}" href="${it.u}">
-          <span class="sr-label">${tag}<span>${it.l}</span></span>
-          <span class="sr-sub">${it.s}</span>
+        return `<a class="sr-item" data-idx="${i}" href="${esc(it.u)}">
+          <span class="sr-label">${tag}<span>${esc(it.l)}</span></span>
+          <span class="sr-sub">${esc(it.s)}</span>
         </a>`;
       }).join('');
-      results.innerHTML = html + `<div class="sr-more"><a href="/poisk/?q=${encodeURIComponent(query)}">Все результаты по «${query}» →</a></div>`;
+      results!.innerHTML = html + `<div class="sr-more"><a href="/poisk/?q=${encodeURIComponent(query)}">Все результаты по «${esc(query)}» →</a></div>`;
     }
 
     async function onInput() {

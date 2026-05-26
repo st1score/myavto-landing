@@ -33,14 +33,14 @@
 
 **Supabase** (session pooler, port 5432):
 ```
-DATABASE_URL=postgresql://postgres.irgqadmkxfytirbfhgen:<PASSWORD>@aws-1-eu-central-1.pooler.supabase.com:5432/postgres
+DATABASE_URL=postgresql://<user>:<password>@<supabase-pooler-host>:5432/postgres
 ```
 
-Пароль хранится в `/Users/semen/IdeaProjects/myavto-landing/.claude/worktrees/loving-keller-9db10a/.env`
-(в `.gitignore`) и в GitHub Actions secret `DATABASE_URL`.
+Пароль хранится только локально в `.env` (в `.gitignore`) и в GitHub Actions secret `DATABASE_URL`.
 
-⚠️ Пароль `vmkwMOV8ziq3hjyI` был засвечен в чате — нужно ротировать в Supabase
-(Settings → Database → Reset password) и обновить .env + `gh secret set DATABASE_URL`.
+⚠️ Если пароль или строка подключения попали в чат, логи или git history, нужно сразу ротировать
+пароль в Supabase (Settings → Database → Reset password), обновить `.env` и `DATABASE_URL`
+в GitHub Actions secrets. Не хранить реальные пароли в репозитории.
 
 ### Таблицы
 
@@ -111,8 +111,7 @@ DATABASE_URL=postgresql://postgres.irgqadmkxfytirbfhgen:<PASSWORD>@aws-1-eu-cent
 
 ```bash
 cd site
-TEIKIN_EMAIL='trachuksemen@gmail.com' TEIKIN_PASSWORD='q8t-z2x-uba-5cX' \
-  node scripts/scrape-teikin.mjs
+TEIKIN_EMAIL='<email>' TEIKIN_PASSWORD='<password>' node scripts/scrape-teikin.mjs
 node scripts/gen-teikin-catalog.mjs
 ```
 
@@ -226,7 +225,7 @@ FGM, GRM, RW, KOREA, KITAI, MIXED, NIPPON_SAITAMA.
 
 ## TODO / Известное
 
-- [ ] Ротировать пароль Supabase (`vmkwMOV8ziq3hjyI` засветился)
+- [ ] Ротировать Supabase/TEIKIN доступы, если они попадали в чат, логи или git history
 - [ ] Расширить PDF-парсер: CD, TL, MRC, MP, surface, ring sizes — сейчас только 1KZ ручной
 - [ ] Подтянуть совместимые модели авто (`models`) — TEIKIN их не публикует, надо отдельный источник или вручную
 - [ ] Доработать unmatched 7 моторов — добавить ручные mapping/handwritten entries

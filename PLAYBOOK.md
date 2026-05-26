@@ -28,7 +28,7 @@
 | База | Supabase PostgreSQL (session pooler) |
 | Аналитика | GA4 `G-YQ21411TM0`, Google Ads `AW-18062973221` |
 | Поисковики | Google Search Console + Яндекс.Вебмастер |
-| Реклама | Google Ads (`myavto`, 240-295-0803) |
+| Реклама | Google Ads (доступы хранить вне репозитория) |
 
 **Email верификации Google/Yandex:** `sementrachuk@gmail.com`
 
@@ -324,7 +324,7 @@ https://my-avto.kz/mazda/
 
 ### Низкий
 
-- [ ] Ротировать пароль Supabase (`vmkwMOV8ziq3hjyI` засветился)
+- [ ] Ротировать Supabase/TEIKIN доступы, если они попадали в чат, логи или git history
 - [ ] Расширить PDF-парсер: CD, TL, MRC, MP, surface, ring sizes
 - [ ] Подтянуть `models` (совместимые авто) — TEIKIN их не публикует
 - [ ] Доработать unmatched 7 моторов в TEIKIN catalog
@@ -344,7 +344,7 @@ cd site && npm run astro check  # если есть
 node scripts/gen-search-index.mjs
 
 # Скрейпить TEIKIN PDF (редко)
-TEIKIN_EMAIL='trachuksemen@gmail.com' TEIKIN_PASSWORD='q8t-z2x-uba-5cX' \
+TEIKIN_EMAIL='<email>' TEIKIN_PASSWORD='<password>' \
   node scripts/scrape-teikin.mjs && \
   node scripts/gen-teikin-catalog.mjs
 
@@ -366,8 +366,8 @@ curl -sI https://my-avto.kz/toyota/dvigateli/1kz/porshni/ | head -3
 | GitHub secret `DATABASE_URL` | Settings → Secrets repo |
 | Google Search Console | sementrachuk@gmail.com |
 | Яндекс.Вебмастер | sementrachuk@gmail.com |
-| Google Ads | myavto / 240-295-0803, sementrachuk@gmail.com |
-| TEIKIN dealer portal | trachuksemen@gmail.com / `q8t-z2x-uba-5cX` |
+| Google Ads | Хранить в менеджере паролей, не в репозитории |
+| TEIKIN dealer portal | Хранить в менеджере паролей, передавать через `TEIKIN_EMAIL` / `TEIKIN_PASSWORD` |
 
 ---
 
