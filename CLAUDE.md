@@ -130,9 +130,9 @@ Master database с одним правилом: **у каждого факта �
 - Не вставляет цены, медиа, контент — это B2/B3/B4.
 - Не выдаёт GRANT/RLS, не меняет Astro-сборку.
 
-### Stage B3 prepared (not yet applied) — media layer
+### Stage B3 applied ✅ — media layer
 
-**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. раздел "Stage B3" в [supabase/README.md](supabase/README.md).
+**Status:** B3 применён вручную в Supabase. См. раздел "Stage B3" в [supabase/README.md](supabase/README.md).
 
 Файлы:
 - [supabase/migrations/20260526_stage_b3_media.sql](supabase/migrations/20260526_stage_b3_media.sql)
@@ -140,7 +140,7 @@ Master database с одним правилом: **у каждого факта �
 - [supabase/checks/stage_b3_verify.sql](supabase/checks/stage_b3_verify.sql)
 - [supabase/rollbacks/20260526_stage_b3_media_rollback.sql](supabase/rollbacks/20260526_stage_b3_media_rollback.sql)
 
-**Что добавит B3:**
+**Что добавил B3:**
 - `media_assets` — канонический справочник медиа (`url` UNIQUE, `media_type` ∈ image/pdf/video/doc/3d, `mime_type`, `alt_text`, `width/height/bytes/sha256`, `source_id`, `confidence`).
 - `engine_media` — связь `engine_code` ↔ медиа с ролями `catalog`/`schema`/`cross_section`/`photo`. Partial UNIQUE: **не больше одной catalog-картинки на мотор**. `engine_code` plain text (нет FK на `engines`).
 - `product_media` — связь `product_id` ↔ медиа с ролями `primary`/`gallery`/`spec_sheet`/`install_diagram`/`box`. Partial UNIQUE: **не больше одной primary-картинки на product**. CASCADE с обеих сторон.
@@ -152,6 +152,46 @@ Master database с одним правилом: **у каждого факта �
 - Не добавляет FK `engine_media.engine_code → engines` (composite PK).
 - Не вставляет цены, контент, feed views — это B2/B4/B6.
 - Не выдаёт GRANT/RLS.
+
+### Stage C1 prepared (not yet applied) — catalog import staging
+
+**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. раздел "Stage C1" в [supabase/README.md](supabase/README.md).
+
+Файлы:
+- [supabase/migrations/20260526_stage_c1_catalog_import_staging.sql](supabase/migrations/20260526_stage_c1_catalog_import_staging.sql)
+- [supabase/seeds/seed_c1_import_sources.sql](supabase/seeds/seed_c1_import_sources.sql)
+- [supabase/checks/stage_c1_verify.sql](supabase/checks/stage_c1_verify.sql)
+- [supabase/rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql](supabase/rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql)
+
+**Зачем staging-слой:**
+Внешние источники (Otoba.ru, TEIKIN/NPR/KP/Taiho PDF, supplier CSV, AI-extraction) шумные. Писать их сразу в master-таблицы = испортить кураторские данные. C1 — это inbox для всего внешнего: parse → normalize → review → approve → потом promote в master.
+
+**Workflow:**
+```
+external source → catalog_import_batches → catalog_import_rows
+                  (raw_text, raw_json, normalized_json)
+                                ↓
+                  catalog_import_decisions (approve/reject/merge/skip)
+                                ↓
+                  promote to master (engine_fitments / engine_part_numbers / etc.)
+                  + data_source_links (provenance)
+```
+
+**Что добавит C1:**
+- `catalog_import_batches` — один ряд на запуск парсера/файла. `import_type` ∈ otoba_fitment/teikin_pistons/npr_rings/kp_rings/taiho_bearings/supplier_csv/manual_excel/ai_extraction/other. `status` — 12 значений от draft до archived. Счётчики parsed/normalized/approved/imported/failed.
+- `catalog_import_rows` — staging строки. Поля `engine_code`/`vehicle_make`/`vehicle_model`/`brand_name`/`part_number` — plain text (FK только на `part_categories`), т.к. staging держит ещё неразрешённые значения. UNIQUE на `(batch_id, row_number)` для идемпотентности. GIN-индексы на `raw_json`/`normalized_json`.
+- `catalog_import_decisions` — вердикт по строке (`approve`/`reject`/`merge`/`skip`/`needs_manual_review`) с указанием target_table/target_id.
+- `catalog_import_mappings` — декларативные правила маппинга source_field → target_field для каждого `(source, import_type)`.
+- Seed: один тестовый batch `1kz_otoba_fitment_manual_test` + 3 примерные строки для 1KZ (Prado 120/Hilux Surf/Hiace), все `status='needs_review'`, `confidence=0.70`. Это **демо-данные**, в `engine_fitments` ничего не пишется.
+
+**Что C1 НЕ делает:**
+- **НЕ пишет в master-таблицы.** Promotion из staging в `engine_fitments`/`engine_part_numbers`/`part_number_crosses` — отдельная задача (RPC или скрипт), не часть C1.
+- Не меняет существующие таблицы.
+- Не подключает Astro-сайт.
+- Не выдаёт GRANT/RLS.
+- Не запускает парсеры — они живут вне БД (n8n / Node-скрипты), C1 — только хранилище их выхода.
+
+**Первое реальное применение C1:** парсинг Otoba.ru для верификации 8 fitments 1KZ из Stage A. После promotion confidence поднимется с 0.70 до ≥0.95.
 
 ### Следующие этапы — Stage B2, B4, B5, B6
 

@@ -425,6 +425,189 @@ SQL** — out of scope for B3.
 
 ---
 
+## Stage C1 — catalog import staging layer
+
+**Files:**
+- `migrations/20260526_stage_c1_catalog_import_staging.sql`
+- `seeds/seed_c1_import_sources.sql`
+- `checks/stage_c1_verify.sql`
+- `rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql`
+
+**Status:** Local files prepared. **Not applied** to Supabase yet.
+
+### Why C1 (staging) before any catalog parser runs
+
+External data is messy. TEIKIN PDFs have OCR noise. Otoba.ru pages
+change layout. AI extractions confidently mis-classify. Writing such
+data straight into `engine_fitments`, `engine_part_numbers`,
+`part_number_crosses` etc. would either:
+- silently overwrite real curated rows, or
+- fill the master DB with low-confidence noise that later contaminates
+  every export (Kaspi, Ads, Telegram).
+
+C1 introduces an **inbound staging layer**. Every external row lands
+here first, gets normalized, gets reviewed, and only then is promoted
+to a master table. The promotion step is **manual or workflow-driven** —
+not part of C1 itself.
+
+### Workflow
+
+```
+external source (Otoba.ru / PDF / CSV / AI)
+    │
+    ▼
+catalog_import_batches      ← one row per file/run
+    │
+    ▼
+catalog_import_rows         ← raw + normalized JSON per source row
+    │      status: parsed → normalized → needs_review
+    ▼
+catalog_import_decisions    ← human/AI verdict per row
+    │      decision: approve / reject / merge / skip / needs_manual_review
+    ▼
+import-to-master (out of scope for C1)
+    │      writes to engine_fitments / engine_part_numbers /
+    │      part_number_crosses / etc. using row.normalized_json
+    ▼
+catalog_import_rows.status = 'imported'
+catalog_import_batches.status = 'imported' | 'partial_import'
+```
+
+`catalog_import_mappings` is the side table of rules — for each
+`(source, import_type, source_field)` it declares which target
+`(entity_type, field)` and what transform applies. The parser/importer
+reads it instead of having hardcoded mappings.
+
+### What C1 adds
+
+- `catalog_import_batches` — one row per parser run / file. CHECKs on
+  `import_type` (`otoba_fitment`, `teikin_pistons`, `npr_rings`,
+  `kp_rings`, `taiho_bearings`, `supplier_csv`, `manual_excel`,
+  `ai_extraction`, `other`) and `status` (12 values from `draft` to
+  `archived`). Counters for parsed / normalized / approved / imported /
+  failed. `meta_json jsonb` for arbitrary parser context (file hash,
+  CLI args, etc.). FK to `data_sources` (required) and optional FK to
+  `data_source_runs` (so the same staging batch can be tied to a
+  provenance run).
+- `catalog_import_rows` — staging rows. Carries `raw_text`, `raw_json`,
+  `normalized_json`. Detected fields (`engine_code`, `category_code`,
+  `part_number`, `brand_name`, `vehicle_make`, `vehicle_model`) are
+  plain text — **no FK** because staging may hold values that don't
+  yet resolve to a master row (whole point of normalization). UNIQUE
+  on `(batch_id, row_number)` so re-running the same parser is
+  idempotent. `category_code` is the only one with a FK because
+  categories are a small fixed list.
+- `catalog_import_decisions` — verdict per row (`approve`, `reject`,
+  `merge`, `skip`, `needs_manual_review`). Records the target table /
+  entity key / id once a decision is made. Multiple decisions per row
+  are allowed (e.g. AI proposes `needs_manual_review`, human later
+  `approve`s).
+- `catalog_import_mappings` — declarative source-field → target-field
+  rules with optional `transform_rule` (free-text DSL hint for the
+  importer). UNIQUE on the full natural key
+  `(source_id, import_type, source_field, target_entity_type,
+  target_field)`.
+
+All four tables have `tg_touch_updated_at` triggers where they have an
+`updated_at` column. GIN indexes on `raw_json` / `normalized_json` for
+JSONB filtering.
+
+### What C1 does NOT do
+
+- **Does NOT write to master tables.** Promotion from staging to
+  `engine_fitments` / `engine_part_numbers` / `part_number_crosses` /
+  `vehicle_models` / `vehicle_specs` is intentionally out of scope.
+  It will be a separate stage (or a stored procedure / RPC) that reads
+  approved staging rows and performs the upsert with full provenance.
+- **Does not change existing master tables.** No `ADD COLUMN`, no new
+  FK, nothing.
+- **Does not auto-link to Stage A `data_source_links`.** The promotion
+  step is responsible for writing the `data_source_links` row once a
+  staging row is imported.
+- **No parser code, no n8n flows, no AI prompts** — those live outside
+  the DB. C1 is just the storage shape they target.
+- **No GRANT / RLS.** Same posture as every other stage.
+
+### Seed (`seed_c1_import_sources.sql`)
+
+1. Asserts `otoba_ru` exists in `data_sources` (already seeded in
+   Stage A; this is a defensive `ON CONFLICT DO NOTHING`).
+2. Creates **one** test batch:
+   `batch_code = '1kz_otoba_fitment_manual_test'`, `import_type =
+   otoba_fitment`, `status = draft`, source = `otoba_ru`,
+   `parser_name = manual`, `parser_version = v0`, with descriptive
+   `meta_json`.
+3. Inserts **3 sample staging rows** (`needs_review`, `confidence =
+   0.70`) for Toyota 1KZ:
+   - Land Cruiser Prado 120 / J120
+   - Hilux Surf
+   - Hiace
+
+   Each row has `raw_text`, `raw_json` (what the future parser would
+   capture) and `normalized_json` (with canonical `entity_key`
+   matching the Stage A format `<engine>:<make>:<model-slug>[:<gen>]`).
+
+These rows are **demonstration data**. They do not affect
+`engine_fitments` — that's verified by check #6.
+
+### Verify (`stage_c1_verify.sql`)
+
+Nine read-only queries:
+
+1. Four new C1 tables present in `public`.
+2. `otoba_ru` data_source row.
+3. The test batch with all counter columns.
+4. The 3 staging rows with their `entity_key` extracted from
+   `normalized_json`.
+5. Status breakdown for rows in this batch (expect `needs_review = 3`).
+6. **`engine_fitments` for 1KZ untouched** — count must still equal the
+   8 fitments seeded by Stage A.
+7. All prior-stage tables still exist.
+8. No orphan decisions (sanity check on FK).
+9. No orphan rows (sanity check on FK).
+
+### Apply (manually)
+
+```bash
+psql "$DATABASE_URL" -f supabase/migrations/20260526_stage_c1_catalog_import_staging.sql
+psql "$DATABASE_URL" -f supabase/seeds/seed_c1_import_sources.sql
+psql "$DATABASE_URL" -f supabase/checks/stage_c1_verify.sql
+```
+
+### Rollback
+
+```bash
+psql "$DATABASE_URL" -f supabase/rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql
+```
+
+Drops only the four C1 tables (decisions → rows → batches; mappings
+independent). **Does not delete the `otoba_ru` data_source row** —
+it's owned by Stage A and referenced elsewhere. Stage A / B1 / B3 /
+pre-existing tables are untouched.
+
+### First real use after apply
+
+The first end-to-end pipeline through C1 will be the **Otoba.ru
+fitment verification** for 1KZ:
+
+1. Write a small parser (n8n or Node script) that fetches Otoba.ru
+   pages for engine `1KZ`.
+2. Insert one `catalog_import_batches` row + N `catalog_import_rows`
+   (one per detected vehicle model).
+3. Manually review rows; set decisions in `catalog_import_decisions`.
+4. Run a promotion script that, for each `approve`d row, upserts into
+   `engine_fitments` / `vehicle_models` and writes a
+   `data_source_links` provenance row.
+5. Update the 8 Stage-A `engine_fitments` rows from `confidence = 0.70
+   needs verification` → `confidence ≥ 0.95` (verified by otoba.ru).
+
+The same shape is then reused for TEIKIN/NPR/KP/Taiho catalogs with
+`import_type = teikin_pistons` / `npr_rings` / `kp_rings` /
+`taiho_bearings` and target tables `engine_part_numbers`,
+`engine_part_attribute_values`, `part_number_crosses`.
+
+---
+
 ## Future Stage B sub-stages (design from earlier — not yet built)
 
 Stage A and B1 are in production. B3 prepared. Remaining sub-stages
@@ -500,7 +683,7 @@ Stage B will be split into sub-migrations to keep each diff reviewable:
    `part_variant_sizes`. ✅ **Applied** (`products_count = 50`).
 2. `B2` — `prices` (empty; populated later by n8n or manual).
 3. `B3` — `media_assets`, `product_media`, `engine_media` + seed for
-   1KZ TEIKIN catalog image. **Files prepared, not yet applied.**
+   1KZ TEIKIN catalog image. ✅ **Applied.**
 4. `B4` — `product_content`, `engine_content` (empty).
 5. `B5` — `marketplace_categories`, `marketplace_mappings` + seed for
    Kaspi categories we actually use.
