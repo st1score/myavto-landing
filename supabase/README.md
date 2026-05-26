@@ -317,16 +317,122 @@ psql "$DATABASE_URL" -f supabase/rollbacks/20260526_stage_b1_products_rollback.s
 Drops only `products`, `sales_channels`, and the four B1 functions. Does
 not touch Stage A or pre-existing tables.
 
+**Applied state (after manual apply):** `products_count = 50`,
+`pvs_count = 50` for `1KZ PISTON` — backfill complete and consistent
+with `part_variant_sizes`.
+
+---
+
+## Stage B3 — media layer (media_assets + engine_media + product_media)
+
+**Files:**
+- `migrations/20260526_stage_b3_media.sql`
+- `seeds/seed_b3_1kz_media.sql`
+- `checks/stage_b3_verify.sql`
+- `rollbacks/20260526_stage_b3_media_rollback.sql`
+
+**Status:** Local files prepared. **Not applied** to Supabase yet.
+
+### What B3 adds
+
+- `media_assets` — canonical media table. Columns: `url` (UNIQUE for
+  dedup), `storage_path`, `media_type` ∈
+  (`image`,`pdf`,`video`,`doc`,`3d`), `mime_type`, `alt_text`, `width`,
+  `height`, `bytes`, `sha256`, `source_id`, `confidence`, `is_active`,
+  `created_at`, `updated_at`. CHECKs ensure non-negative dimensions.
+- `engine_media` — link engine ↔ media. PK
+  `(engine_code, media_id, role)`. `role` ∈
+  (`catalog`,`schema`,`cross_section`,`photo`). Partial UNIQUE
+  guarantees **at most one `role='catalog'`** per engine.
+  `engine_code` is plain text (no FK to `engines`, composite-PK
+  blocker — same convention as everywhere else).
+- `product_media` — link product ↔ media. PK
+  `(product_id, media_id, role)` with `ON DELETE CASCADE` on both
+  sides. `role` ∈
+  (`primary`,`gallery`,`spec_sheet`,`install_diagram`,`box`). Partial
+  UNIQUE guarantees **at most one `role='primary'`** per product.
+- `updated_at` trigger on `media_assets` via Stage A's
+  `tg_touch_updated_at()`.
+
+### What B3 does NOT do
+
+- **Does not change the Astro site.** The site keeps the existing
+  hardcoded `/teikin-catalog/{engine_code}.png` fallback in
+  `[engine]/index.astro` and product pages. B3 just makes the media
+  layer available in the DB; consuming it from Astro is a separate code
+  change.
+- **Does not add prices, content, or feed views.** Those are B2 / B4 /
+  B6.
+- **Does not add FK** `engine_media.engine_code → engines` (composite
+  PK).
+- **Does not seed media for other engines.** Only `1KZ` TEIKIN catalog
+  image is seeded as a working reference example.
+- **No GRANT / RLS / triggers on existing tables.**
+
+### Seed (`seed_b3_1kz_media.sql`)
+
+1. Inserts a single `media_assets` row for
+   `https://my-avto.kz/teikin-catalog/1KZ.png` with
+   `source_id = data_sources.code='teikin_catalog'`, `media_type='image'`,
+   `mime_type='image/png'`, `confidence=1.00`.
+2. Links it to `engine_code='1KZ'` as `role='catalog'`, `sort_order=0`.
+3. Links it to every active `1KZ PISTON TEIKIN` product as
+   `role='primary'`, `sort_order=0`.
+4. All three INSERTs use `ON CONFLICT DO NOTHING` against the unique
+   indexes (`uq_media_assets_url`, `uq_engine_media_one_catalog`,
+   `uq_product_media_one_primary`, plus the PKs).
+
+### Verify (`stage_b3_verify.sql`)
+
+Seven read-only queries:
+
+1. `media_assets` count broken down by `media_type` (+ total).
+2. `engine_media` rows for `1KZ` (expect 1 catalog row).
+3. `product_media` count for `1KZ` × `PISTON` × `TEIKIN` (should equal
+   the number of active TEIKIN piston products for 1KZ).
+4. 1KZ TEIKIN products with their resolved primary image URL.
+5. Duplicate primary image per product — must return 0 rows.
+6. Duplicate catalog image per engine — must return 0 rows.
+7. Confirm `products` / `part_variant_sizes` / `stock_items` /
+   `engines` still exist (untouched).
+
+### Apply (manually)
+
+```bash
+psql "$DATABASE_URL" -f supabase/migrations/20260526_stage_b3_media.sql
+psql "$DATABASE_URL" -f supabase/seeds/seed_b3_1kz_media.sql
+psql "$DATABASE_URL" -f supabase/checks/stage_b3_verify.sql
+```
+
+### Rollback
+
+```bash
+psql "$DATABASE_URL" -f supabase/rollbacks/20260526_stage_b3_media_rollback.sql
+```
+
+Drops `product_media`, `engine_media`, `media_assets` (FK-safe order).
+Does not touch Stage A, B1, or pre-existing tables. The shared
+`tg_touch_updated_at` (Stage A) is preserved.
+
+### Site integration plan (deferred)
+
+Once B3 is in production, the Astro site can start preferring
+`engine_media.role='catalog'` and `product_media.role='primary'` URLs
+over the hardcoded `/teikin-catalog/*.png` convention. The integration
+will keep the file-path fallback so engines without a DB-side media row
+continue to render correctly. **This change lives in `site/`, not in
+SQL** — out of scope for B3.
+
 ---
 
 ## Future Stage B sub-stages (design from earlier — not yet built)
 
-Stage A is in production. B1 prepared but not applied. Remaining Stage
-B sub-stages are still design-only:
+Stage A and B1 are in production. B3 prepared. Remaining sub-stages
+are still design-only:
 
 ### Remaining sub-stages
 
-(`products` itself is now in B1 above; the items below are the rest.)
+(`products` is in B1, media is in B3; the items below are the rest.)
 
 1. **`prices`** — multi-channel with validity windows.
    - `id`, `product_id → products(id)`, `channel_code →
@@ -338,20 +444,7 @@ B sub-stages are still design-only:
    - `purchase_price` stays in `part_variant_sizes` (existing).
      `prices` is for **sale** prices.
 
-2. **`media_assets`** — canonical media table.
-   - `id`, `kind` (`image | pdf | doc | video`), `url`, `storage_path`,
-     `width`, `height`, `bytes`, `mime`, `alt_text`, `source_id`,
-     `created_at`.
-   - Lets every product/engine reference one URL canonically instead of
-     today's path convention.
-
-4. **`product_media` / `engine_media`** — many-to-many with role.
-   - `product_id` (or `engine_code`), `media_id`, `role` (`primary |
-     gallery | spec_sheet | install_diagram`), `sort_order`.
-   - The Astro site keeps a fallback to `/teikin-catalog/{engine_code}.png`
-     for engines that have no row here, so nothing breaks during rollout.
-
-5. **`product_content` / `engine_content`** — multi-locale, per-channel.
+2. **`product_content` / `engine_content`** — multi-locale, per-channel.
    - `id`, `product_id | engine_code`, `locale` (`ru | kk | en`),
      `channel` (`site | kaspi | telegram | ads`), `title`, `h1`,
      `meta_description`, `description_md`, `bullets_json`, `source_id`,
@@ -404,10 +497,10 @@ B sub-stages are still design-only:
 Stage B will be split into sub-migrations to keep each diff reviewable:
 
 1. `B1` — `sales_channels` + `products` (stable SKU) + backfill from
-   `part_variant_sizes`. **Files prepared, not yet applied.**
+   `part_variant_sizes`. ✅ **Applied** (`products_count = 50`).
 2. `B2` — `prices` (empty; populated later by n8n or manual).
-3. `B3` — `media_assets`, `product_media`, `engine_media` + optional
-   backfill of `engine_media` from existing `/teikin-catalog/*.png`.
+3. `B3` — `media_assets`, `product_media`, `engine_media` + seed for
+   1KZ TEIKIN catalog image. **Files prepared, not yet applied.**
 4. `B4` — `product_content`, `engine_content` (empty).
 5. `B5` — `marketplace_categories`, `marketplace_mappings` + seed for
    Kaspi categories we actually use.

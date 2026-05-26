@@ -102,9 +102,12 @@ Master database с одним правилом: **у каждого факта �
 - **Не выдумывать годы/совместимости** — все спорные данные с `confidence < 1.0` и `notes = 'needs verification'`. Источник истины по машинам — otoba.ru.
 - **Канонические `entity_key`-форматы** для `data_source_links` зафиксированы в [supabase/README.md](supabase/README.md) (формат `<engine>:<make>:<model-slug>:<generation>` и т.п.) — не менять формат произвольно, иначе ломаются индексы и аналитика.
 
-### Stage B1 prepared (not yet applied)
+### Stage B1 applied ✅
 
-**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. [supabase/README.md#stage-b1](supabase/README.md).
+**Status:** B1 применён вручную в Supabase. Факт: `products_count = 50`, `pvs_count = 50` для 1KZ PISTON — backfill сошёлся 1:1.
+
+Файлы:
+- [supabase/migrations/20260526_stage_b1_products.sql](supabase/migrations/20260526_stage_b1_products.sql)
 
 Файлы:
 - [supabase/migrations/20260526_stage_b1_products.sql](supabase/migrations/20260526_stage_b1_products.sql)
@@ -127,7 +130,30 @@ Master database с одним правилом: **у каждого факта �
 - Не вставляет цены, медиа, контент — это B2/B3/B4.
 - Не выдаёт GRANT/RLS, не меняет Astro-сборку.
 
-### Следующие этапы — Stage B2…B6
+### Stage B3 prepared (not yet applied) — media layer
+
+**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. раздел "Stage B3" в [supabase/README.md](supabase/README.md).
+
+Файлы:
+- [supabase/migrations/20260526_stage_b3_media.sql](supabase/migrations/20260526_stage_b3_media.sql)
+- [supabase/seeds/seed_b3_1kz_media.sql](supabase/seeds/seed_b3_1kz_media.sql)
+- [supabase/checks/stage_b3_verify.sql](supabase/checks/stage_b3_verify.sql)
+- [supabase/rollbacks/20260526_stage_b3_media_rollback.sql](supabase/rollbacks/20260526_stage_b3_media_rollback.sql)
+
+**Что добавит B3:**
+- `media_assets` — канонический справочник медиа (`url` UNIQUE, `media_type` ∈ image/pdf/video/doc/3d, `mime_type`, `alt_text`, `width/height/bytes/sha256`, `source_id`, `confidence`).
+- `engine_media` — связь `engine_code` ↔ медиа с ролями `catalog`/`schema`/`cross_section`/`photo`. Partial UNIQUE: **не больше одной catalog-картинки на мотор**. `engine_code` plain text (нет FK на `engines`).
+- `product_media` — связь `product_id` ↔ медиа с ролями `primary`/`gallery`/`spec_sheet`/`install_diagram`/`box`. Partial UNIQUE: **не больше одной primary-картинки на product**. CASCADE с обеих сторон.
+- Seed для 1KZ: одна `media_assets` строка `https://my-avto.kz/teikin-catalog/1KZ.png` + engine_media `('1KZ','catalog')` + product_media `role='primary'` на все активные `1KZ PISTON TEIKIN` products.
+
+**Что B3 НЕ делает:**
+- **Не меняет Astro-сайт.** Сайт продолжает использовать hardcoded fallback `/teikin-catalog/{engine_code}.png`. Подключение `engine_media`/`product_media` к Astro — отдельная задача в `site/`.
+- Не сидит медиа для других моторов (только 1KZ TEIKIN — рабочий reference).
+- Не добавляет FK `engine_media.engine_code → engines` (composite PK).
+- Не вставляет цены, контент, feed views — это B2/B4/B6.
+- Не выдаёт GRANT/RLS.
+
+### Следующие этапы — Stage B2, B4, B5, B6
 
 **Status:** дизайн готов, SQL не написан. См. раздел "Future Stage B sub-stages" в [supabase/README.md](supabase/README.md).
 
