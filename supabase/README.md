@@ -585,6 +585,43 @@ independent). **Does not delete the `otoba_ru` data_source row** —
 it's owned by Stage A and referenced elsewhere. Stage A / B1 / B3 /
 pre-existing tables are untouched.
 
+### Manual import: Otoba.ru parser rows → staging
+
+**File:** `imports/insert_otoba_1kz_fitment_rows.sql`
+
+Hand-curated SQL that takes the 7 rows produced by
+`scripts/import/otoba_1kz_fitment_parser.ts` and UPSERTs them into
+`public.catalog_import_rows` under the existing batch
+`1kz_otoba_fitment_manual_test` (row_number 1..7).
+
+What it does:
+
+- Single `INSERT ... ON CONFLICT (batch_id, row_number) DO UPDATE`
+  against the unique index `uq_catalog_import_rows_batch_row`, so it
+  is **idempotent** — re-running overwrites the same 7 rows in place.
+- Refuses to run if the batch is missing (raises an exception in a
+  `DO $$ … $$` block before touching anything).
+- Wrapped in a single `BEGIN / COMMIT` for atomicity.
+
+**This is staging-only — it is not promotion.** No master table is
+touched. The script ends with three verification queries:
+
+1. row count in this batch (expect 7);
+2. all 7 rows with model / generation / chassis / years / `entity_key`;
+3. `engine_fitments` count for 1KZ stays at the Stage A baseline of 8.
+
+If query #3 returns anything other than 8 after running this file,
+**do not proceed to promotion** — something else mutated master.
+
+How to apply (manually):
+
+1. Open `supabase/imports/insert_otoba_1kz_fitment_rows.sql`.
+2. Paste into Supabase SQL Editor.
+3. Run. Read the three verification result sets.
+4. Promotion to master (`engine_fitments`, `vehicle_models`,
+   `data_source_links`) remains a separate, future step gated by
+   `catalog_import_decisions`.
+
 ### First real use after apply
 
 The first end-to-end pipeline through C1 will be the **Otoba.ru
