@@ -13,31 +13,42 @@ import { PLASMIC } from '../../lib/plasmic';
 export async function getStaticPaths() {
   // Если ключи не заданы — возвращаем пусто, страниц не будет
   if (!process.env.PLASMIC_PROJECT_ID || !process.env.PLASMIC_API_TOKEN) {
+    console.warn('[plasmic] PROJECT_ID/TOKEN отсутствуют — Plasmic страницы пропущены');
     return [];
   }
 
-  // Plasmic возвращает все опубликованные страницы из проекта
-  const pageModules = await PLASMIC.fetchPages();
+  // Tolerant fetch: при ошибке Plasmic API не валим весь билд,
+  // просто рендерим 0 страниц под /landing/ — остальной сайт работает.
+  let pageModules: Awaited<ReturnType<typeof PLASMIC.fetchPages>> = [];
+  try {
+    pageModules = await PLASMIC.fetchPages();
+  } catch (err) {
+    console.warn('[plasmic] fetchPages failed:', (err as Error).message);
+    return [];
+  }
 
-  return Promise.all(
+  const results = await Promise.all(
     pageModules.map(async (mod) => {
-      // path в Plasmic типа "/" или "/about" — нормализуем в slug
-      const rawPath = mod.path.replace(/^\/+/, '').replace(/\/+$/, '');
-      const slug = rawPath === '' ? undefined : rawPath;
-
-      // Префетчим контент страницы — он вшивается в HTML на build
-      const prefetchedData = await PLASMIC.fetchComponentData(mod.path);
-
-      return {
-        params: { slug },
-        props: {
-          componentName: mod.path,
-          prefetchedData,
-          title: mod.name,
-        },
-      };
+      try {
+        const rawPath = mod.path.replace(/^\/+/, '').replace(/\/+$/, '');
+        const slug = rawPath === '' ? undefined : rawPath;
+        const prefetchedData = await PLASMIC.fetchComponentData(mod.path);
+        return {
+          params: { slug },
+          props: {
+            componentName: mod.path,
+            prefetchedData,
+            title: mod.name,
+          },
+        };
+      } catch (err) {
+        console.warn(`[plasmic] skip ${mod.path}:`, (err as Error).message);
+        return null;
+      }
     })
   );
+
+  return results.filter((r): r is NonNullable<typeof r> => r !== null);
 }
 
 const { componentName, prefetchedData, title } = Astro.props;
