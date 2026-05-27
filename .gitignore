@@ -10,3 +10,8 @@ dist/
 site/scripts/cache-teikin-pdfs/
 site/scripts/.teikin-cookies.txt
 tmp/
+
+# TinaCMS — generated на build, не коммитим
+site/tina/__generated__/
+site/public/admin/
+site/tina-lock.json

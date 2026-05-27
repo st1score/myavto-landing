@@ -7,8 +7,10 @@
   },
   "scripts": {
     "dev": "astro dev",
+    "dev:tina": "tinacms dev -c \"astro dev\"",
     "prebuild": "node scripts/gen-search-index.mjs",
     "build": "astro build",
+    "build:tina": "tinacms build && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -31,7 +33,9 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@tinacms/cli": "^2.4.0",
     "@types/pg": "^8.20.0",
+    "tinacms": "^3.8.2",
     "typescript": "^6.0.3"
   }
 }

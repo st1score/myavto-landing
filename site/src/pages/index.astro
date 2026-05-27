@@ -6,6 +6,8 @@ import { getEngines, getPistonProductsInStock } from '../lib/db';
 import { brandSlug, engineSlug } from '../lib/slugs';
 import { partsBrandLabel } from '../lib/labels';
 import { teikinCatalog } from '../data/teikin-catalog';
+// Контент главной хранится в site/content/pages/home.json — редактируется через TinaCMS admin.
+import homeContent from '../../content/pages/home.json';
 
 const [engines, stockProducts] = await Promise.all([
   getEngines(),
@@ -71,7 +73,8 @@ const popularEngines = popularCodes
   .filter(Boolean)
   .slice(0, 8);
 
-const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Хочу подобрать запчасти для капиталки двигателя.');
+const waUrl = CONTACTS.whatsappWithText(homeContent.heroCtaWaText);
+const helpWaUrl = CONTACTS.whatsappWithText(homeContent.helpCtaWaText);
 ---
 
 <Base
@@ -85,14 +88,12 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Хочу по
     <section class="home-hero">
       <div class="container home-hero__inner">
         <div class="home-hero__copy">
-          <p class="shop-kicker">В наличии · Алматы · доставка по РК</p>
-          <h1>Автозапчасти для вашего автомобиля</h1>
-          <p class="home-hero__lead">
-            Подберём поршни, кольца, вкладыши и прокладки по артикулу, OEM или коду двигателя.
-          </p>
+          <p class="shop-kicker">{homeContent.heroKicker}</p>
+          <h1>{homeContent.heroTitle}</h1>
+          <p class="home-hero__lead">{homeContent.heroSubtitle}</p>
           <div class="home-hero__actions">
-            <a href="/poisk/" class="btn">Начать покупки</a>
-            <a href={waUrl} class="btn btn-ghost" target="_blank" rel="noopener">Подобрать в WhatsApp</a>
+            <a href={homeContent.heroCtaPrimaryUrl} class="btn">{homeContent.heroCtaPrimary}</a>
+            <a href={waUrl} class="btn btn-ghost" target="_blank" rel="noopener">{homeContent.heroCtaWa}</a>
           </div>
         </div>
         <div class="home-hero__media" aria-hidden="true">
@@ -162,11 +163,11 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Хочу по
     <section class="shop-section shop-help">
       <div class="container help-card">
         <div>
-          <p class="shop-kicker">Быстро и точно</p>
-          <h2>Не знаете код двигателя?</h2>
-          <p>Отправьте VIN, марку, модель или фото старой детали. Менеджер проверит артикулы и наличие.</p>
+          <p class="shop-kicker">{homeContent.helpKicker}</p>
+          <h2>{homeContent.helpTitle}</h2>
+          <p>{homeContent.helpText}</p>
         </div>
-        <a href={waUrl} class="btn" target="_blank" rel="noopener">Написать в WhatsApp</a>
+        <a href={helpWaUrl} class="btn" target="_blank" rel="noopener">{homeContent.helpCta}</a>
       </div>
     </section>
 
