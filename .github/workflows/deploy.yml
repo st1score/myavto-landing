@@ -41,6 +41,8 @@ jobs:
       - name: Build Astro site
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PLASMIC_PROJECT_ID: ${{ secrets.PLASMIC_PROJECT_ID }}
+          PLASMIC_API_TOKEN: ${{ secrets.PLASMIC_API_TOKEN }}
         run: npm run build
 
       - name: Upload Pages artifact
