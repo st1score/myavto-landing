@@ -36,7 +36,11 @@ jobs:
           cache-dependency-path: site/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
+        # npm bug #4828: lock сгенерён на macOS не содержит Linux-binary rollup.
+        # Workaround: rm lock + npm install для пересборки на текущей платформе.
+        run: |
+          rm -f package-lock.json
+          npm install --no-audit --no-fund
 
       - name: Build Astro site
         env:
