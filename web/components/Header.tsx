@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { PHONE_HUMAN, WA_PHONE } from '@/lib/ui';
+import { useIsOwner } from '@/lib/useIsOwner';
 
 const NAV = [
   { href: '/search', label: 'Каталог' },
@@ -14,6 +15,7 @@ const NAV = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [stuck, setStuck] = useState(false);
+  const isOwner = useIsOwner();
 
   useEffect(() => {
     const onScroll = () => setStuck(window.scrollY > 8);
@@ -25,9 +27,8 @@ export default function Header() {
   return (
     <header className={'hdr' + (stuck ? ' is-stuck' : '')}>
       <div className="hdr__bar">
-        <Link className="logo" href="/" onClick={() => setOpen(false)}>
-          <span className="logo__mark"><Icon name="piston" size={20} /></span>
-          MY <b>AVTO</b>
+        <Link className="logo logo--img" href="/" onClick={() => setOpen(false)} aria-label="MY AVTO">
+          <img src="/assets/logo.png" alt="MY AVTO" />
         </Link>
         <nav className="hdr__nav">
           {NAV.map((n) => (
@@ -40,12 +41,14 @@ export default function Header() {
           <b className="mono">{PHONE_HUMAN}</b>
         </div>
         <div className="hdr__icons">
-          <a className="btn btn--wa btn--sm" href={`https://wa.me/${WA_PHONE}`} target="_blank" rel="noopener">
-            <Icon name="wa" size={18} /><span className="hdr__wa-text">WhatsApp</span>
+          <a className="btn btn--wa-green btn--sm" href={`https://wa.me/${WA_PHONE}`} target="_blank" rel="noopener">
+            <img className="hdr__wa-logo" src="/assets/social/whatsapp.png" alt="" /><span className="hdr__wa-text">WhatsApp</span>
           </a>
-          <Link className="icon-btn icon-btn--cab" href="/dashboard" aria-label="Кабинет">
-            <Icon name="user" size={19} />
-          </Link>
+          {isOwner && (
+            <Link className="icon-btn icon-btn--cab" href="/dashboard" aria-label="Кабинет">
+              <Icon name="user" size={19} />
+            </Link>
+          )}
           <button className="icon-btn burger" aria-label="Меню" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
             <Icon name={open ? 'x' : 'menu'} size={20} />
           </button>
@@ -59,9 +62,11 @@ export default function Header() {
               {n.label} <Icon name="chevR" size={18} />
             </Link>
           ))}
-          <Link href="/dashboard" onClick={() => setOpen(false)}>
-            Кабинет продавца <Icon name="chevR" size={18} />
-          </Link>
+          {isOwner && (
+            <Link href="/dashboard" onClick={() => setOpen(false)}>
+              Кабинет продавца <Icon name="chevR" size={18} />
+            </Link>
+          )}
           <a className="mphone mono" href={`tel:${PHONE_HUMAN.replace(/[^+\d]/g, '')}`}>{PHONE_HUMAN}</a>
         </div>
       </div>

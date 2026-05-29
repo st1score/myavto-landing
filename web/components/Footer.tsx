@@ -9,7 +9,12 @@ const SOCIALS: [slug: string, label: string, wa?: boolean][] = [
 
 const SOCIAL_HREF: Record<string, string> = {
   whatsapp: `https://wa.me/${WA_PHONE}`,
-  telegram: 'https://t.me/', instagram: '#', tiktok: '#', kaspi: '#', kolesa: '#', olx: '#',
+  telegram: 'https://t.me/+B9HzpYNs7QpiZDAy',
+  instagram: 'https://www.instagram.com/myavto.kz_',
+  tiktok: 'https://www.tiktok.com/@myavto.kz',
+  kaspi: 'https://l.kaspi.kz/shop/U2E5tHvjbzmz9vD',
+  kolesa: 'https://kolesa.kz/a/show/216448704?redirect=1',
+  olx: 'https://www.olx.kz/d/obyavlenie/remkomplekt-prokladok-toyota-IDqsXKp.html',
 };
 
 export default function Footer() {
@@ -17,7 +22,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__top">
         <div className="footer__brand">
-          <div className="logo"><span className="logo__mark"><Icon name="piston" size={20} /></span> MY <b>AVTO</b></div>
+          <Link className="logo logo--img" href="/"><img src="/assets/logo.png" alt="MY AVTO" /></Link>
           <p>Запчасти для капитального ремонта японских двигателей. Поршни, кольца, вкладыши, гильзы и ремкомплекты — оригинал и проверенные бренды.</p>
           <div className="addr">
             <div><Icon name="pin" size={17} /> Алматы, ТЦ CarCity, 3 ярус, бутик 135В</div>
