@@ -80,7 +80,9 @@ function SearchInner() {
         <section>
           <div className="text-sm text-neutral-500 mb-3">{products === null ? 'Загрузка…' : `${products.length} товаров`}</div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {(products ?? []).map((p) => <Card key={p.id} p={p} />)}
+            {products === null
+              ? Array.from({ length: 9 }).map((_, i) => <CardSkeleton key={i} />)
+              : products.map((p) => <Card key={p.id} p={p} />)}
           </div>
           {products && products.length === 0 && (
             <div className="border border-dashed border-neutral-300 rounded-xl p-10 text-center text-neutral-500">
@@ -102,6 +104,20 @@ function Filter({ title, current, options, onSet }: { title: string; current: st
         {!current && options.slice(0, 12).map((o) => (
           <button key={o.value} onClick={() => onSet(o.value)} className="bg-neutral-100 hover:bg-neutral-200 text-xs px-2.5 py-1 rounded-full">{o.label}</button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CardSkeleton() {
+  return (
+    <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden animate-pulse flex flex-col">
+      <div className="aspect-[4/3] bg-neutral-100" />
+      <div className="p-3 space-y-2">
+        <div className="h-2.5 w-1/3 bg-neutral-100 rounded" />
+        <div className="h-3.5 w-full bg-neutral-100 rounded" />
+        <div className="h-3 w-2/3 bg-neutral-100 rounded" />
+        <div className="h-4 w-1/2 bg-neutral-100 rounded mt-1" />
       </div>
     </div>
   );

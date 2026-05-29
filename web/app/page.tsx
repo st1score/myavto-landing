@@ -77,14 +77,29 @@ export default function Home() {
           <h2 className="text-2xl font-bold">Новые поступления</h2>
           <Link href="/search" className="text-sm text-[var(--c-red)] hover:underline">Весь каталог →</Link>
         </div>
-        {loading && <p className="text-neutral-500">Загрузка…</p>}
         {!loading && recent.length === 0 && (
           <p className="text-neutral-500">Пока пусто. Добавь товар в <Link href="/dashboard" className="text-[var(--c-red)]">кабинете</Link>.</p>
         )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {recent.map((p) => <Card key={p.id} p={p} />)}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
+            : recent.map((p) => <Card key={p.id} p={p} />)}
         </div>
       </section>
+    </div>
+  );
+}
+
+function CardSkeleton() {
+  return (
+    <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden animate-pulse">
+      <div className="aspect-[4/3] bg-neutral-100" />
+      <div className="p-3 space-y-2">
+        <div className="h-2.5 w-1/3 bg-neutral-100 rounded" />
+        <div className="h-3.5 w-full bg-neutral-100 rounded" />
+        <div className="h-3.5 w-2/3 bg-neutral-100 rounded" />
+        <div className="h-4 w-1/2 bg-neutral-100 rounded mt-1" />
+      </div>
     </div>
   );
 }
