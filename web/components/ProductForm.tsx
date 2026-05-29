@@ -93,7 +93,11 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
       s.from('pricing_settings').select('usd_kzt_rate, default_margin_percent').eq('id', true).maybeSingle(),
     ]).then(([c, b, e, ps]) => {
       setCats((c.data ?? []) as Category[]);
-      setBrands((b.data ?? []) as Brand[]);
+      const dbBrands = (b.data ?? []) as Brand[];
+      const merged = dbBrands.some((x) => x.code === 'ND')
+        ? dbBrands
+        : [...dbBrands, { code: 'ND', name: 'ND' } as Brand].sort((a, b) => a.name.localeCompare(b.name));
+      setBrands(merged);
       setEngines((e.data ?? []) as Engine[]);
       if (mode === 'create' && ps.data) {
         setForm((f) => ({

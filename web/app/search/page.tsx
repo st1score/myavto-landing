@@ -4,11 +4,15 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CATEGORY_LABEL, type CatalogRow } from '@/lib/types';
+import { Icon } from '@/components/Icon';
+import ProductCard from '@/components/ProductCard';
+import { partsBrandLogo } from '@/lib/ui';
 
 function SearchInner() {
   const sp = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<CatalogRow[] | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const q = sp.get('q') ?? '';
   const category = sp.get('category') ?? '';
@@ -24,6 +28,7 @@ function SearchInner() {
     if (engine)   req = req.contains('compatible_engines', [engine.toUpperCase()]);
     if (inStock)  req = req.gt('total_stock', 0);
     if (q)        req = req.or(`title.ilike.%${q}%,master_sku.ilike.%${q}%`);
+    setProducts(null);
     req.order('created_at', { ascending: false }).limit(120).then(({ data }) => {
       setProducts((data ?? []) as CatalogRow[]);
     });
@@ -50,109 +55,134 @@ function SearchInner() {
     if (v) next.set(k, v); else next.delete(k);
     router.replace(`/search?${next.toString()}`);
   }
+  const toggle = (k: string, cur: string, v: string) => setParam(k, cur === v ? null : v);
+
+  const title = category ? (CATEGORY_LABEL[category] ?? category) : 'Каталог запчастей';
+  const hasFilters = !!(q || category || brand || engine || inStock);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <form
-        onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); setParam('q', String(fd.get('q') ?? '') || null); }}
-        className="flex gap-2 mb-6"
-      >
-        <input
-          name="q" defaultValue={q}
-          placeholder="OEM, артикул, двигатель…"
-          className="flex-1 border-2 border-black rounded-lg px-4 py-2.5"
-        />
-        <label className="flex items-center gap-2 text-sm bg-neutral-100 px-3 rounded-lg">
-          <input type="checkbox" checked={inStock} onChange={(e) => setParam('in_stock', e.target.checked ? '1' : null)} />В наличии
-        </label>
-      </form>
-
-      <div className="grid md:grid-cols-[240px_1fr] gap-6">
-        <aside className="space-y-4 text-sm">
-          <Filter title="Категория" current={category} options={facets.categories.map(([v, n]) => ({ value: v, label: `${CATEGORY_LABEL[v] ?? v} · ${n}` }))} onSet={(v) => setParam('category', v)} />
-          <Filter title="Бренд" current={brand} options={facets.brands.map(([v, n]) => ({ value: v, label: `${v} · ${n}` }))} onSet={(v) => setParam('brand', v)} />
-          <Filter title="Двигатель" current={engine} options={facets.engines.map(([v, n]) => ({ value: v, label: `${v} · ${n}` }))} onSet={(v) => setParam('engine', v)} />
-          {(q || category || brand || engine || inStock) && (
-            <button onClick={() => router.replace('/search')} className="border border-neutral-300 rounded-md px-3 py-2 text-sm">Сбросить фильтры</button>
-          )}
-        </aside>
-
-        <section>
-          <div className="text-sm text-neutral-500 mb-3">{products === null ? 'Загрузка…' : `${products.length} товаров`}</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {products === null
-              ? Array.from({ length: 9 }).map((_, i) => <CardSkeleton key={i} />)
-              : products.map((p) => <Card key={p.id} p={p} />)}
+    <>
+      <div className="page-head">
+        <div className="container">
+          <div className="crumbs">
+            <Link href="/">Главная</Link> <Icon name="chevR" size={14} />
+            <span>Каталог</span>
+            {category && <><Icon name="chevR" size={14} /><span>{CATEGORY_LABEL[category] ?? category}</span></>}
           </div>
-          {products && products.length === 0 && (
-            <div className="border border-dashed border-neutral-300 rounded-xl p-10 text-center text-neutral-500">
-              Ничего не нашли. Попробуй код двигателя или OEM.
-            </div>
-          )}
-        </section>
+          <h1>{title}{products && <span>· {products.length} позиций</span>}</h1>
+        </div>
       </div>
-    </div>
-  );
-}
 
-function Filter({ title, current, options, onSet }: { title: string; current: string; options: { value: string; label: string }[]; onSet: (v: string | null) => void }) {
-  return (
-    <div className="border border-neutral-200 rounded-lg p-3">
-      <div className="text-xs uppercase tracking-wider font-semibold text-neutral-500 mb-2">{title}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {current && <button onClick={() => onSet(null)} className="bg-black text-white text-xs px-2.5 py-1 rounded-full">× {current}</button>}
-        {!current && options.slice(0, 12).map((o) => (
-          <button key={o.value} onClick={() => onSet(o.value)} className="bg-neutral-100 hover:bg-neutral-200 text-xs px-2.5 py-1 rounded-full">{o.label}</button>
-        ))}
+      <div className="container">
+        <div className="catalog">
+          <aside className={'filters' + (filtersOpen ? ' is-open' : '')}>
+            <div className="fbox">
+              <h5>Наличие</h5>
+              <button className={'fopt' + (inStock ? ' is-on' : '')} onClick={() => setParam('in_stock', inStock ? null : '1')}>
+                <span className="box"><Icon name="check" size={12} /></span> Только в наличии
+              </button>
+            </div>
+
+            {facets.categories.length > 0 && (
+              <div className="fbox">
+                <h5>Категория {category && <span className="clear" onClick={() => setParam('category', null)}>Сбросить</span>}</h5>
+                {facets.categories.map(([v, n]) => (
+                  <button key={v} className={'fopt' + (category === v ? ' is-on' : '')} onClick={() => toggle('category', category, v)}>
+                    <span className="box"><Icon name="check" size={12} /></span>
+                    {CATEGORY_LABEL[v] ?? v} <span className="cnt">{n}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {facets.brands.length > 0 && (
+              <div className="fbox">
+                <h5>Бренд запчасти {brand && <span className="clear" onClick={() => setParam('brand', null)}>Сбросить</span>}</h5>
+                {facets.brands.map(([v, n]) => {
+                  const logo = partsBrandLogo(v);
+                  return (
+                    <button key={v} className={'fopt' + (brand === v ? ' is-on' : '')} onClick={() => toggle('brand', brand, v)}>
+                      <span className="box"><Icon name="check" size={12} /></span>
+                      {logo && <span className="frow-logo"><img src={logo} alt={v} /></span>}
+                      {v} <span className="cnt">{n}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {facets.engines.length > 0 && (
+              <div className="fbox">
+                <h5>Двигатель {engine && <span className="clear" onClick={() => setParam('engine', null)}>Сбросить</span>}</h5>
+                {facets.engines.slice(0, 14).map(([v, n]) => (
+                  <button key={v} className={'fopt' + (engine === v ? ' is-on' : '')} onClick={() => toggle('engine', engine, v)}>
+                    <span className="box"><Icon name="check" size={12} /></span>
+                    <span className="mono">{v}</span> <span className="cnt">{n}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </aside>
+
+          <main className="catalog__main">
+            <div className="toolbar">
+              <button className="filter-toggle" onClick={() => setFiltersOpen((v) => !v)}>
+                <Icon name="sliders" size={17} /> Фильтры
+              </button>
+              <form
+                className="tsearch" onSubmit={(e) => { e.preventDefault(); setParam('q', String(new FormData(e.currentTarget).get('q') ?? '').trim() || null); }}
+              >
+                <Icon name="search" size={18} />
+                <input name="q" defaultValue={q} placeholder="Поиск по артикулу, названию или двигателю" />
+              </form>
+            </div>
+
+            {hasFilters && (
+              <div className="active-filters">
+                {q && <span className="afilter">«{q}» <button onClick={() => setParam('q', null)}><Icon name="x" size={11} /></button></span>}
+                {category && <span className="afilter">{CATEGORY_LABEL[category] ?? category} <button onClick={() => setParam('category', null)}><Icon name="x" size={11} /></button></span>}
+                {brand && <span className="afilter">{brand} <button onClick={() => setParam('brand', null)}><Icon name="x" size={11} /></button></span>}
+                {engine && <span className="afilter">{engine} <button onClick={() => setParam('engine', null)}><Icon name="x" size={11} /></button></span>}
+                {inStock && <span className="afilter">В наличии <button onClick={() => setParam('in_stock', null)}><Icon name="x" size={11} /></button></span>}
+                <button className="chip" onClick={() => router.replace('/search')}>Сбросить всё</button>
+              </div>
+            )}
+
+            <div className="grid-products">
+              {products === null
+                ? Array.from({ length: 9 }).map((_, i) => <CardSkeleton key={i} />)
+                : products.map((p) => <ProductCard key={p.id} p={p} />)}
+            </div>
+
+            {products && products.length === 0 && (
+              <div className="empty">Ничего не нашли. Попробуй код двигателя или OEM-номер.</div>
+            )}
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 function CardSkeleton() {
   return (
-    <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden animate-pulse flex flex-col">
-      <div className="aspect-[4/3] bg-neutral-100" />
-      <div className="p-3 space-y-2">
-        <div className="h-2.5 w-1/3 bg-neutral-100 rounded" />
-        <div className="h-3.5 w-full bg-neutral-100 rounded" />
-        <div className="h-3 w-2/3 bg-neutral-100 rounded" />
-        <div className="h-4 w-1/2 bg-neutral-100 rounded mt-1" />
+    <div className="pcard" style={{ pointerEvents: 'none' }}>
+      <div className="pcard__media" style={{ animation: 'pulse 1.5s ease-in-out infinite' }} />
+      <div className="pcard__body">
+        <div style={{ height: 14, width: '90%', background: 'var(--c-bg-soft)', borderRadius: 6 }} />
+        <div style={{ height: 12, width: '50%', background: 'var(--c-bg-soft)', borderRadius: 6 }} />
+        <div className="pcard__foot">
+          <div style={{ height: 20, width: 80, background: 'var(--c-bg-soft)', borderRadius: 6 }} />
+          <div style={{ width: 46, height: 46, background: 'var(--c-bg-soft)', borderRadius: 10 }} />
+        </div>
       </div>
     </div>
   );
 }
 
-function Card({ p }: { p: CatalogRow }) {
-  const inStock = p.total_stock > 0;
-  return (
-    <Link href={`/p?id=${p.id}`} className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:border-black transition flex flex-col">
-      <div className="aspect-[4/3] bg-neutral-50 flex items-center justify-center overflow-hidden">
-        {p.image_url
-          ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-3" />
-          : <div className="text-neutral-300 text-3xl font-bold">{p.brand_code[0]}</div>}
-      </div>
-      <div className="p-3 flex flex-col gap-1">
-        <div className="text-xs uppercase tracking-wide text-neutral-500 font-semibold flex items-center gap-1.5">
-          {p.brand_code} {inStock && <span className="text-green-600">●</span>}
-        </div>
-        <div className="font-semibold line-clamp-2 text-sm">{p.title}</div>
-        <div className="text-xs text-neutral-500">
-          {CATEGORY_LABEL[p.category_code] ?? p.category_code}
-          {p.variant_count > 1 ? ` · ${p.variant_count} вариантов` : ''}
-        </div>
-        {p.compatible_engines.length > 0 && (
-          <div className="text-xs font-mono text-neutral-600 truncate">{p.compatible_engines.slice(0, 3).join(' · ')}</div>
-        )}
-        {p.price_own != null && <div className="font-bold mt-1">от {Number(p.price_own).toLocaleString('ru-RU')} ₸</div>}
-      </div>
-    </Link>
-  );
-}
-
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-6 text-neutral-500">Загрузка…</div>}>
+    <Suspense fallback={<div className="container" style={{ padding: '40px 24px', color: 'var(--c-muted)' }}>Загрузка…</div>}>
       <SearchInner />
     </Suspense>
   );
