@@ -1,4 +1,5 @@
 import { supabaseBrowser } from '@/lib/supabase/client';
+import { MAKE_ITEMS, PARTS_BRAND_ITEMS } from '@/lib/ui';
 
 /* ---- Home page content model (drag-drop constructor) ----
    The home page renders an ordered list of blocks. Each block has a type, a
@@ -14,6 +15,10 @@ export type HeroProps = {
   trust: string[];
 };
 export type HeadProps = { eyebrow: string; title: string };
+export type LogoItem = { src: string; label: string; href: string };
+export type CategoryItem = { label: string; imageUrl: string; href: string };
+export type CarouselProps = HeadProps & { items?: LogoItem[] };
+export type CategoriesProps = HeadProps & { items?: CategoryItem[] };
 export type BannerProps = {
   imageUrl: string; eyebrow: string; title: string; text: string;
   ctaLabel: string; ctaHref: string;
@@ -23,8 +28,18 @@ export type BlockType = 'hero' | 'arrivals' | 'categories' | 'makes' | 'parts' |
 
 export type Block =
   | { id: string; type: 'hero'; visible: boolean; props: HeroProps }
-  | { id: string; type: 'arrivals' | 'categories' | 'makes' | 'parts'; visible: boolean; props: HeadProps }
+  | { id: string; type: 'arrivals'; visible: boolean; props: HeadProps }
+  | { id: string; type: 'categories'; visible: boolean; props: CategoriesProps }
+  | { id: string; type: 'makes' | 'parts'; visible: boolean; props: CarouselProps }
   | { id: string; type: 'banner'; visible: boolean; props: BannerProps };
+
+export const DEFAULT_CATEGORY_ITEMS: CategoryItem[] = [
+  { label: 'Поршни', imageUrl: '', href: '/search?category=PISTON' },
+  { label: 'Кольца', imageUrl: '', href: '/search?category=RING' },
+  { label: 'Вкладыши', imageUrl: '', href: '/search?category=BEARING' },
+  { label: 'Гильзы', imageUrl: '', href: '/search?category=LINER' },
+  { label: 'Ремкомплекты', imageUrl: '', href: '/search?category=KIT' },
+];
 
 export type HomeDoc = { blocks: Block[] };
 
@@ -61,6 +76,9 @@ export const DEFAULT_HOME: HomeDoc = {
 export function blockDefaultProps(type: BlockType): Block['props'] {
   if (type === 'hero') return { ...DEFAULT_HERO };
   if (type === 'banner') return { imageUrl: '', eyebrow: '', title: 'Новый баннер', text: '', ctaLabel: 'Подробнее', ctaHref: '/search' };
+  if (type === 'makes') return { eyebrow: 'Подбор по марке', title: BLOCK_LABEL[type], items: MAKE_ITEMS.map((i) => ({ ...i })) };
+  if (type === 'parts') return { eyebrow: 'Только оригинал', title: BLOCK_LABEL[type], items: PARTS_BRAND_ITEMS.map((i) => ({ ...i })) };
+  if (type === 'categories') return { eyebrow: 'Категории', title: BLOCK_LABEL[type], items: DEFAULT_CATEGORY_ITEMS.map((i) => ({ ...i })) };
   return { eyebrow: '', title: BLOCK_LABEL[type] };
 }
 

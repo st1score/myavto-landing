@@ -192,25 +192,27 @@ body { background:var(--c-bg); color:var(--c-text); font-family:var(--font-sans)
 .marquee-head h3{font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--c-text)}
 .marquee-head .label{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--c-faint)}
 .marquee-head .rule{flex:1;height:1px;background:var(--c-border)}
-.marquee{position:relative;overflow-x:auto;overflow-y:hidden;cursor:grab;touch-action:pan-y;scrollbar-width:none;-ms-overflow-style:none;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.marquee{position:relative;overflow-x:auto;overflow-y:hidden;cursor:grab;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .marquee::-webkit-scrollbar{display:none}
 .marquee,.marquee *{user-select:none;-webkit-user-select:none}
 .marquee:active{cursor:grabbing}
-.marquee__track{display:flex;width:max-content;gap:16px}
-.logo-chip{flex:none;width:172px;height:92px;display:grid;place-items:center;background:#fff;border:1px solid var(--c-border);border-radius:var(--r-xl);padding:18px 26px;transition:transform var(--t-mid) var(--ease-out),box-shadow var(--t-mid),border-color var(--t-mid)}
-.logo-chip img{max-height:100%;max-width:100%;object-fit:contain;transition:filter var(--t-mid),opacity var(--t-mid),transform var(--t-mid) var(--ease-out)}
+.marquee__track{display:flex;width:max-content;gap:16px;padding:4px 0}
+.logo-chip{flex:none;width:160px;height:92px;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--c-border);border-radius:var(--r-xl);padding:16px 20px;transition:transform var(--t-mid) var(--ease-out),box-shadow var(--t-mid),border-color var(--t-mid)}
+.logo-chip img{max-height:48px;max-width:100%;width:auto;object-fit:contain;display:block;transition:filter var(--t-mid),opacity var(--t-mid),transform var(--t-mid) var(--ease-out)}
 .logo-chip:hover{box-shadow:var(--sh-md);border-color:var(--c-border-strong);transform:translateY(-2px)}
 .logo-chip:hover img{transform:scale(1.06)}
 /* car-make logos: black as in source, grayscale idle */
 .marquee--makes .logo-chip img{filter:grayscale(1);opacity:.55}
 .marquee--makes .logo-chip:hover img{filter:grayscale(1);opacity:1}
 /* parts-brand logos: ALWAYS colored */
-.marquee--brands .logo-chip{width:150px;height:92px;padding:22px 30px}
-.marquee--brands .logo-chip img{filter:none;opacity:1}
+.marquee--brands .logo-chip{width:150px;height:92px}
+.marquee--brands .logo-chip img{filter:none;opacity:1;max-height:44px}
 @media (max-width:560px){
-  .logo-chip{width:132px;height:76px;padding:14px 18px}
-  .marquee--brands .logo-chip{width:120px;height:76px}
+  .logo-chip{width:128px;height:74px;padding:12px 16px}
+  .logo-chip img{max-height:38px}
+  .marquee--brands .logo-chip{width:120px;height:74px}
+  .marquee--brands .logo-chip img{max-height:34px}
 }
 
 /* ============================================================ CATEGORIES */
