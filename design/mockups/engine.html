@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toyota 1KZ-TE — запчасти для двигателя — MY AVTO</title>
+<link rel="stylesheet" href="../tokens.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px solid var(--c-border); }
+  .hdr-main { display: flex; align-items: center; gap: var(--sp-4); height: var(--header-h-mobile); }
+  @media (min-width: 768px) { .hdr-main { height: var(--header-h); } }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 22px; color: var(--c-navy); }
+  .logo-mark { width: 32px; height: 32px; background: var(--c-red); color: #fff; border-radius: var(--r-sm); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+  .search { flex: 1; position: relative; max-width: 560px; }
+  .search input { width: 100%; height: 44px; padding: 0 14px 0 42px; border: 1px solid var(--c-border-strong); border-radius: var(--r-md); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); }
+  .hdr-actions { display: flex; gap: var(--sp-3); align-items: center; }
+  .hdr-phone { display: none; }
+  @media (min-width: 768px) { .hdr-phone { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--fs-xs); color: var(--c-text-muted); } .hdr-phone strong { color: var(--c-navy); font-size: var(--fs-md); font-weight: 700; } }
+  .hdr-cats { background: var(--c-navy); }
+  .hdr-cats-row { display: flex; gap: 4px; height: 44px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .hdr-cat { padding: 8px 14px; border-radius: var(--r-sm); color: #fff; font-size: var(--fs-sm); white-space: nowrap; }
+  .hdr-cat.active { background: var(--c-red); }
+
+  .crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: var(--fs-xs); color: var(--c-text-muted); padding: var(--sp-3) 0; }
+  .crumbs a { color: var(--c-text-muted); }
+
+  /* Engine hero */
+  .eng-hero { background: linear-gradient(135deg, var(--c-navy) 0%, #1e3a8a 100%); color: #fff; padding: var(--sp-8) 0; border-radius: var(--r-lg); margin-bottom: var(--sp-6); position: relative; overflow: hidden; }
+  .eng-hero::after { content: ""; position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(229,9,20,0.25) 0%, transparent 70%); }
+  .eng-hero-inner { padding: 0 var(--sp-6); position: relative; z-index: 1; display: grid; grid-template-columns: 1fr; gap: var(--sp-4); }
+  @media (min-width: 768px) { .eng-hero-inner { grid-template-columns: 1.3fr 1fr; align-items: center; gap: var(--sp-6); } }
+  .eng-hero h1 { font-size: var(--fs-4xl); font-weight: 800; line-height: var(--lh-tight); margin-bottom: var(--sp-2); }
+  .eng-hero h1 .code { font-family: var(--font-mono); color: var(--c-red); }
+  .eng-hero p { font-size: var(--fs-lg); color: #cbd5e1; max-width: 540px; margin-bottom: var(--sp-4); }
+  .eng-pills { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+  .eng-pills .pill { background: rgba(255,255,255,0.1); color: #fff; }
+  .eng-img { aspect-ratio: 1; background: rgba(255,255,255,0.05); border-radius: var(--r-md); display: grid; place-items: center; font-family: var(--font-mono); font-size: 72px; font-weight: 800; color: #fff; opacity: .8; }
+
+  /* Specs card */
+  .specs-card { background: #fff; border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--sh-sm); margin-bottom: var(--sp-6); }
+  .specs-card h2 { font-size: var(--fs-xl); font-weight: 700; color: var(--c-navy); margin-bottom: var(--sp-4); }
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--c-border); border-radius: var(--r-md); overflow: hidden; }
+  @media (min-width: 640px) { .spec-grid { grid-template-columns: repeat(4, 1fr); } }
+  .spec { padding: var(--sp-3); border-right: 1px solid var(--c-border); border-bottom: 1px solid var(--c-border); }
+  .spec-label { font-size: var(--fs-xs); color: var(--c-text-muted); margin-bottom: 4px; }
+  .spec-value { font-family: var(--font-mono); font-weight: 700; color: var(--c-navy); font-size: var(--fs-md); }
+
+  /* Category cards */
+  .sec-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: var(--sp-4); }
+  .sec-head h2 { font-size: var(--fs-2xl); font-weight: 800; color: var(--c-navy); }
+  .cat-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-3); }
+  @media (min-width: 768px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
+  .cat-card { background: #fff; border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--sh-sm); display: flex; gap: var(--sp-4); align-items: center; transition: .15s; }
+  .cat-card:hover { box-shadow: var(--sh-md); transform: translateY(-2px); text-decoration: none; }
+  .cat-icon { width: 64px; height: 64px; background: var(--c-blue-50); color: var(--c-blue); border-radius: var(--r-md); display: grid; place-items: center; font-size: 32px; flex-shrink: 0; }
+  .cat-info h3 { font-size: var(--fs-lg); font-weight: 700; color: var(--c-navy); margin-bottom: 4px; }
+  .cat-info .price { font-size: var(--fs-sm); color: var(--c-red); font-weight: 700; font-family: var(--font-mono); }
+  .cat-info .count { font-size: var(--fs-xs); color: var(--c-text-muted); margin-top: 2px; }
+
+  /* Vehicles section */
+  .veh-card { background: #fff; border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--sh-sm); margin-bottom: var(--sp-6); }
+  .veh-card h2 { font-size: var(--fs-xl); font-weight: 700; color: var(--c-navy); margin-bottom: var(--sp-4); }
+  .veh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+  @media (min-width: 768px) { .veh-grid { grid-template-columns: repeat(4, 1fr); } }
+  .veh-item { padding: var(--sp-3); background: var(--c-bg); border-radius: var(--r-md); }
+  .veh-item strong { display: block; color: var(--c-navy); font-size: var(--fs-sm); font-weight: 700; }
+  .veh-item span { font-size: var(--fs-xs); color: var(--c-text-muted); }
+
+  /* About */
+  .about { background: #fff; border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--sh-sm); }
+  .about h2 { font-size: var(--fs-xl); font-weight: 700; color: var(--c-navy); margin-bottom: var(--sp-3); }
+  .about p { color: var(--c-text-muted); margin-bottom: var(--sp-3); line-height: var(--lh-base); }
+
+  .ftr { background: var(--c-navy); color: #cbd5e1; padding: var(--sp-12) 0 var(--sp-8); margin-top: var(--sp-16); }
+  .ftr-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-8); }
+  @media (min-width: 768px) { .ftr-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+  .ftr h4 { color: #fff; font-size: var(--fs-md); margin-bottom: var(--sp-3); text-transform: uppercase; }
+  .ftr a { color: #cbd5e1; display: block; padding: 4px 0; font-size: var(--fs-sm); }
+  .ftr-bottom { border-top: 1px solid rgba(255,255,255,0.1); margin-top: var(--sp-8); padding-top: var(--sp-4); display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--c-text-soft); }
+
+  .sticky-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #fff; border-top: 1px solid var(--c-border); padding: var(--sp-3) var(--sp-4); display: flex; gap: var(--sp-2); }
+  @media (min-width: 768px) { .sticky-cta { display: none; } }
+  body { padding-bottom: 76px; } @media (min-width: 768px) { body { padding-bottom: 0; } }
+
+  .mock-nav { position: fixed; right: 12px; bottom: 90px; background: #0F1B3D; color: #fff; padding: 8px; border-radius: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; z-index: 200; }
+  .mock-nav a { color: #fff; padding: 4px 8px; border-radius: 4px; }
+  .mock-nav strong { font-size: 10px; opacity: .6; padding: 4px 8px; }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="container">
+    <div class="hdr-main">
+      <a href="/" class="logo"><span class="logo-mark">MA</span><span>MY AVTO</span></a>
+      <div class="search"><span class="search-icon">🔍</span><input type="search" placeholder="Поиск по двигателю или авто" /></div>
+      <div class="hdr-actions">
+        <div class="hdr-phone"><span>WhatsApp / Tel</span><strong>+7 701 550-93-77</strong></div>
+        <a href="https://wa.me/77015509377" class="btn btn-wa" style="height:40px">💬 WhatsApp</a>
+      </div>
+    </div>
+  </div>
+  <nav class="hdr-cats"><div class="container"><div class="hdr-cats-row">
+    <a href="#" class="hdr-cat">Все запчасти</a>
+    <a href="#" class="hdr-cat">Поршни</a>
+    <a href="#" class="hdr-cat">Кольца</a>
+    <a href="#" class="hdr-cat">Toyota</a>
+    <a href="#" class="hdr-cat">Nissan</a>
+  </div></div></nav>
+</header>
+
+<main class="container">
+  <nav class="crumbs">
+    <a href="/">Главная</a><span>/</span>
+    <a href="brand.html">Toyota</a><span>/</span>
+    <a href="#">Двигатели</a><span>/</span>
+    <span style="color: var(--c-navy)">1KZ-TE</span>
+  </nav>
+
+  <section class="eng-hero">
+    <div class="eng-hero-inner">
+      <div>
+        <div class="eng-pills" style="margin-bottom: var(--sp-3);">
+          <span class="pill">Toyota</span>
+          <span class="pill">Diesel</span>
+          <span class="pill pill-stock" style="background: rgba(22,163,74,.25); color: #86efac;">В наличии</span>
+        </div>
+        <h1>Запчасти на двигатель <span class="code">1KZ-TE</span></h1>
+        <p>Двигатель Toyota 1KZ-TE 3.0L Diesel. Поршни, кольца, вкладыши, прокладки. Бренды TEIKIN, NPR, KP, Taiho. Доставка по KZ за 1-3 дня.</p>
+        <a href="https://wa.me/77015509377" class="btn btn-primary btn-lg">💬 Подобрать запчасти</a>
+      </div>
+      <div class="eng-img">1KZ</div>
+    </div>
+  </section>
+
+  <section class="specs-card">
+    <h2>Характеристики двигателя</h2>
+    <div class="spec-grid">
+      <div class="spec"><div class="spec-label">Код</div><div class="spec-value">1KZ-TE</div></div>
+      <div class="spec"><div class="spec-label">Объём</div><div class="spec-value">2982 cc</div></div>
+      <div class="spec"><div class="spec-label">Цилиндров</div><div class="spec-value">4 в ряд</div></div>
+      <div class="spec"><div class="spec-label">Топливо</div><div class="spec-value">Diesel</div></div>
+      <div class="spec"><div class="spec-label">Диаметр</div><div class="spec-value">96.00 мм</div></div>
+      <div class="spec"><div class="spec-label">Ход</div><div class="spec-value">103.0 мм</div></div>
+      <div class="spec"><div class="spec-label">Степень сжатия</div><div class="spec-value">21.2 : 1</div></div>
+      <div class="spec"><div class="spec-label">Мощность</div><div class="spec-value">130 л.с.</div></div>
+    </div>
+  </section>
+
+  <section style="margin-bottom: var(--sp-8);">
+    <div class="sec-head"><h2>Категории запчастей для 1KZ</h2></div>
+    <div class="cat-grid">
+      <a href="listing.html" class="cat-card">
+        <div class="cat-icon">🔧</div>
+        <div class="cat-info">
+          <h3>Поршни</h3>
+          <div class="count">12 вариантов · TEIKIN, IZUMI, ND, NM</div>
+          <div class="price">от 24 500 ₸</div>
+        </div>
+      </a>
+      <a href="#" class="cat-card">
+        <div class="cat-icon">⭕</div>
+        <div class="cat-info">
+          <h3>Кольца поршневые</h3>
+          <div class="count">8 вариантов · NPR, KP, RIKEN</div>
+          <div class="price">от 18 200 ₸</div>
+        </div>
+      </a>
+      <a href="#" class="cat-card">
+        <div class="cat-icon">▭</div>
+        <div class="cat-info">
+          <h3>Вкладыши</h3>
+          <div class="count">6 вариантов · Taiho, ACL, NDC</div>
+          <div class="price">от 14 800 ₸</div>
+        </div>
+      </a>
+      <a href="#" class="cat-card">
+        <div class="cat-icon">📄</div>
+        <div class="cat-info">
+          <h3>Прокладки ГБЦ</h3>
+          <div class="count">3 варианта</div>
+          <div class="price">от 12 500 ₸</div>
+        </div>
+      </a>
+      <a href="#" class="cat-card">
+        <div class="cat-icon">🔩</div>
+        <div class="cat-info">
+          <h3>Сальники</h3>
+          <div class="count">5 вариантов</div>
+          <div class="price">от 3 200 ₸</div>
+        </div>
+      </a>
+      <a href="#" class="cat-card">
+        <div class="cat-icon">📦</div>
+        <div class="cat-info">
+          <h3>Полный комплект</h3>
+          <div class="count">Капремонт под ключ</div>
+          <div class="price">от 95 000 ₸</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="veh-card">
+    <h2>Применяемость — какие автомобили</h2>
+    <div class="veh-grid">
+      <div class="veh-item"><strong>Land Cruiser Prado 90</strong><span>1996-2002</span></div>
+      <div class="veh-item"><strong>Land Cruiser Prado 120</strong><span>2002-2009</span></div>
+      <div class="veh-item"><strong>Hilux Surf</strong><span>1995-2002</span></div>
+      <div class="veh-item"><strong>Hiace</strong><span>1995-2006</span></div>
+      <div class="veh-item"><strong>Granvia</strong><span>1995-2002</span></div>
+      <div class="veh-item"><strong>4Runner</strong><span>1996-2002</span></div>
+      <div class="veh-item"><strong>Regius</strong><span>1997-2002</span></div>
+      <div class="veh-item"><strong>Dyna/Toyoace</strong><span>1995-2002</span></div>
+    </div>
+  </section>
+
+  <section class="about">
+    <h2>О двигателе Toyota 1KZ-TE</h2>
+    <p>1KZ-TE — рядный 4-цилиндровый турбодизель Toyota объёмом 3.0 литра с прямым впрыском, выпускался с 1993 по 2007 год. Устанавливался на полноприводные SUV (Prado 90/120, Hilux Surf, 4Runner) и коммерческий транспорт (Hiace, Granvia, Dyna).</p>
+    <p>Распространённые проблемы: трещины головки блока цилиндров (особенно при перегреве), износ ЦПГ к 250-300 тыс. км. При капремонте обычно меняют поршневую группу (поршни AG-серии с галереей), кольца NPR, вкладыши Taiho.</p>
+  </section>
+</main>
+
+<footer class="ftr">
+  <div class="container">
+    <div class="ftr-grid">
+      <div>
+        <div class="logo" style="color: #fff; margin-bottom: var(--sp-3);"><span class="logo-mark">MA</span><span style="color:#fff">MY AVTO</span></div>
+        <p style="font-size: var(--fs-sm); margin-bottom: var(--sp-3);">Запчасти для капремонта двигателей</p>
+        <p style="font-size: var(--fs-md); color: #fff; font-weight: 700;">+7 701 550-93-77</p>
+      </div>
+      <div><h4>Каталог</h4><a href="#">Поршни</a><a href="#">Кольца</a></div>
+      <div><h4>Марки</h4><a href="#">Toyota</a><a href="#">Nissan</a></div>
+      <div><h4>Контакты</h4><a href="https://wa.me/77015509377">WhatsApp</a></div>
+    </div>
+    <div class="ftr-bottom"><div>© 2026 MY AVTO</div><div>my-avto.kz</div></div>
+  </div>
+</footer>
+
+<div class="sticky-cta">
+  <a href="tel:+77015509377" class="btn btn-secondary" style="flex:1">📞 Позвонить</a>
+  <a href="https://wa.me/77015509377" class="btn btn-wa" style="flex:1">💬 WhatsApp</a>
+</div>
+
+<nav class="mock-nav">
+  <strong>MOCKUPS</strong>
+  <a href="index.html">Главная</a>
+  <a href="brand.html">Бренд</a>
+  <a href="engine.html">Двигатель ★</a>
+  <a href="listing.html">Листинг</a>
+  <a href="sku.html">SKU</a>
+</nav>
+</body>
+</html>

@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  --c-red: #E50914;
+  --c-red-dark: #b40710;
+  --c-black: #0a0a0a;
+  --c-text: #0a0a0a;
+  --c-text-dim: #5a5a5e;
+  --c-bg-soft: #f7f7f8;
+  --c-border: #e4e4e7;
+  --c-success: #16a34a;
+}
+
+@theme inline {
+  --color-brand: var(--c-red);
+  --color-brand-dark: var(--c-red-dark);
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body { background: #fff; color: var(--c-text); font-family: var(--font-sans); }

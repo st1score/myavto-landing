@@ -7,31 +7,18 @@ export function toSlug(s: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export const brandSlug: Record<string, string> = {
-  Toyota: 'toyota',
-  Nissan: 'nissan',
-  Mitsubishi: 'mitsubishi',
-  Mazda: 'mazda',
-  Honda: 'honda',
-  Subaru: 'subaru',
-  Suzuki: 'suzuki',
-  Lexus: 'lexus',
-  Infiniti: 'infiniti',
+export const CATEGORY_LABEL: Record<string, string> = {
+  PISTON: 'Поршни',
+  RING: 'Кольца',
+  BEARING: 'Вкладыши',
+  LINER: 'Гильзы',
+  KIT: 'Ремкомплекты',
 };
 
-export const brandFromSlug: Record<string, string> = Object.fromEntries(
-  Object.entries(brandSlug).map(([k, v]) => [v, k])
-);
-
-export const categorySlug: Record<string, string> = {
+export const CATEGORY_SLUG: Record<string, string> = {
   PISTON: 'porshni',
-  RING: 'koltsa-porshnevye',
+  RING: 'koltsa',
+  BEARING: 'vkladyshi',
+  LINER: 'gilzy',
+  KIT: 'remkomplekty',
 };
-
-export const categoryFromSlug: Record<string, string> = Object.fromEntries(
-  Object.entries(categorySlug).map(([k, v]) => [v, k])
-);
-
-export function engineSlug(code: string): string {
-  return toSlug(code);
-}

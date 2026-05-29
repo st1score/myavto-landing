@@ -1,503 +1,192 @@
 ---
 import Base from '../layouts/Base.astro';
-import FAQ from '../components/FAQ.astro';
-import { CONTACTS } from '../lib/contacts';
-import { getEngines, getPistonProductsInStock } from '../lib/db';
-import { brandSlug, engineSlug } from '../lib/slugs';
-import { partsBrandLabel } from '../lib/labels';
-import { teikinCatalog } from '../data/teikin-catalog';
-// Контент главной хранится в site/content/pages/home.json — редактируется через TinaCMS admin.
-import homeContent from '../../content/pages/home.json';
+import SearchBox from '../components/react/SearchBox.tsx';
+import TrustSection from '../components/TrustSection.astro';
+import { CATEGORY_LABEL } from '../lib/slugs';
+import { getPopularEngines } from '../lib/db';
 
-const [engines, stockProducts] = await Promise.all([
-  getEngines(),
-  getPistonProductsInStock(),
-]);
+let popularEngines: { engine_code: string; product_count: number }[] = [];
+try {
+  popularEngines = await getPopularEngines(12);
+} catch (e) {
+  console.warn('[home] getPopularEngines failed (B5 not applied yet?):', (e as Error).message);
+}
 
-const totalEngines = engines.length;
-const popularCodes = ['1KZ', '2JZ', '2GR', '1MZ', '1ZZ', '2AZ', '1GR', 'VQ35DE', '4G63', '4M40'];
-const enginesByCode = new Map(engines.map((e) => [e.engine_code, e]));
-
-const categories = [
-  { title: 'Поршни', href: '/zapchasti/porshni/', icon: 'engine' },
-  { title: 'Кольца', href: '/zapchasti/koltsa-porshnevye/', icon: 'rings' },
-  { title: 'Вкладыши', href: '/zapchasti/vkladyshi/', icon: 'bearing' },
-  { title: 'Toyota', href: '/toyota/', icon: 'badge' },
-  { title: 'Nissan', href: '/nissan/', icon: 'badge' },
-  { title: 'Mitsubishi', href: '/mitsubishi/', icon: 'badge' },
-  { title: 'Mazda', href: '/mazda/', icon: 'badge' },
-  { title: 'Бренды', href: '/brendy/', icon: 'brand' },
+const categories: { code: string; emoji: string }[] = [
+  { code: 'PISTON',  emoji: '⚙️' },
+  { code: 'RING',    emoji: '⭕' },
+  { code: 'BEARING', emoji: '🛡' },
+  { code: 'LINER',   emoji: '🧱' },
+  { code: 'KIT',     emoji: '📦' },
 ];
 
-const SIZE_SLUG: Record<string, string> = {
-  STD: 'std',
-  '0.25': '025',
-  '0.50': '050',
-  '0.75': '075',
-  '1.00': '100',
-};
-
-function productUrl(p: typeof stockProducts[number]) {
-  const engine = enginesByCode.get(p.engine_code);
-  if (!engine) return '/zapchasti/porshni/';
-  const brandSl = brandSlug[engine.brand_name] ?? engine.brand_name.toLowerCase();
-  const engSl = engineSlug(engine.engine_code);
-  const sizeSl = SIZE_SLUG[p.size_code] ?? 'std';
-  const insert = p.insert_type === 'plain' ? '' : `-${p.insert_type.toLowerCase()}`;
-  const teikinEntry = teikinCatalog[p.engine_code];
-  if (p.parts_brand === 'TEIKIN' && teikinEntry?.teikin_pistons?.[0]) {
-    const article = teikinEntry.teikin_pistons[0].toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    return `/${brandSl}/dvigateli/${engSl}/porshni/teikin-${article}${insert}-${sizeSl}/`;
-  }
-  const partsBrand = p.parts_brand.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  return `/${brandSl}/dvigateli/${engSl}/porshni/${partsBrand}${insert}-${sizeSl}/`;
-}
-
-function productImage(engineCode: string) {
-  return teikinCatalog[engineCode]?.image ?? '/teikin-photos/piston-sample.png';
-}
-
-const popularProducts = stockProducts
-  .filter((p) => popularCodes.includes(p.engine_code))
-  .slice(0, 6)
-  .map((p) => ({
-    ...p,
-    engine: enginesByCode.get(p.engine_code),
-    href: productUrl(p),
-    image: productImage(p.engine_code),
-  }))
-  .filter((p) => p.engine);
-
-const popularEngines = popularCodes
-  .map((code) => enginesByCode.get(code))
-  .filter(Boolean)
-  .slice(0, 8);
-
-const waUrl = CONTACTS.whatsappWithText(homeContent.heroCtaWaText);
-const helpWaUrl = CONTACTS.whatsappWithText(homeContent.helpCtaWaText);
+const title = 'MY AVTO — запчасти для капремонта двигателя в Алматы';
+const description = 'Поршни, кольца, вкладыши, гильзы и ремкомплекты для японских двигателей. TEIKIN, NPR, IZUMI. В наличии в Алматы, доставка по Казахстану.';
 ---
+<Base title={title} description={description}>
+  <section class="hero">
+    <div class="container">
+      <span class="eyebrow">Капремонт двигателя · Алматы</span>
+      <h1>
+        Запчасти для капитального ремонта
+        <span class="accent">японских двигателей</span>
+      </h1>
+      <p class="hero-sub">
+        Поршни · Кольца · Вкладыши · Гильзы · Ремкомплекты. Оригинальные бренды TEIKIN, NPR, IZUMI, RIK, Taiho.
+      </p>
 
-<Base
-  title="MY AVTO — автозапчасти для капиталки двигателя в Алматы"
-  description="Поршни, кольца, вкладыши и прокладки ГБЦ для японских авто. Подбор по артикулу, OEM или коду двигателя. Алматы, ТЦ CarCity, доставка по Казахстану."
-  keywords="автозапчасти Алматы, поршни Toyota, кольца поршневые, капиталка двигателя, MY AVTO"
-  canonical="/"
-  stickyWaText="Здравствуйте! Хочу подобрать запчасти для капиталки двигателя."
->
-  <main class="home-shop">
-    <section class="home-hero">
-      <div class="container home-hero__inner">
-        <div class="home-hero__copy">
-          <p class="shop-kicker">{homeContent.heroKicker}</p>
-          <h1>{homeContent.heroTitle}</h1>
-          <p class="home-hero__lead">{homeContent.heroSubtitle}</p>
-          <div class="home-hero__actions">
-            <a href={homeContent.heroCtaPrimaryUrl} class="btn">{homeContent.heroCtaPrimary}</a>
-            <a href={waUrl} class="btn btn-ghost" target="_blank" rel="noopener">{homeContent.heroCtaWa}</a>
-          </div>
-        </div>
-        <div class="home-hero__media" aria-hidden="true">
-          <img src="/assets/photos/crankshaft.png" alt="" loading="eager" />
-        </div>
+      <div class="hero-search">
+        <SearchBox client:load size="lg" autoFocus={false} />
+        <div class="hero-hint">OEM · артикул · двигатель · авто</div>
       </div>
-    </section>
 
-    <section class="shop-section">
-      <div class="container">
-        <div class="section-row">
-          <h2>Категории</h2>
-          <a href="/brendy/">Все бренды</a>
-        </div>
-        <div class="category-grid">
-          {categories.map((cat) => (
-            <a class="category-tile" href={cat.href}>
-              <span class="category-icon" data-icon={cat.icon}></span>
-              <span>{cat.title}</span>
+      {popularEngines.length > 0 && (
+        <div class="hero-chips" data-stagger>
+          <span class="chips-label">Популярные:</span>
+          {popularEngines.map((e) => (
+            <a href={`/search/?engine=${encodeURIComponent(e.engine_code)}`} class="chip stagger-item">
+              {e.engine_code}
             </a>
           ))}
         </div>
-      </div>
-    </section>
+      )}
+    </div>
+  </section>
 
-    <section class="shop-section">
-      <div class="container">
-        <div class="section-row">
-          <h2>Популярные товары</h2>
-          <a href="/zapchasti/porshni/">Смотреть все</a>
-        </div>
-        <div class="product-strip">
-          {popularProducts.map((p) => (
-            <a class="shop-product-card" href={p.href}>
-              <span class="heart" aria-hidden="true">♡</span>
-              <img src={p.image} alt={`Поршни ${p.engine?.engine_code}`} loading="lazy" />
-              <strong>Поршни {p.engine?.engine_code} {p.size_code}</strong>
-              <small>{partsBrandLabel[p.parts_brand] ?? p.parts_brand} · комплект</small>
-              <b>от 15 000 ₸</b>
-              <span class="stock-dot">В наличии</span>
-            </a>
-          ))}
-        </div>
+  <section class="cats-section">
+    <div class="container">
+      <div class="section-title">
+        <h2>Что мы продаём</h2>
+        <p>Только детали для капитального ремонта двигателя.</p>
       </div>
-    </section>
+      <div class="cats-grid" data-stagger>
+        {categories.map((c) => (
+          <a href={`/search/?category=${c.code}`} class="cat-tile stagger-item">
+            <div class="cat-emoji">{c.emoji}</div>
+            <div class="cat-name">{CATEGORY_LABEL[c.code]}</div>
+            <div class="cat-arrow">→</div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
 
-    <section class="shop-section">
-      <div class="container">
-        <div class="section-row">
-          <h2>Популярные двигатели</h2>
-          <span>{totalEngines} в каталоге</span>
-        </div>
-        <div class="engine-chip-grid">
-          {popularEngines.map((engine) => (
-            <a class="engine-chip-card" href={`/${brandSlug[engine!.brand_name] ?? engine!.brand_name.toLowerCase()}/dvigateli/${engineSlug(engine!.engine_code)}/`}>
-              <img src={productImage(engine!.engine_code)} alt={`Каталог TEIKIN ${engine!.engine_code}`} loading="lazy" />
-              <span>
-                <strong>{engine!.engine_code}</strong>
-                <small>{engine!.brand_name}</small>
-              </span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="shop-section shop-help">
-      <div class="container help-card">
-        <div>
-          <p class="shop-kicker">{homeContent.helpKicker}</p>
-          <h2>{homeContent.helpTitle}</h2>
-          <p>{homeContent.helpText}</p>
-        </div>
-        <a href={helpWaUrl} class="btn" target="_blank" rel="noopener">{homeContent.helpCta}</a>
-      </div>
-    </section>
-
-    <section class="shop-section faq-wrap">
-      <div class="container">
-        <FAQ />
-      </div>
-    </section>
-  </main>
+  <TrustSection />
 </Base>
 
 <style>
-  .home-shop {
+  .hero { padding: 80px 0 60px; background: linear-gradient(180deg, #fafafb 0%, #fff 100%); }
+  @media (max-width: 768px) { .hero { padding: 48px 0 40px; } }
+  .hero h1 { max-width: 880px; }
+  .hero h1 .accent { color: var(--c-red); display: inline-block; }
+  .hero-sub { max-width: 720px; font-size: 1.12rem; color: var(--c-text-dim); margin-bottom: 32px; }
+  @media (max-width: 640px) { .hero-sub { font-size: 1rem; } }
+
+  .hero-search { max-width: 760px; margin: 0 0 24px; }
+  .hero-hint { font-size: .82rem; color: var(--c-text-faint); margin-top: 8px; letter-spacing: 0.04em; }
+
+  .hero-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin-top: 32px;
+  }
+  .chips-label { font-size: .82rem; color: var(--c-text-dim); margin-right: 4px; }
+  .chip {
+    display: inline-flex; align-items: center;
+    padding: 8px 14px;
     background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: 999px;
+    font-size: .9rem; font-weight: 600;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    transition: all var(--t-fast);
   }
+  .chip:hover { border-color: var(--c-black); background: var(--c-black); color: #fff; }
 
-  .home-hero {
-    padding: 28px 0 8px;
-  }
-
-  .home-hero__inner {
+  .cats-section { padding: 80px 0; }
+  @media (max-width: 768px) { .cats-section { padding: 48px 0; } }
+  .cats-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.92fr) minmax(340px, 1fr);
-    align-items: center;
-    gap: 18px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
   }
-
-  .shop-kicker {
-    margin: 0 0 12px;
-    color: var(--c-red);
-    font-size: .8rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-  }
-
-  .home-hero h1 {
-    max-width: 520px;
-    margin: 0;
-    font-size: clamp(2.2rem, 6vw, 4.9rem);
-    line-height: .96;
-    letter-spacing: 0;
-  }
-
-  .home-hero h1::after {
-    content: " MYAVTO.kz";
-    display: block;
-    color: var(--c-red);
-    font-size: .42em;
-    line-height: 1.2;
-    margin-top: 10px;
-  }
-
-  .home-hero__lead {
-    max-width: 460px;
-    margin: 18px 0 0;
-    color: var(--c-text-dim);
-    font-size: 1.05rem;
-  }
-
-  .home-hero__actions {
-    display: grid;
-    gap: 10px;
-    max-width: 420px;
-    margin-top: 26px;
-  }
-
-  .btn-ghost {
+  @media (max-width: 900px) { .cats-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 540px) { .cats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+  .cat-tile {
+    position: relative;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 28px 20px;
     background: #fff;
-    color: var(--c-text);
-    border-color: var(--c-border);
-    box-shadow: none;
-  }
-
-  .btn-ghost:hover {
-    background: var(--c-bg-soft);
-    color: var(--c-text);
-  }
-
-  .home-hero__media {
-    min-height: 360px;
-    display: flex;
-    align-items: end;
-    justify-content: center;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    transition: all var(--t-med);
     overflow: hidden;
   }
-
-  .home-hero__media img {
-    width: min(620px, 100%);
-    max-height: 420px;
-    object-fit: contain;
-    filter: drop-shadow(0 28px 38px rgba(15, 23, 42, .16));
+  .cat-tile:hover {
+    border-color: var(--c-black);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
   }
+  .cat-emoji { font-size: 2rem; }
+  .cat-name { font-weight: 700; font-size: 1.05rem; }
+  .cat-arrow { position: absolute; top: 20px; right: 20px; color: var(--c-text-faint); transition: all var(--t-fast); }
+  .cat-tile:hover .cat-arrow { color: var(--c-red); transform: translate(3px, -3px); }
 
-  .shop-section {
-    padding: 26px 0;
+  /* SearchBox component styles — global so they apply inside React island. */
+  :global(.sb) { position: relative; }
+  :global(.sb-input-wrap) {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; border: 2px solid var(--c-black); border-radius: 14px;
+    padding: 6px 6px 6px 18px;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
   }
-
-  .section-row {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 16px;
+  :global(.sb-input-wrap:focus-within) { box-shadow: 0 6px 24px rgba(10,10,10,0.10); }
+  :global(.sb-icon) { color: var(--c-text-faint); flex-shrink: 0; }
+  :global(.sb-input-wrap input) {
+    flex: 1; min-width: 0;
+    border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 1.04rem; padding: 12px 0;
+    color: var(--c-text);
   }
-
-  .section-row h2 {
-    margin: 0;
-    font-size: clamp(1.35rem, 3vw, 2rem);
+  :global(.sb-input-wrap input::placeholder) { color: var(--c-text-faint); }
+  :global(.sb-go) {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    background: var(--c-red); color: #fff;
+    border: 0; border-radius: 10px;
+    font-weight: 700; font-size: .95rem;
+    cursor: pointer;
+    transition: background var(--t-fast);
   }
+  :global(.sb-go:hover) { background: var(--c-red-dark); }
+  :global(.sb-lg .sb-input-wrap input) { font-size: 1.1rem; padding: 14px 0; }
 
-  .section-row a,
-  .section-row span {
-    color: var(--c-red);
-    font-size: .9rem;
-    font-weight: 700;
-    white-space: nowrap;
+  :global(.sb-dropdown) {
+    position: absolute; left: 0; right: 0; top: calc(100% + 8px);
+    background: #fff; border: 1px solid var(--c-border);
+    border-radius: 14px; box-shadow: var(--shadow-lg);
+    max-height: 70vh; overflow-y: auto; z-index: 60;
+    padding: 6px;
   }
-
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .category-tile {
-    min-height: 126px;
-    padding: 18px 12px;
-    border: 1px solid var(--c-border);
-    border-radius: 14px;
-    display: grid;
-    place-items: center;
-    gap: 12px;
-    text-align: center;
-    font-size: .9rem;
-    font-weight: 700;
-    background: linear-gradient(180deg, #fff, #fbfbfc);
-  }
-
-  .category-icon {
-    width: 34px;
-    height: 34px;
-    display: block;
-    background: var(--c-text);
-    mask: var(--icon) center / contain no-repeat;
-    -webkit-mask: var(--icon) center / contain no-repeat;
-  }
-
-  .category-icon[data-icon="engine"] { --icon: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 8h10v8H7zM9 5h6v3H9zM4 11H2v3h2m18-3h-2v3h2M7 12H5v3h2m10-3h2v3h-2M8 18h8' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-  .category-icon[data-icon="rings"] { --icon: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='9' cy='12' r='5' fill='none' stroke='black' stroke-width='1.8'/%3E%3Ccircle cx='15' cy='12' r='5' fill='none' stroke='black' stroke-width='1.8'/%3E%3C/svg%3E"); }
-  .category-icon[data-icon="bearing"] { --icon: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7h14v10H5zM8 7V5h8v2M8 17v2h8v-2M9 10h6M9 14h6' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-  .category-icon[data-icon="badge"] { --icon: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 3l7 4v6c0 4-3 6.5-7 8-4-1.5-7-4-7-8V7z' fill='none' stroke='black' stroke-width='1.8'/%3E%3Cpath d='M9 12l2 2 4-5' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-  .category-icon[data-icon="brand"] { --icon: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 4l2.2 4.5 5 .7-3.6 3.5.8 5-4.4-2.3-4.4 2.3.8-5L4.8 9.2l5-.7z' fill='none' stroke='black' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-
-  .product-strip {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(174px, 1fr);
-    gap: 12px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    scroll-snap-type: x proximity;
-  }
-
-  .shop-product-card {
-    position: relative;
-    min-height: 276px;
-    padding: 14px;
-    border: 1px solid var(--c-border);
-    border-radius: 16px;
-    background: #fff;
-    display: grid;
-    grid-template-rows: 112px auto auto auto auto;
-    gap: 6px;
-    scroll-snap-align: start;
-  }
-
-  .shop-product-card img {
-    width: 100%;
-    height: 112px;
-    object-fit: contain;
-  }
-
-  .shop-product-card strong {
-    font-size: .92rem;
-    line-height: 1.25;
-  }
-
-  .shop-product-card small {
-    color: var(--c-text-faint);
-  }
-
-  .shop-product-card b {
-    margin-top: 6px;
-    font-size: 1.05rem;
-  }
-
-  .heart {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    color: #9ca3af;
-    font-size: 1.35rem;
-  }
-
-  .stock-dot {
-    align-self: end;
-    color: #6b7280;
-    font-size: .76rem;
-  }
-
-  .stock-dot::before {
-    content: "";
-    width: 7px;
-    height: 7px;
-    display: inline-block;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: #16a34a;
-  }
-
-  .engine-chip-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .engine-chip-card {
-    min-height: 92px;
-    padding: 12px;
-    border: 1px solid var(--c-border);
-    border-radius: 16px;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .engine-chip-card img {
-    width: 58px;
-    height: 58px;
-    object-fit: contain;
+  :global(.sb-hit) {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px;
     border-radius: 10px;
-    background: var(--c-bg-soft);
+    color: var(--c-text);
+    transition: background var(--t-fast);
   }
-
-  .engine-chip-card strong,
-  .engine-chip-card small {
-    display: block;
+  :global(.sb-hit.active), :global(.sb-hit:hover) { background: var(--c-bg-soft); color: var(--c-text); }
+  :global(.sb-hit img) { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; background: #f7f7f8; border-radius: 8px; }
+  :global(.sb-hit-body) { flex: 1; min-width: 0; }
+  :global(.sb-hit-title) { font-weight: 600; font-size: .94rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :global(.sb-hit-meta) { font-size: .82rem; color: var(--c-text-dim); display: flex; gap: 6px; align-items: center; }
+  :global(.sb-dot) { color: var(--c-success); }
+  :global(.sb-hit-price) { font-weight: 700; white-space: nowrap; }
+  :global(.sb-more) {
+    width: 100%; padding: 12px;
+    background: transparent; border: 0; border-top: 1px solid var(--c-border);
+    margin-top: 4px;
+    font-weight: 600; color: var(--c-red);
+    cursor: pointer;
   }
-
-  .engine-chip-card small {
-    color: var(--c-text-faint);
-  }
-
-  .help-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    padding: 28px;
-    border-radius: 18px;
-    background: #0a0a0a;
-    color: #fff;
-  }
-
-  .help-card p:not(.shop-kicker) {
-    margin: 8px 0 0;
-    color: rgba(255,255,255,.68);
-    max-width: 560px;
-  }
-
-  .help-card .btn {
-    min-width: 220px;
-  }
-
-  .faq-wrap {
-    padding-top: 8px;
-  }
-
-  @media (max-width: 780px) {
-    .home-hero {
-      padding-top: 14px;
-    }
-
-    .home-hero__inner {
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 4px;
-    }
-
-    .home-hero__copy {
-      order: 1;
-    }
-
-    .home-hero__media {
-      order: 2;
-      min-height: 190px;
-      margin-top: -8px;
-    }
-
-    .home-hero__media img {
-      max-height: 230px;
-      width: 112%;
-      max-width: none;
-    }
-
-    .home-hero__lead {
-      font-size: .98rem;
-    }
-
-    .category-grid,
-    .engine-chip-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .category-tile {
-      min-height: 104px;
-      font-size: .82rem;
-    }
-
-    .help-card {
-      display: grid;
-      padding: 24px 18px;
-    }
-
-    .help-card .btn {
-      width: 100%;
-      min-width: 0;
-    }
-  }
+  :global(.sb-more:hover) { background: var(--c-bg-soft); }
 </style>

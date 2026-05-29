@@ -1,0 +1,392 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { CONTACTS } from '../../../lib/contacts';
+import { CATEGORY_LABEL, CATEGORY_SLUG } from '../../../lib/slugs';
+import {
+  getEngineCategoryPairs,
+  getEngineCategoryDetail,
+  getRelatedCategoriesForEngine,
+  type EngineCategoryDetail,
+  type RelatedCategoryCard,
+} from '../../../lib/db';
+
+export async function getStaticPaths() {
+  try {
+    const pairs = await getEngineCategoryPairs();
+    return pairs.map((p) => ({
+      params: {
+        engine: p.engine_code.toLowerCase(),
+        category: CATEGORY_SLUG[p.category_code] ?? p.category_code.toLowerCase(),
+      },
+      props: { engine_code: p.engine_code, category_code: p.category_code },
+    }));
+  } catch (e) {
+    console.warn('[p/engine/category] getStaticPaths failed:', (e as Error).message);
+    return [];
+  }
+}
+
+const { engine_code, category_code } = Astro.props as { engine_code: string; category_code: string };
+
+let detail: EngineCategoryDetail | null = null;
+let related: RelatedCategoryCard[] = [];
+
+try {
+  detail = await getEngineCategoryDetail(engine_code, category_code);
+  if (detail) related = await getRelatedCategoriesForEngine(engine_code, category_code);
+} catch (e) {
+  console.warn(`[p/${engine_code}/${category_code}] failed:`, (e as Error).message);
+}
+
+if (!detail) return Astro.redirect('/search/');
+
+const categoryLabel = CATEGORY_LABEL[category_code] ?? category_code;
+const imageUrl = detail.image_url ?? `/teikin-catalog/${engine_code}.png`;
+
+const variants = detail.variants;
+
+// Стандартный набор размеров (бензин). Для дизелей — только STD + 0.50.
+const ALL_SIZES = ['STD', '0.25', '0.50', '0.75', '1.00'];
+const SIZES = detail.is_diesel ? ['STD', '0.50'] : ALL_SIZES;
+
+// Brands present, sorted: TEIKIN/IZUMI/NPR/RIKEN first, потом остальное.
+const PREFERRED = ['TEIKIN','IZUMI','NPR','RIKEN','TAIHO','NDC','TP','ND','NM','GMB','OEM'];
+const brandsRaw = [...new Set(variants.map((v) => v.brand_name))];
+const brands = brandsRaw.sort((a, b) => {
+  const ai = PREFERRED.indexOf(a); const bi = PREFERRED.indexOf(b);
+  return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
+});
+
+// Для каждого (brand, size) собираем агрегат: in_stock, qty, price, sku-anchor.
+type Cell = { has: boolean; in_stock: boolean; qty: number; sku: string | null; price: string | null };
+const cellByBrandSize: Record<string, Record<string, Cell>> = {};
+for (const b of brands) {
+  cellByBrandSize[b] = {};
+  for (const s of SIZES) cellByBrandSize[b][s] = { has: false, in_stock: false, qty: 0, sku: null, price: null };
+}
+for (const v of variants) {
+  if (!cellByBrandSize[v.brand_name]) continue;
+  const cell = cellByBrandSize[v.brand_name][v.size_code];
+  if (!cell) continue;
+  cell.has = true;
+  if (v.in_stock) cell.in_stock = true;
+  cell.qty += v.stock_qty || 0;
+  if (!cell.sku) cell.sku = v.sku;
+  if (cell.price == null && v.price_kzt != null) cell.price = v.price_kzt as any;
+}
+
+function brandLogoPath(brand: string): string | null {
+  const known = ['gmb','izumi','nd','ndc','nm','npr','npw','riken','rocky','taiho','teikin','tp'];
+  const slug = brand.toLowerCase();
+  return known.includes(slug) ? `/assets/parts-brands/${slug}.png` : null;
+}
+
+const waText = `Здравствуйте! Интересует ${categoryLabel} для двигателя ${engine_code}. Есть в наличии?`;
+const waUrl = CONTACTS.whatsappWithText(waText);
+
+const title = `${categoryLabel} ${engine_code} — купить в Алматы | MY AVTO`;
+const description = `${categoryLabel} для двигателя ${engine_code}. ${brands.length} брендов (${brands.slice(0, 3).join(', ')}${brands.length > 3 ? '…' : ''}), все размеры. ${detail.in_stock_any ? 'В наличии в Алматы. ' : ''}WhatsApp: +7 701 550-93-77.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: `${categoryLabel} ${engine_code}`,
+  category: categoryLabel,
+  image: imageUrl,
+  description,
+  ...(detail.oem_numbers.length > 0 && { mpn: detail.oem_numbers[0] }),
+  brand: { '@type': 'Brand', name: brands[0] ?? 'MY AVTO' },
+  offers: {
+    '@type': 'AggregateOffer',
+    priceCurrency: 'KZT',
+    availability: detail.in_stock_any ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
+    offerCount: variants.length,
+    seller: { '@type': 'AutoPartsStore', name: 'MY AVTO' },
+  },
+};
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section class="prod">
+    <div class="container">
+      <nav class="crumbs">
+        <a href="/">Главная</a>
+        <span>·</span>
+        <a href={`/search/?category=${category_code}`}>{categoryLabel}</a>
+        <span>·</span>
+        <span class="crumb-current">{engine_code}</span>
+      </nav>
+
+      <div class="prod-hero">
+        <div class="prod-gallery">
+          <img src={imageUrl} alt={`${categoryLabel} ${engine_code}`} loading="eager" />
+        </div>
+
+        <div class="prod-info">
+          <div class="prod-brand-row">
+            <span class="prod-engine-pill">{engine_code}</span>
+            <span class={'prod-stock ' + (detail.in_stock_any ? 'in' : 'out')}>
+              <span class="dot"></span>
+              {detail.in_stock_any
+                ? (detail.total_qty > 0 ? `В наличии · ${detail.total_qty} шт` : 'В наличии')
+                : 'Под заказ'}
+            </span>
+          </div>
+
+          <h1 class="prod-title">{categoryLabel} {engine_code}</h1>
+          <p class="prod-sub">
+            {brands.length} {brands.length === 1 ? 'бренд' : (brands.length < 5 ? 'бренда' : 'брендов')} ·
+            {' '}{detail.size_count} {detail.size_count === 1 ? 'размер' : (detail.size_count < 5 ? 'размера' : 'размеров')}.
+            Оригинальные TEIKIN, NPR, IZUMI и аналоги.
+          </p>
+
+          <dl class="prod-facts">
+            <div><dt>Категория</dt><dd>{categoryLabel}</dd></div>
+            <div><dt>Двигатель</dt><dd>{engine_code}</dd></div>
+            <div><dt>Брендов</dt><dd>{brands.length}</dd></div>
+            <div><dt>Размеров</dt><dd>{detail.size_count}</dd></div>
+          </dl>
+
+          <div class="prod-cta">
+            <a class="btn btn-lg" href={waUrl} target="_blank" rel="noopener">Заказать в WhatsApp</a>
+            <a class="btn btn-ghost" href={`tel:${CONTACTS.phoneE164}`}>{CONTACTS.phoneDisplay}</a>
+          </div>
+        </div>
+      </div>
+
+      <section class="prod-block">
+        <h2>Бренды и размеры</h2>
+        <p class="muted small">Кликни размер — напишем актуальную цену в WhatsApp.</p>
+        <div class="brand-matrix">
+          <div class="bm-row bm-head" style={`--cols: ${SIZES.length}`}>
+            <div class="bm-brand"></div>
+            {SIZES.map((s) => <div class="bm-size-h">{s}</div>)}
+          </div>
+          {brands.map((brand) => {
+            const logo = brandLogoPath(brand);
+            return (
+              <div class="bm-row" style={`--cols: ${SIZES.length}`}>
+                <div class="bm-brand">
+                  {logo
+                    ? <img src={logo} alt={brand} class="bm-logo" loading="lazy" />
+                    : <span class="bm-brand-text">{brand}</span>}
+                </div>
+                {SIZES.map((s) => {
+                  const c = cellByBrandSize[brand][s];
+                  if (!c.has) return <div class="bm-cell bm-empty">—</div>;
+                  const msg = `Здравствуйте! Интересует ${categoryLabel} ${engine_code} ${brand} ${s}. Есть в наличии и какая цена?`;
+                  return (
+                    <a
+                      href={CONTACTS.whatsappWithText(msg)}
+                      target="_blank" rel="noopener"
+                      class={'bm-cell' + (c.in_stock ? ' in' : ' out')}
+                    >
+                      <span class="bm-cell-size">{s}</span>
+                      {c.in_stock && <span class="bm-cell-dot">●</span>}
+                    </a>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+        <p class="bm-legend muted small">● — в наличии. Иначе — под заказ, 2-7 дней.</p>
+      </section>
+
+      {detail.oem_numbers.length > 0 && (
+        <section class="prod-block">
+          <h2>OEM-номера</h2>
+          <div class="numbers">
+            {detail.oem_numbers.map((n) => <span class="number">{n}</span>)}
+          </div>
+        </section>
+      )}
+
+      {detail.cross_numbers.length > 0 && (
+        <section class="prod-block">
+          <h2>Аналоги по номеру</h2>
+          <div class="numbers">
+            {detail.cross_numbers.slice(0, 30).map((n) => <span class="number">{n}</span>)}
+          </div>
+        </section>
+      )}
+
+      {detail.vehicles.length > 0 && (
+        <section class="prod-block">
+          <h2>Совместимые автомобили</h2>
+          <ul class="vehicle-list">
+            {detail.vehicles.map((v) => <li>{v}</li>)}
+          </ul>
+        </section>
+      )}
+
+      {related.length > 0 && (
+        <section class="prod-block">
+          <h2>Что ещё нужно для капремонта {engine_code}</h2>
+          <div class="related-grid">
+            {related.map((r) => (
+              <a
+                href={`/p/${engine_code.toLowerCase()}/${CATEGORY_SLUG[r.category_code] ?? r.category_code.toLowerCase()}/`}
+                class="related-card"
+              >
+                <div class="related-cat">{CATEGORY_LABEL[r.category_code] ?? r.category_code}</div>
+                <div class="related-meta">
+                  {r.brand_count} {r.brand_count === 1 ? 'бренд' : 'брендов'}
+                  {r.in_stock && <span class="dot-success">●</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section class="prod-cta-end">
+        <h2>Не уверены, что подойдёт?</h2>
+        <p>Напишите код двигателя и размер в WhatsApp — подберём по VIN.</p>
+        <a class="btn btn-lg" href={waUrl} target="_blank" rel="noopener">Написать в WhatsApp</a>
+      </section>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prod { padding: 24px 0 64px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: .85rem; color: var(--c-text-dim); margin-bottom: 24px; }
+  .crumbs a { color: var(--c-text-dim); }
+  .crumbs a:hover { color: var(--c-red); }
+  .crumb-current { color: var(--c-text); font-weight: 600; }
+
+  .prod-hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+  @media (max-width: 900px) { .prod-hero { grid-template-columns: 1fr; gap: 24px; } }
+
+  .prod-gallery {
+    background: var(--c-bg-soft); border: 1px solid var(--c-border);
+    border-radius: var(--r-md); padding: 32px;
+    display: flex; align-items: center; justify-content: center;
+    aspect-ratio: 4 / 3;
+  }
+  .prod-gallery img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+  .prod-info { display: flex; flex-direction: column; gap: 14px; }
+  .prod-brand-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .prod-engine-pill {
+    display: inline-block; padding: 6px 14px;
+    background: var(--c-black); color: #fff;
+    border-radius: 999px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .92rem; letter-spacing: 0.04em;
+  }
+  .prod-stock { display: inline-flex; align-items: center; gap: 6px; font-size: .88rem; font-weight: 600; }
+  .prod-stock.in { color: var(--c-success); }
+  .prod-stock.out { color: var(--c-text-dim); }
+  .prod-stock .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  .prod-title { font-size: clamp(1.5rem, 3.2vw, 2.2rem); margin: 0; line-height: 1.15; }
+  .prod-sub { color: var(--c-text-dim); margin: 0; }
+
+  .prod-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin: 8px 0; }
+  .prod-facts > div { display: flex; flex-direction: column; padding: 10px 0; border-top: 1px solid var(--c-border); }
+  .prod-facts dt { font-size: .78rem; color: var(--c-text-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+  .prod-facts dd { margin: 4px 0 0; font-weight: 600; }
+
+  .prod-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .btn-lg { padding: 16px 28px; font-size: 1.02rem; }
+
+  .prod-block { margin-top: 48px; }
+  .prod-block h2 { font-size: 1.3rem; margin-bottom: 8px; }
+  .prod-block .muted.small { margin-bottom: 20px; }
+
+  .brand-matrix {
+    display: flex; flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    overflow: hidden;
+  }
+  .bm-row {
+    display: grid;
+    grid-template-columns: 140px repeat(var(--cols, 5), minmax(0, 1fr));
+    align-items: center;
+    border-top: 1px solid var(--c-border);
+  }
+  .bm-row:first-child { border-top: 0; }
+  .bm-head { background: var(--c-bg-soft); }
+  .bm-head .bm-size-h {
+    padding: 10px 4px;
+    text-align: center;
+    font-size: .8rem;
+    color: var(--c-text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .bm-brand {
+    padding: 14px;
+    display: flex; align-items: center;
+    border-right: 1px solid var(--c-border);
+    min-height: 64px;
+  }
+  .bm-logo { max-height: 32px; max-width: 110px; object-fit: contain; }
+  .bm-brand-text { font-weight: 700; font-size: .9rem; letter-spacing: 0.04em; }
+  .bm-cell {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 14px 4px;
+    text-align: center;
+    color: var(--c-text);
+    border-right: 1px solid var(--c-border);
+    transition: background var(--t-fast);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .92rem; font-weight: 700;
+    min-height: 56px;
+    cursor: pointer;
+  }
+  .bm-row > .bm-cell:last-child, .bm-row > div:last-child { border-right: 0; }
+  .bm-cell.in { background: rgba(22,163,74,0.05); }
+  .bm-cell.in:hover { background: rgba(22,163,74,0.12); }
+  .bm-cell.out:hover { background: var(--c-bg-soft); }
+  .bm-cell-dot { color: var(--c-success); font-size: .65rem; }
+  .bm-empty { color: var(--c-text-faint); text-align: center; padding: 14px 4px; min-height: 56px; display: flex; align-items: center; justify-content: center; }
+  .bm-legend { margin-top: 12px; }
+
+  @media (max-width: 640px) {
+    .bm-row { grid-template-columns: 90px repeat(var(--cols, 5), minmax(0, 1fr)); }
+    .bm-brand { padding: 10px 8px; min-height: 56px; }
+    .bm-logo { max-width: 70px; max-height: 24px; }
+    .bm-brand-text { font-size: .78rem; }
+    .bm-cell { padding: 10px 2px; font-size: .82rem; min-height: 48px; gap: 4px; }
+    .bm-head .bm-size-h { font-size: .72rem; padding: 8px 2px; }
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .related-card {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 16px;
+    background: #fff; border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    color: var(--c-text);
+    transition: all var(--t-fast);
+  }
+  .related-card:hover { border-color: var(--c-black); transform: translateY(-2px); }
+  .related-cat { font-weight: 700; }
+  .related-meta { font-size: .82rem; color: var(--c-text-dim); display: flex; align-items: center; gap: 8px; }
+  .dot-success { color: var(--c-success); }
+
+  .vehicle-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .vehicle-list li {
+    padding: 8px 14px; background: var(--c-bg-soft);
+    border: 1px solid var(--c-border); border-radius: 999px;
+    font-size: .88rem;
+  }
+
+  .prod-cta-end {
+    margin-top: 64px;
+    padding: 40px;
+    background: linear-gradient(135deg, var(--c-black) 0%, var(--c-near-black) 100%);
+    color: #fff; border-radius: var(--r-lg); text-align: center;
+  }
+  .prod-cta-end h2 { color: #fff; margin: 0 0 8px; }
+  .prod-cta-end p { color: rgba(255,255,255,0.7); margin: 0 0 24px; }
+</style>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Поршни 1KZ-TE — листинг — MY AVTO</title>
+<link rel="stylesheet" href="../tokens.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  .hdr { position: sticky; top: 0; z-index: 50; background: #fff; border-bottom: 1px solid var(--c-border); }
+  .hdr-main { display: flex; align-items: center; gap: var(--sp-4); height: var(--header-h-mobile); }
+  @media (min-width: 768px) { .hdr-main { height: var(--header-h); } }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 22px; color: var(--c-navy); }
+  .logo-mark { width: 32px; height: 32px; background: var(--c-red); color: #fff; border-radius: var(--r-sm); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+  .search { flex: 1; position: relative; max-width: 560px; }
+  .search input { width: 100%; height: 44px; padding: 0 14px 0 42px; border: 1px solid var(--c-border-strong); border-radius: var(--r-md); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); }
+  .hdr-actions { display: flex; gap: var(--sp-3); align-items: center; }
+  .hdr-phone { display: none; }
+  @media (min-width: 768px) { .hdr-phone { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--fs-xs); color: var(--c-text-muted); } .hdr-phone strong { color: var(--c-navy); font-size: var(--fs-md); font-weight: 700; } }
+  .hdr-cats { background: var(--c-navy); }
+  .hdr-cats-row { display: flex; gap: 4px; height: 44px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .hdr-cat { padding: 8px 14px; border-radius: var(--r-sm); color: #fff; font-size: var(--fs-sm); white-space: nowrap; }
+  .hdr-cat.active { background: var(--c-red); }
+
+  .crumbs { display: flex; flex-wrap: wrap; gap: 6px; font-size: var(--fs-xs); color: var(--c-text-muted); padding: var(--sp-3) 0; }
+  .crumbs a { color: var(--c-text-muted); }
+
+  /* Page title */
+  .page-head { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+  .page-head h1 { font-size: var(--fs-3xl); font-weight: 800; color: var(--c-navy); }
+  .page-head h1 .code { font-family: var(--font-mono); color: var(--c-blue); }
+  .page-head .count { color: var(--c-text-muted); font-size: var(--fs-sm); }
+
+  /* Layout: filters sidebar + grid */
+  .listing { display: grid; grid-template-columns: 1fr; gap: var(--sp-4); }
+  @media (min-width: 1024px) { .listing { grid-template-columns: 260px 1fr; align-items: start; } }
+
+  /* Filters */
+  .filters { background: #fff; border-radius: var(--r-lg); padding: var(--sp-4); box-shadow: var(--sh-sm); position: sticky; top: 120px; }
+  .filter-group { margin-bottom: var(--sp-4); }
+  .filter-group:last-child { margin-bottom: 0; }
+  .filter-group h4 { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .04em; color: var(--c-text-muted); margin-bottom: var(--sp-2); font-weight: 700; }
+  .filter-options { display: flex; flex-direction: column; gap: 6px; }
+  .filter-options.row { flex-direction: row; flex-wrap: wrap; }
+  .filter-check { display: flex; gap: 8px; align-items: center; font-size: var(--fs-sm); cursor: pointer; padding: 4px 0; }
+  .filter-check input { width: 16px; height: 16px; accent-color: var(--c-red); }
+  .filter-check .count { color: var(--c-text-soft); margin-left: auto; font-size: var(--fs-xs); }
+
+  /* Sort bar */
+  .sort-bar { background: #fff; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); box-shadow: var(--sh-sm); display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--sp-3); font-size: var(--fs-sm); }
+  .sort-bar strong { color: var(--c-text-muted); font-weight: 600; }
+
+  /* Product grid */
+  .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  @media (min-width: 640px) { .prod-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1024px) { .prod-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 1280px) { .prod-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .prod-card { background: #fff; border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-sm); transition: .15s; display: flex; flex-direction: column; }
+  .prod-card:hover { box-shadow: var(--sh-md); transform: translateY(-2px); text-decoration: none; }
+  .prod-img { aspect-ratio: 1; background: var(--c-bg); display: grid; place-items: center; position: relative; padding: var(--sp-3); }
+  .prod-img-placeholder { font-family: var(--font-mono); font-weight: 700; font-size: 24px; color: var(--c-navy); opacity: .4; text-align: center; line-height: 1.1; }
+  .prod-badges { position: absolute; top: 8px; left: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .prod-fav { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.9); display: grid; place-items: center; cursor: pointer; }
+  .prod-body { padding: var(--sp-3); flex: 1; display: flex; flex-direction: column; }
+  .prod-brand { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--c-text-muted); font-weight: 700; letter-spacing: .04em; }
+  .prod-title { font-size: var(--fs-sm); font-weight: 600; color: var(--c-navy); margin: 4px 0; line-height: var(--lh-snug); }
+  .prod-specs { font-size: var(--fs-xs); color: var(--c-text-muted); margin-bottom: var(--sp-2); flex: 1; }
+  .prod-price-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-2); }
+  .prod-price { font-family: var(--font-mono); font-weight: 800; color: var(--c-navy); font-size: var(--fs-lg); }
+  .prod-price-old { font-size: var(--fs-xs); color: var(--c-text-soft); text-decoration: line-through; }
+  .prod-stock { font-size: 11px; color: var(--c-success); font-weight: 700; }
+  .prod-actions { display: flex; gap: 4px; }
+  .prod-actions .btn { flex: 1; height: 36px; font-size: var(--fs-sm); padding: 0 var(--sp-2); }
+
+  /* Pagination */
+  .pagination { display: flex; gap: var(--sp-2); justify-content: center; margin-top: var(--sp-8); }
+  .page-btn { width: 40px; height: 40px; border: 1px solid var(--c-border-strong); background: #fff; border-radius: var(--r-sm); display: grid; place-items: center; font-weight: 600; color: var(--c-navy); }
+  .page-btn.active { background: var(--c-navy); color: #fff; border-color: var(--c-navy); }
+
+  .ftr { background: var(--c-navy); color: #cbd5e1; padding: var(--sp-12) 0 var(--sp-8); margin-top: var(--sp-16); }
+  .ftr-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-8); }
+  @media (min-width: 768px) { .ftr-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+  .ftr h4 { color: #fff; font-size: var(--fs-md); margin-bottom: var(--sp-3); text-transform: uppercase; }
+  .ftr a { color: #cbd5e1; display: block; padding: 4px 0; font-size: var(--fs-sm); }
+  .ftr-bottom { border-top: 1px solid rgba(255,255,255,0.1); margin-top: var(--sp-8); padding-top: var(--sp-4); display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--c-text-soft); }
+
+  .sticky-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: #fff; border-top: 1px solid var(--c-border); padding: var(--sp-3) var(--sp-4); display: flex; gap: var(--sp-2); }
+  @media (min-width: 1024px) { .sticky-cta { display: none; } }
+  body { padding-bottom: 76px; } @media (min-width: 1024px) { body { padding-bottom: 0; } }
+
+  .mock-nav { position: fixed; right: 12px; bottom: 90px; background: #0F1B3D; color: #fff; padding: 8px; border-radius: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; z-index: 200; }
+  .mock-nav a { color: #fff; padding: 4px 8px; border-radius: 4px; }
+  .mock-nav strong { font-size: 10px; opacity: .6; padding: 4px 8px; }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="container">
+    <div class="hdr-main">
+      <a href="/" class="logo"><span class="logo-mark">MA</span><span>MY AVTO</span></a>
+      <div class="search"><span class="search-icon">🔍</span><input type="search" placeholder="Поиск по двигателю или авто" /></div>
+      <div class="hdr-actions">
+        <div class="hdr-phone"><span>WhatsApp / Tel</span><strong>+7 701 550-93-77</strong></div>
+        <a href="https://wa.me/77015509377" class="btn btn-wa" style="height:40px">💬 WhatsApp</a>
+      </div>
+    </div>
+  </div>
+  <nav class="hdr-cats"><div class="container"><div class="hdr-cats-row">
+    <a href="#" class="hdr-cat">Все запчасти</a>
+    <a href="#" class="hdr-cat active">Поршни</a>
+    <a href="#" class="hdr-cat">Кольца</a>
+    <a href="#" class="hdr-cat">Вкладыши</a>
+  </div></div></nav>
+</header>
+
+<main class="container">
+  <nav class="crumbs">
+    <a href="/">Главная</a><span>/</span>
+    <a href="brand.html">Toyota</a><span>/</span>
+    <a href="engine.html">1KZ-TE</a><span>/</span>
+    <span style="color: var(--c-navy)">Поршни</span>
+  </nav>
+
+  <div class="page-head">
+    <div>
+      <h1>Поршни на <span class="code">1KZ-TE</span></h1>
+      <div class="count">Найдено 12 вариантов · 4 бренда · от 22 900 до 30 800 ₸</div>
+    </div>
+    <a href="https://wa.me/77015509377" class="btn btn-primary" style="height: 40px;">💬 Подобрать в WhatsApp</a>
+  </div>
+
+  <section class="listing">
+    <!-- ─── FILTERS ─── -->
+    <aside class="filters">
+      <div class="filter-group">
+        <h4>Бренд</h4>
+        <div class="filter-options">
+          <label class="filter-check"><input type="checkbox" checked /> TEIKIN <span class="count">4</span></label>
+          <label class="filter-check"><input type="checkbox" checked /> IZUMI <span class="count">3</span></label>
+          <label class="filter-check"><input type="checkbox" checked /> ND <span class="count">3</span></label>
+          <label class="filter-check"><input type="checkbox" /> NM <span class="count">2</span></label>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Ремонтный размер</h4>
+        <div class="filter-options row">
+          <button class="chip chip-active">STD</button>
+          <button class="chip">+0.50</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Модификация</h4>
+        <div class="filter-options row">
+          <button class="chip">A</button>
+          <button class="chip">G</button>
+          <button class="chip chip-active">AG</button>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Цена, ₸</h4>
+        <div style="display: flex; gap: 4px;">
+          <input type="number" placeholder="от" style="width: 50%; height: 36px; padding: 0 10px; border: 1px solid var(--c-border-strong); border-radius: var(--r-sm); font-size: var(--fs-sm);" value="22000" />
+          <input type="number" placeholder="до" style="width: 50%; height: 36px; padding: 0 10px; border: 1px solid var(--c-border-strong); border-radius: var(--r-sm); font-size: var(--fs-sm);" value="32000" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <h4>Наличие</h4>
+        <div class="filter-options">
+          <label class="filter-check"><input type="checkbox" checked /> В наличии <span class="count">9</span></label>
+          <label class="filter-check"><input type="checkbox" /> Под заказ <span class="count">3</span></label>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-block" style="margin-top: var(--sp-3);">Сбросить фильтры</button>
+    </aside>
+
+    <!-- ─── PRODUCTS ─── -->
+    <div>
+      <div class="sort-bar">
+        <strong>Сортировка:</strong>
+        <button class="chip chip-active">Популярные</button>
+        <button class="chip">Цена ↑</button>
+        <button class="chip">Цена ↓</button>
+        <button class="chip">Новинки</button>
+        <span style="margin-left: auto; color: var(--c-text-muted);">12 товаров</span>
+      </div>
+
+      <div class="prod-grid">
+        <a href="sku.html" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges">
+              <span class="pill pill-stock">В наличии</span>
+              <span class="pill pill-promo">⚡ Хит</span>
+            </div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">TEIKIN<br/>46283</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">TEIKIN · Япония</div>
+            <div class="prod-title">Поршень №46283 AG +0.50</div>
+            <div class="prod-specs">96.50 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row">
+              <div>
+                <div class="prod-price">28 500 ₸</div>
+                <div class="prod-price-old">32 000 ₸</div>
+              </div>
+            </div>
+            <div class="prod-stock">● 8 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="sku.html" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">TEIKIN<br/>46283</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">TEIKIN · Япония</div>
+            <div class="prod-title">Поршень №46283 AG STD</div>
+            <div class="prod-specs">96.00 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row"><div class="prod-price">27 200 ₸</div></div>
+            <div class="prod-stock">● 12 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">IZUMI<br/>PT-1024</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">IZUMI · Япония</div>
+            <div class="prod-title">Поршень PT-1024 AG +0.50</div>
+            <div class="prod-specs">96.50 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row"><div class="prod-price">26 800 ₸</div></div>
+            <div class="prod-stock">● 5 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">ND<br/>PS-9621</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">ND · Япония</div>
+            <div class="prod-title">Поршень PS-9621 AG STD</div>
+            <div class="prod-specs">96.00 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row"><div class="prod-price">24 500 ₸</div></div>
+            <div class="prod-stock">● 4 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">ND<br/>PS-9621</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">ND · Япония</div>
+            <div class="prod-title">Поршень PS-9621 AG +0.50</div>
+            <div class="prod-specs">96.50 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row"><div class="prod-price">25 200 ₸</div></div>
+            <div class="prod-stock">● 6 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-out">Под заказ</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">NM<br/>23H</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">NM · Япония</div>
+            <div class="prod-title">Поршень 23H-NM AG +0.50</div>
+            <div class="prod-specs">96.50 мм · ⌀30 · ALFIN+Gallery</div>
+            <div class="prod-price-row"><div class="prod-price">22 900 ₸</div></div>
+            <div class="prod-stock" style="color: var(--c-warning)">⚠ Под заказ 7-14 дней</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">IZUMI<br/>PT-1024</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">IZUMI · Япония</div>
+            <div class="prod-title">Поршень PT-1024 A STD</div>
+            <div class="prod-specs">96.00 мм · ⌀30 · ALFIN only</div>
+            <div class="prod-price-row"><div class="prod-price">23 800 ₸</div></div>
+            <div class="prod-stock">● 3 шт на складе</div>
+          </div>
+        </a>
+
+        <a href="#" class="prod-card">
+          <div class="prod-img">
+            <div class="prod-badges"><span class="pill pill-stock">В наличии</span></div>
+            <div class="prod-fav">♡</div>
+            <div class="prod-img-placeholder">TEIKIN<br/>46283</div>
+          </div>
+          <div class="prod-body">
+            <div class="prod-brand">TEIKIN · Япония</div>
+            <div class="prod-title">Поршень №46283 G STD</div>
+            <div class="prod-specs">96.00 мм · ⌀30 · Gallery only</div>
+            <div class="prod-price-row"><div class="prod-price">25 400 ₸</div></div>
+            <div class="prod-stock">● 7 шт на складе</div>
+          </div>
+        </a>
+      </div>
+
+      <nav class="pagination">
+        <button class="page-btn">‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">›</button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- SEO text -->
+  <section style="background: #fff; border-radius: var(--r-lg); padding: var(--sp-6); box-shadow: var(--sh-sm); margin-top: var(--sp-8);">
+    <h2 style="font-size: var(--fs-xl); font-weight: 700; color: var(--c-navy); margin-bottom: var(--sp-3);">Поршни на двигатель Toyota 1KZ-TE</h2>
+    <p style="color: var(--c-text-muted); margin-bottom: var(--sp-3); line-height: var(--lh-base);">В каталоге MY AVTO представлены поршни на 3.0-литровый турбодизель Toyota 1KZ-TE от ведущих японских производителей: TEIKIN, IZUMI, ND, NM. Доступны стандартный размер 96.00 мм и ремонтный +0.50 мм (96.50 мм). Модификации A (ALFIN), G (Gallery), AG (обе технологии).</p>
+    <p style="color: var(--c-text-muted); line-height: var(--lh-base);">Для дизелей 1KZ рекомендуется ставить модификацию <strong style="color: var(--c-navy)">AG</strong> — с никель-чугунной вставкой вокруг канавки 1-го кольца и масляной галереей в днище. Это снижает риск выгорания при высоких тепловых нагрузках на турбодизеле.</p>
+  </section>
+</main>
+
+<footer class="ftr">
+  <div class="container">
+    <div class="ftr-grid">
+      <div>
+        <div class="logo" style="color: #fff; margin-bottom: var(--sp-3);"><span class="logo-mark">MA</span><span style="color:#fff">MY AVTO</span></div>
+        <p style="font-size: var(--fs-sm); margin-bottom: var(--sp-3);">Запчасти для капремонта</p>
+        <p style="font-size: var(--fs-md); color: #fff; font-weight: 700;">+7 701 550-93-77</p>
+      </div>
+      <div><h4>Каталог</h4><a href="#">Поршни</a><a href="#">Кольца</a></div>
+      <div><h4>Марки</h4><a href="#">Toyota</a><a href="#">Nissan</a></div>
+      <div><h4>Контакты</h4><a href="https://wa.me/77015509377">WhatsApp</a></div>
+    </div>
+    <div class="ftr-bottom"><div>© 2026 MY AVTO</div><div>my-avto.kz</div></div>
+  </div>
+</footer>
+
+<div class="sticky-cta">
+  <a href="tel:+77015509377" class="btn btn-secondary" style="flex:1">📞 Позвонить</a>
+  <a href="https://wa.me/77015509377" class="btn btn-wa" style="flex:1">💬 WhatsApp</a>
+</div>
+
+<nav class="mock-nav">
+  <strong>MOCKUPS</strong>
+  <a href="index.html">Главная</a>
+  <a href="brand.html">Бренд</a>
+  <a href="engine.html">Двигатель</a>
+  <a href="listing.html">Листинг ★</a>
+  <a href="sku.html">SKU</a>
+</nav>
+</body>
+</html>

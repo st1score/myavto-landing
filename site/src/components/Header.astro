@@ -1,30 +1,19 @@
 ---
-import { brandSlug } from '../lib/slugs';
 import { CONTACTS } from '../lib/contacts';
 import Logo from './Logo.astro';
-import SearchBox from './SearchBox.astro';
-const brands = ['Toyota', 'Nissan', 'Mitsubishi', 'Mazda'];
 const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна помощь с подбором запчастей для двигателя.');
 ---
 <header class="site-header" id="site-header">
   <div class="container header-inner">
-    <Logo size={44} variant="light" />
+    <a href="/" class="header-logo" aria-label="MY AVTO — главная">
+      <Logo size={40} variant="light" />
+    </a>
     <nav class="nav" aria-label="Главная навигация">
-      <a href="/zapchasti/porshni/">Поршни</a>
-      <a href="/zapchasti/koltsa-porshnevye/">Кольца</a>
-      <a href="/zapchasti/vkladyshi/">Вкладыши</a>
-      <a href="/brendy/">Бренды</a>
-      <details class="dropdown">
-        <summary>Марки <span class="chev">▾</span></summary>
-        <div class="dropdown-menu">
-          {brands.map((b) => (
-            <a href={`/${brandSlug[b]}/`}>{b}</a>
-          ))}
-        </div>
-      </details>
-      <a href="/dostavka/">Доставка</a>
-      <a href="/o-nas/">О нас</a>
-      <a href="/kontakty/">Контакты</a>
+      <a href="/search/">Каталог</a>
+      <a href="/search/?category=PISTON">Поршни</a>
+      <a href="/search/?category=RING">Кольца</a>
+      <a href="/search/?category=BEARING">Вкладыши</a>
+      <a href="/search/?category=LINER">Гильзы</a>
     </nav>
     <div class="header-actions">
       <a href="tel:+77015509377" class="phone-link" aria-label="Позвонить">
@@ -32,31 +21,22 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна п
       </a>
       <a href={waUrl} class="btn btn-sm" target="_blank" rel="noopener">WhatsApp</a>
     </div>
-    <a href="/poisk/" class="icon-action search-action" aria-label="Поиск">
+    <a href="/search/" class="icon-action search-action" aria-label="Поиск">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
-    </a>
-    <a href={waUrl} class="brand-wheel" aria-label="Подбор в WhatsApp" target="_blank" rel="noopener">
-      <span></span>
     </a>
     <button class="burger" id="burger" aria-label="Меню">
       <span></span><span></span><span></span>
     </button>
   </div>
-  <div class="container header-search-row">
-    <SearchBox />
-  </div>
   <div class="mobile-menu" id="mobile-menu">
-    <a href="/zapchasti/porshni/">Поршни</a>
-    <a href="/zapchasti/koltsa-porshnevye/">Поршневые кольца</a>
-    <a href="/zapchasti/vkladyshi/">Вкладыши коленвала</a>
-    <a href="/brendy/">Бренды запчастей</a>
-    <div class="mobile-divider">Марки</div>
-    {brands.map((b) => <a href={`/${brandSlug[b]}/`}>{b}</a>)}
-    <div class="mobile-divider">Инфо</div>
-    <a href="/dostavka/">Доставка</a>
-    <a href="/o-nas/">О нас</a>
-    <a href="/kontakty/">Контакты</a>
-    <a href={waUrl} class="btn" style="margin-top: 8px;">WhatsApp</a>
+    <a href="/search/">Весь каталог</a>
+    <a href="/search/?category=PISTON">Поршни</a>
+    <a href="/search/?category=RING">Кольца</a>
+    <a href="/search/?category=BEARING">Вкладыши</a>
+    <a href="/search/?category=LINER">Гильзы</a>
+    <a href="/search/?category=KIT">Ремкомплекты</a>
+    <a href="tel:+77015509377" class="phone-mobile">📞 +7 701 550-93-77</a>
+    <a href={waUrl} class="btn" target="_blank" rel="noopener" style="margin-top: 8px;">WhatsApp</a>
   </div>
 </header>
 
@@ -68,224 +48,55 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна п
     background: rgba(255,255,255,0.98);
     backdrop-filter: saturate(180%) blur(16px);
     -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-bottom: 0;
     transition: background var(--t-fast), box-shadow var(--t-fast);
   }
-  .site-header.scrolled {
-    background: #fff;
-    box-shadow: var(--shadow-sm);
-  }
-  /* На мобиле отключаем тяжёлый backdrop-filter — даём solid фон */
+  .site-header.scrolled { background: #fff; box-shadow: var(--shadow-sm); }
   @media (max-width: 900px) {
-    .site-header {
-      background: #fff;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-    }
+    .site-header { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
   }
   .header-inner {
     display: flex;
     align-items: center;
     gap: 24px;
-    padding: 18px 24px 10px;
+    padding: 14px 24px;
   }
-  @media (max-width: 640px) { .header-inner { padding: 18px 16px 10px; gap: 14px; } }
-
-  .header-search-row {
-    padding: 0 24px 14px;
-    display: flex;
-    justify-content: center;
-  }
-  .header-search-row :global(.search-box) { max-width: 720px; width: 100%; }
-  @media (max-width: 640px) { .header-search-row { padding: 0 16px 12px; } }
-
+  @media (max-width: 640px) { .header-inner { padding: 14px 16px; gap: 14px; } }
+  .header-logo { flex-shrink: 0; display: flex; align-items: center; }
   :global(.site-header .myavto-logo) { flex-shrink: 0; }
-  @media (max-width: 640px) {
-    :global(.site-header .myavto-logo svg) { height: 34px; }
-  }
+  @media (max-width: 640px) { :global(.site-header .myavto-logo svg) { height: 34px; } }
 
-  .nav {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    flex: 1;
-    justify-content: center;
-  }
-  .nav a, .nav summary {
+  .nav { display: flex; align-items: center; gap: 24px; flex: 1; justify-content: center; }
+  .nav a {
     color: var(--c-text);
     font-size: .94rem;
     font-weight: 500;
-    cursor: pointer;
   }
   .nav a:hover { color: var(--c-red); }
 
-  .dropdown { position: relative; }
-  .dropdown summary {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .dropdown summary::-webkit-details-marker { display: none; }
-  .chev { font-size: .7em; transition: transform var(--t-fast); }
-  .dropdown[open] .chev { transform: rotate(180deg); }
-  .dropdown[open] summary { color: var(--c-red); }
-  .dropdown-menu {
-    position: absolute;
-    top: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: #fff;
-    border: 1px solid var(--c-border);
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-lg);
-    padding: 8px;
-    min-width: 180px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .dropdown-menu a {
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: .92rem;
-  }
-  .dropdown-menu a:hover { background: var(--c-bg-soft); color: var(--c-red); }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-shrink: 0;
-  }
-
-  .icon-action,
-  .brand-wheel {
-    flex-shrink: 0;
-  }
-
-  .icon-action {
-    width: 44px;
-    height: 44px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    color: var(--c-text);
-    border-radius: 999px;
-  }
-
-  .brand-wheel {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 999px;
-    background:
-      radial-gradient(circle at center, #e50914 0 4px, #fff 5px 7px, #0a0a0a 8px 13px, transparent 14px),
-      conic-gradient(from 8deg, #0a0a0a 0 12deg, #e50914 12deg 24deg, #0a0a0a 24deg 36deg, #e50914 36deg 48deg, #0a0a0a 48deg 60deg, #e50914 60deg 72deg, #0a0a0a 72deg 84deg, #e50914 84deg 96deg, #0a0a0a 96deg 108deg, #e50914 108deg 120deg, #0a0a0a 120deg 132deg, #e50914 132deg 144deg, #0a0a0a 144deg 156deg, #e50914 156deg 168deg, #0a0a0a 168deg 180deg, #e50914 180deg 192deg, #0a0a0a 192deg 204deg, #e50914 204deg 216deg, #0a0a0a 216deg 228deg, #e50914 228deg 240deg, #0a0a0a 240deg 252deg, #e50914 252deg 264deg, #0a0a0a 264deg 276deg, #e50914 276deg 288deg, #0a0a0a 288deg 300deg, #e50914 300deg 312deg, #0a0a0a 312deg 324deg, #e50914 324deg 336deg, #0a0a0a 336deg 348deg, #e50914 348deg 360deg);
-    box-shadow: inset 0 0 0 4px #fff, 0 2px 10px rgba(15, 23, 42, .12);
-  }
-
-  .brand-wheel span {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-  }
-  .phone-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: .92rem;
-    color: var(--c-text);
-  }
+  .header-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  .icon-action { width: 44px; height: 44px; display: none; align-items: center; justify-content: center; color: var(--c-text); border-radius: 999px; }
+  .phone-link { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: .92rem; color: var(--c-text); }
   .phone-link:hover { color: var(--c-red); }
-  .phone-dot {
-    width: 8px; height: 8px;
-    background: var(--c-red);
-    border-radius: 50%;
-    /* Lightweight opacity pulse — only on desktop, finite, no box-shadow flicker.
-       На мобиле статичная точка чтобы не было визуального мерцания.
-       Сделано как @media (hover: hover) — на тач устройствах никогда не запускается. */
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .phone-dot {
-      animation: phone-dot-pulse 1.6s var(--ease) 4;
-      will-change: opacity;
-    }
-  }
-  @keyframes phone-dot-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.45; }
-  }
+  .phone-dot { width: 8px; height: 8px; background: var(--c-red); border-radius: 50%; }
 
-  .burger {
-    display: none;
-    background: transparent;
-    border: 0;
-    cursor: pointer;
-    width: 44px; height: 44px; /* WCAG / iOS tap-target минимум 44×44 */
-    padding: 0;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    align-items: center;
-  }
-  .burger span {
-    display: block;
-    width: 22px; height: 2px;
-    background: var(--c-black);
-    border-radius: 2px;
-    transition: transform var(--t-fast), opacity var(--t-fast);
-  }
+  .burger { display: none; background: transparent; border: 0; cursor: pointer; width: 44px; height: 44px; padding: 0; flex-direction: column; justify-content: center; gap: 5px; align-items: center; }
+  .burger span { display: block; width: 22px; height: 2px; background: var(--c-black); border-radius: 2px; transition: transform var(--t-fast), opacity var(--t-fast); }
   .burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   .burger.open span:nth-child(2) { opacity: 0; }
   .burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-  .mobile-menu {
-    display: none;
-    flex-direction: column;
-    gap: 2px;
-    padding: 12px 16px 20px;
-    border-top: 1px solid var(--c-border);
-    background: #fff;
-    max-height: calc(100dvh - 70px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .mobile-menu a {
-    padding: 14px 4px;
-    font-size: 1.05rem;
-    font-weight: 500;
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-  }
+  .mobile-menu { display: none; flex-direction: column; gap: 2px; padding: 12px 16px 20px; border-top: 1px solid var(--c-border); background: #fff; max-height: calc(100dvh - 70px); overflow-y: auto; }
+  .mobile-menu a { padding: 14px 4px; font-size: 1.05rem; font-weight: 500; min-height: 48px; display: flex; align-items: center; }
+  .phone-mobile { color: var(--c-text); font-weight: 600; margin-top: 12px; border-top: 1px solid var(--c-border); }
   .mobile-menu.open { display: flex; }
   body.menu-open { overflow: hidden; }
-  .mobile-divider {
-    font-size: .75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--c-text-faint);
-    margin-top: 12px;
-    font-weight: 600;
-  }
 
-  @media (max-width: 1100px) {
-    .header-actions .phone-link { display: none; }
-  }
+  @media (max-width: 1100px) { .header-actions .phone-link { display: none; } }
   @media (max-width: 900px) {
     .nav { display: none; }
-    .site-header .container.header-inner { justify-content: space-between; }
     .burger { display: flex; }
     .header-actions { display: none; }
-    .search-action { display: none; }
-  }
-
-  @media (max-width: 640px) {
-    .brand-wheel { margin-left: auto; }
+    .search-action { display: inline-flex; }
   }
 </style>
 
@@ -308,8 +119,6 @@ const waUrl = CONTACTS.whatsappWithText('Здравствуйте! Нужна п
     document.body.classList.toggle('menu-open', isOpen);
   }
   burger?.addEventListener('click', () => toggleMenu());
-  // Закрываем меню после клика на ссылку
   menu?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => toggleMenu(false)));
-  // Закрываем по Esc
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleMenu(false); });
 </script>

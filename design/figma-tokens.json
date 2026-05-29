@@ -1,0 +1,113 @@
+{
+  "$description": "MY AVTO design tokens. Import into Figma via 'Tokens Studio for Figma' plugin (figma.com/community/plugin/843461159747178978). After import: Apply → Map to styles → Create variables.",
+  "$version": "1.0.0",
+  "global": {
+    "color": {
+      "brand": {
+        "red":      { "value": "#E50914", "type": "color", "description": "Primary CTA, sale price" },
+        "red-600":  { "value": "#C40712", "type": "color" },
+        "red-50":   { "value": "#FEE8E9", "type": "color" },
+        "blue":     { "value": "#0066CC", "type": "color", "description": "Accent, links, info" },
+        "blue-600": { "value": "#004F9E", "type": "color" },
+        "blue-50":  { "value": "#E6F0FA", "type": "color" },
+        "navy":     { "value": "#0F1B3D", "type": "color", "description": "Headings, dark text, footer bg" }
+      },
+      "surface": {
+        "bg":           { "value": "#F4F5F7", "type": "color", "description": "Page background (Kaspi-grey)" },
+        "card":         { "value": "#FFFFFF", "type": "color" },
+        "card-alt":     { "value": "#F9FAFB", "type": "color" },
+        "border":       { "value": "#E5E7EB", "type": "color" },
+        "border-strong":{ "value": "#CBD5E1", "type": "color" }
+      },
+      "text": {
+        "default": { "value": "#0F1B3D", "type": "color" },
+        "muted":   { "value": "#64748B", "type": "color" },
+        "soft":    { "value": "#94A3B8", "type": "color" },
+        "inverse": { "value": "#FFFFFF", "type": "color" }
+      },
+      "state": {
+        "success":      { "value": "#16A34A", "type": "color", "description": "In-stock dot" },
+        "success-50":   { "value": "#DCFCE7", "type": "color" },
+        "warning":      { "value": "#F59E0B", "type": "color" },
+        "warning-50":   { "value": "#FEF3C7", "type": "color" },
+        "danger":       { "value": "#DC2626", "type": "color" }
+      },
+      "marketplace": {
+        "yellow":       { "value": "#FFD400", "type": "color", "description": "Kaspi-yellow badges/promo" },
+        "yellow-50":    { "value": "#FFFBEB", "type": "color" },
+        "green-tag":    { "value": "#00A859", "type": "color", "description": "Stock pill" },
+        "installment":  { "value": "#7E22CE", "type": "color", "description": "Рассрочка badge" },
+        "whatsapp":     { "value": "#25D366", "type": "color" }
+      }
+    },
+    "fontFamily": {
+      "sans": { "value": "Inter", "type": "fontFamilies" },
+      "mono": { "value": "JetBrains Mono", "type": "fontFamilies", "description": "SKU codes, prices, specs" }
+    },
+    "fontWeight": {
+      "regular":  { "value": "400", "type": "fontWeights" },
+      "medium":   { "value": "500", "type": "fontWeights" },
+      "semibold": { "value": "600", "type": "fontWeights" },
+      "bold":     { "value": "700", "type": "fontWeights" },
+      "black":    { "value": "800", "type": "fontWeights" }
+    },
+    "fontSize": {
+      "xs":   { "value": "12", "type": "fontSizes" },
+      "sm":   { "value": "13", "type": "fontSizes" },
+      "base": { "value": "14", "type": "fontSizes" },
+      "md":   { "value": "15", "type": "fontSizes" },
+      "lg":   { "value": "16", "type": "fontSizes" },
+      "xl":   { "value": "18", "type": "fontSizes" },
+      "2xl":  { "value": "22", "type": "fontSizes" },
+      "3xl":  { "value": "30", "type": "fontSizes" },
+      "4xl":  { "value": "38", "type": "fontSizes" },
+      "5xl":  { "value": "48", "type": "fontSizes" }
+    },
+    "lineHeight": {
+      "tight": { "value": "1.15", "type": "lineHeights" },
+      "snug":  { "value": "1.3",  "type": "lineHeights" },
+      "base":  { "value": "1.5",  "type": "lineHeights" }
+    },
+    "spacing": {
+      "0":  { "value": "0",  "type": "spacing" },
+      "1":  { "value": "4",  "type": "spacing" },
+      "2":  { "value": "8",  "type": "spacing" },
+      "3":  { "value": "12", "type": "spacing" },
+      "4":  { "value": "16", "type": "spacing" },
+      "5":  { "value": "20", "type": "spacing" },
+      "6":  { "value": "24", "type": "spacing" },
+      "8":  { "value": "32", "type": "spacing" },
+      "10": { "value": "40", "type": "spacing" },
+      "12": { "value": "48", "type": "spacing" },
+      "16": { "value": "64", "type": "spacing" },
+      "20": { "value": "80", "type": "spacing" }
+    },
+    "borderRadius": {
+      "xs":   { "value": "4",   "type": "borderRadius" },
+      "sm":   { "value": "6",   "type": "borderRadius" },
+      "md":   { "value": "8",   "type": "borderRadius" },
+      "lg":   { "value": "12",  "type": "borderRadius" },
+      "xl":   { "value": "16",  "type": "borderRadius" },
+      "2xl":  { "value": "20",  "type": "borderRadius" },
+      "pill": { "value": "999", "type": "borderRadius" }
+    },
+    "boxShadow": {
+      "xs":  { "value": { "x": "0", "y": "1", "blur": "2",  "spread": "0", "color": "rgba(15,23,42,0.04)" }, "type": "boxShadow" },
+      "sm":  { "value": [
+        { "x": "0", "y": "1", "blur": "3", "spread": "0", "color": "rgba(15,23,42,0.06)" },
+        { "x": "0", "y": "1", "blur": "2", "spread": "0", "color": "rgba(15,23,42,0.04)" }
+      ], "type": "boxShadow" },
+      "md":  { "value": { "x": "0", "y": "4",  "blur": "12", "spread": "0", "color": "rgba(15,23,42,0.08)" }, "type": "boxShadow" },
+      "lg":  { "value": { "x": "0", "y": "12", "blur": "32", "spread": "0", "color": "rgba(15,23,42,0.12)" }, "type": "boxShadow" },
+      "cta": { "value": { "x": "0", "y": "6",  "blur": "20", "spread": "0", "color": "rgba(229,9,20,0.35)" }, "type": "boxShadow" }
+    },
+    "size": {
+      "container":        { "value": "1280", "type": "sizing" },
+      "container-narrow": { "value": "1040", "type": "sizing" },
+      "header-desktop":   { "value": "64",   "type": "sizing" },
+      "header-mobile":    { "value": "56",   "type": "sizing" },
+      "button-md":        { "value": "44",   "type": "sizing" },
+      "button-lg":        { "value": "52",   "type": "sizing" }
+    }
+  }
+}

@@ -15,3 +15,9 @@ tmp/
 site/tina/__generated__/
 site/public/admin/
 site/tina-lock.json
+
+# Directus local admin
+.env.directus
+directus/uploads/
+directus/database/
+directus/extensions/

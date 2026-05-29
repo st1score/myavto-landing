@@ -1,0 +1,178 @@
+/* MY AVTO — Design Tokens
+ * Kaspi-like marketplace style. Bright, dense, badge-heavy.
+ * Import into Tailwind via @theme inline (v4) or extend (v3).
+ */
+
+:root {
+  /* ─── Brand ─── */
+  --c-red:        #E50914;   /* primary CTA, sale */
+  --c-red-600:    #C40712;
+  --c-red-50:     #FEE8E9;
+  --c-blue:       #0066CC;   /* accent links, info */
+  --c-blue-600:   #004F9E;
+  --c-blue-50:    #E6F0FA;
+  --c-navy:       #0F1B3D;   /* headings, dark text */
+
+  /* ─── Surface ─── */
+  --c-bg:         #F4F5F7;   /* page bg, Kaspi-grey */
+  --c-card:       #FFFFFF;
+  --c-card-alt:   #F9FAFB;
+  --c-border:     #E5E7EB;
+  --c-border-strong: #CBD5E1;
+
+  /* ─── Text ─── */
+  --c-text:       #0F1B3D;
+  --c-text-muted: #64748B;
+  --c-text-soft:  #94A3B8;
+  --c-text-inv:   #FFFFFF;
+
+  /* ─── State ─── */
+  --c-success:    #16A34A;   /* in stock dot */
+  --c-success-50: #DCFCE7;
+  --c-warning:    #F59E0B;   /* low stock */
+  --c-warning-50: #FEF3C7;
+  --c-danger:     #DC2626;
+  --c-info:       var(--c-blue);
+
+  /* ─── Marketplace accents ─── */
+  --c-yellow:     #FFD400;   /* Kaspi-yellow vibe — badges, promo */
+  --c-yellow-50:  #FFFBEB;
+  --c-green-tag:  #00A859;   /* "в наличии" pill */
+  --c-installment:#7E22CE;   /* "рассрочка" badge */
+
+  /* ─── Typography ─── */
+  --font-sans:    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale (mobile-first, fluid clamp) */
+  --fs-xs:    12px;
+  --fs-sm:    13px;
+  --fs-base:  14px;
+  --fs-md:    15px;
+  --fs-lg:    16px;
+  --fs-xl:    18px;
+  --fs-2xl:   22px;
+  --fs-3xl:   clamp(24px, 3vw, 30px);
+  --fs-4xl:   clamp(28px, 4vw, 38px);
+  --fs-5xl:   clamp(34px, 5vw, 48px);
+
+  --lh-tight: 1.15;
+  --lh-snug:  1.3;
+  --lh-base:  1.5;
+
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-black:    800;
+
+  /* ─── Spacing (4px base, dense Kaspi grid) ─── */
+  --sp-0:  0;
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+
+  /* ─── Radius ─── */
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   12px;
+  --r-xl:   16px;
+  --r-2xl:  20px;
+  --r-pill: 999px;
+
+  /* ─── Shadow ─── */
+  --sh-xs: 0 1px 2px rgba(15,23,42,0.04);
+  --sh-sm: 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --sh-md: 0 4px 12px rgba(15,23,42,0.08);
+  --sh-lg: 0 12px 32px rgba(15,23,42,0.12);
+  --sh-cta:0 6px 20px rgba(229,9,20,0.35);
+
+  /* ─── Layout ─── */
+  --container: 1280px;
+  --container-narrow: 1040px;
+  --header-h: 64px;
+  --header-h-mobile: 56px;
+
+  /* ─── Z ─── */
+  --z-header: 50;
+  --z-sticky: 40;
+  --z-modal:  100;
+}
+
+/* ─── Base reset ─── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: var(--c-blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; cursor: pointer; border: 0; background: none; }
+.mono { font-family: var(--font-mono); }
+
+/* ─── Container ─── */
+.container { max-width: var(--container); margin: 0 auto; padding: 0 var(--sp-4); }
+@media (min-width: 768px) { .container { padding: 0 var(--sp-6); } }
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 44px; padding: 0 var(--sp-5);
+  border-radius: var(--r-md); font-weight: var(--fw-semibold); font-size: var(--fs-md);
+  transition: transform .08s, box-shadow .15s, background .15s;
+}
+.btn:hover { text-decoration: none; }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--c-red); color: #fff; box-shadow: var(--sh-cta); }
+.btn-primary:hover { background: var(--c-red-600); }
+.btn-secondary { background: #fff; color: var(--c-navy); border: 1px solid var(--c-border-strong); }
+.btn-secondary:hover { border-color: var(--c-navy); }
+.btn-ghost { background: transparent; color: var(--c-blue); }
+.btn-wa { background: #25D366; color: #fff; }
+.btn-wa:hover { background: #1FB755; }
+.btn-block { width: 100%; }
+.btn-lg { height: 52px; padding: 0 var(--sp-6); font-size: var(--fs-lg); }
+
+/* ─── Card ─── */
+.card { background: var(--c-card); border-radius: var(--r-lg); box-shadow: var(--sh-sm); overflow: hidden; }
+.card-hover:hover { box-shadow: var(--sh-md); transform: translateY(-1px); transition: .15s; }
+
+/* ─── Pills/Badges ─── */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--r-pill);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  background: var(--c-card-alt); color: var(--c-text);
+}
+.pill-stock { background: var(--c-success-50); color: var(--c-success); }
+.pill-stock::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-success); }
+.pill-out { background: #FEE2E2; color: #B91C1C; }
+.pill-promo { background: var(--c-yellow); color: var(--c-navy); }
+.pill-installment { background: #F3E8FF; color: var(--c-installment); }
+.pill-brand { background: var(--c-blue-50); color: var(--c-blue-600); }
+
+/* ─── Chips (sizes) ─── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--r-pill);
+  border: 1px solid var(--c-border-strong); background: #fff;
+  font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-navy);
+}
+.chip-active { border-color: var(--c-navy); background: var(--c-navy); color: #fff; }
+.chip-stock::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c-success); }
+.chip-disabled { color: var(--c-text-soft); border-style: dashed; }

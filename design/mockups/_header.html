@@ -1,0 +1,132 @@
+<!-- Reusable header/footer fragments (copy into each mockup; standalone for preview) -->
+<style>
+  .hdr { position: sticky; top: 0; z-index: var(--z-header); background: #fff; border-bottom: 1px solid var(--c-border); }
+  .hdr-top { display: none; }
+  @media (min-width: 768px) {
+    .hdr-top { display: flex; justify-content: space-between; align-items: center; height: 36px; font-size: var(--fs-xs); color: var(--c-text-muted); border-bottom: 1px solid var(--c-border); }
+    .hdr-top a { color: var(--c-text-muted); }
+  }
+  .hdr-main { display: flex; align-items: center; gap: var(--sp-4); height: var(--header-h-mobile); }
+  @media (min-width: 768px) { .hdr-main { height: var(--header-h); } }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: var(--fw-black); font-size: 22px; color: var(--c-navy); }
+  .logo-mark { width: 32px; height: 32px; background: var(--c-red); color: #fff; border-radius: var(--r-sm); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+  .search { flex: 1; position: relative; max-width: 560px; }
+  .search input { width: 100%; height: 44px; padding: 0 14px 0 42px; border: 1px solid var(--c-border-strong); border-radius: var(--r-md); font-size: var(--fs-md); background: #fff; }
+  .search input:focus { outline: 2px solid var(--c-blue); border-color: var(--c-blue); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); }
+  .hdr-actions { display: flex; align-items: center; gap: var(--sp-3); }
+  .hdr-phone { display: none; }
+  @media (min-width: 768px) { .hdr-phone { display: flex; flex-direction: column; align-items: flex-end; font-size: var(--fs-xs); color: var(--c-text-muted); } .hdr-phone strong { color: var(--c-navy); font-size: var(--fs-md); font-weight: var(--fw-bold); } }
+  .hdr-cats { background: var(--c-navy); color: #fff; }
+  .hdr-cats-row { display: flex; gap: var(--sp-1); height: 44px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .hdr-cats-row::-webkit-scrollbar { display: none; }
+  .hdr-cat { padding: 8px 14px; border-radius: var(--r-sm); color: #fff; font-size: var(--fs-sm); font-weight: var(--fw-medium); white-space: nowrap; }
+  .hdr-cat:hover { background: rgba(255,255,255,0.1); text-decoration: none; }
+  .hdr-cat.active { background: var(--c-red); }
+</style>
+
+<header class="hdr">
+  <div class="container">
+    <div class="hdr-top">
+      <div>📍 Алматы, ТЦ CarCity, 3 ярус, бутик 135В</div>
+      <div style="display:flex; gap: 16px;">
+        <a href="#">Доставка</a>
+        <a href="#">Оплата</a>
+        <a href="#">Контакты</a>
+      </div>
+    </div>
+    <div class="hdr-main">
+      <a href="/" class="logo">
+        <span class="logo-mark">MA</span>
+        <span>MY AVTO</span>
+      </a>
+      <div class="search">
+        <span class="search-icon">🔍</span>
+        <input type="search" placeholder="Поиск по двигателю, артикулу или авто… напр. 1KZ, 2JZ, Toyota Prado" />
+      </div>
+      <div class="hdr-actions">
+        <div class="hdr-phone">
+          <span>WhatsApp / Tel</span>
+          <strong>+7 701 550-93-77</strong>
+        </div>
+        <a href="https://wa.me/77015509377" class="btn btn-wa" style="height: 40px;">
+          <span>💬</span> WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+  <nav class="hdr-cats">
+    <div class="container">
+      <div class="hdr-cats-row">
+        <a href="#" class="hdr-cat active">Все запчасти</a>
+        <a href="#" class="hdr-cat">Поршни</a>
+        <a href="#" class="hdr-cat">Кольца поршневые</a>
+        <a href="#" class="hdr-cat">Вкладыши</a>
+        <a href="#" class="hdr-cat">Прокладки ГБЦ</a>
+        <a href="#" class="hdr-cat">Сальники</a>
+        <a href="#" class="hdr-cat">Toyota</a>
+        <a href="#" class="hdr-cat">Nissan</a>
+        <a href="#" class="hdr-cat">Mitsubishi</a>
+        <a href="#" class="hdr-cat">Honda</a>
+        <a href="#" class="hdr-cat">Mazda</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- ─── FOOTER FRAGMENT ─── -->
+<style>
+  .ftr { background: var(--c-navy); color: #cbd5e1; padding: var(--sp-12) 0 var(--sp-8); margin-top: var(--sp-16); }
+  .ftr-grid { display: grid; grid-template-columns: 1fr; gap: var(--sp-8); }
+  @media (min-width: 768px) { .ftr-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+  .ftr h4 { color: #fff; font-size: var(--fs-md); margin-bottom: var(--sp-3); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: 0.04em; }
+  .ftr a { color: #cbd5e1; display: block; padding: 4px 0; font-size: var(--fs-sm); }
+  .ftr a:hover { color: #fff; }
+  .ftr-bottom { border-top: 1px solid rgba(255,255,255,0.1); margin-top: var(--sp-8); padding-top: var(--sp-4); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-3); font-size: var(--fs-xs); color: var(--c-text-soft); }
+</style>
+<footer class="ftr">
+  <div class="container">
+    <div class="ftr-grid">
+      <div>
+        <div class="logo" style="color: #fff; margin-bottom: var(--sp-3);"><span class="logo-mark">MA</span><span style="color:#fff">MY AVTO</span></div>
+        <p style="font-size: var(--fs-sm); line-height: var(--lh-base); margin-bottom: var(--sp-3);">Запчасти для капитального ремонта двигателей. Поршни, кольца, вкладыши TEIKIN, NPR, KP, Taiho, ACL.</p>
+        <p style="font-size: var(--fs-sm);">📍 Алматы, ТЦ CarCity<br/>3 ярус, бутик 135В</p>
+        <p style="font-size: var(--fs-md); color: #fff; margin-top: var(--sp-3); font-weight: var(--fw-bold);">+7 701 550-93-77</p>
+      </div>
+      <div>
+        <h4>Каталог</h4>
+        <a href="#">Поршни</a>
+        <a href="#">Кольца поршневые</a>
+        <a href="#">Вкладыши</a>
+        <a href="#">Прокладки</a>
+      </div>
+      <div>
+        <h4>Марки авто</h4>
+        <a href="#">Toyota</a>
+        <a href="#">Nissan</a>
+        <a href="#">Mitsubishi</a>
+        <a href="#">Honda</a>
+        <a href="#">Mazda</a>
+      </div>
+      <div>
+        <h4>Контакты</h4>
+        <a href="#">Доставка по KZ</a>
+        <a href="#">Оплата</a>
+        <a href="#">Возврат</a>
+        <a href="https://wa.me/77015509377">WhatsApp</a>
+      </div>
+    </div>
+    <div class="ftr-bottom">
+      <div>© 2026 MY AVTO. Все права защищены.</div>
+      <div>my-avto.kz</div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  /* ─── Sticky mobile CTA ─── */
+  .sticky-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky); background: #fff; border-top: 1px solid var(--c-border); padding: var(--sp-3) var(--sp-4); display: flex; gap: var(--sp-2); box-shadow: 0 -8px 24px rgba(0,0,0,0.08); }
+  @media (min-width: 768px) { .sticky-cta { display: none; } }
+  body { padding-bottom: 76px; }
+  @media (min-width: 768px) { body { padding-bottom: 0; } }
+</style>

@@ -7,35 +7,27 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:tina": "tinacms dev -c \"astro dev\"",
     "prebuild": "node scripts/gen-search-index.mjs",
     "build": "astro build",
-    "build:tina": "tinacms build && astro build",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.5",
     "@astrojs/sitemap": "^3.7.2",
-    "@plasmicapp/loader-react": "^2.0.5",
     "@tailwindcss/vite": "^4.3.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.3.1",
-    "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
-    "framer-motion": "^12.40.0",
     "pg": "^8.20.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "tailwindcss": "^4.3.0",
-    "tsx": "^4.22.3"
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@tinacms/cli": "^2.4.0",
     "@types/pg": "^8.20.0",
-    "tinacms": "^3.8.2",
     "typescript": "^6.0.3"
   }
 }

@@ -1,129 +1,82 @@
-// Генерирует /public/search-index.json — компактный JSON-индекс для поиска
-// в header (артикулы TEIKIN/OEM + коды двигателей).
-// Запускать перед astro build.
+// Pre-build search index: dump (engine_code, category_code) aggregated rows
+// to public/search-index.json. One card on /search = one engine+category pair,
+// not one SKU. Inside /p/{engine}/{category} variants are exposed.
 
 import pg from 'pg';
 import dotenv from 'dotenv';
+import { writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: resolve(__dirname, '../../.env') });
-dotenv.config({ path: resolve(__dirname, '../.env') });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, '..', '..', '.env') });
+dotenv.config({ path: resolve(__dirname, '..', '.env') });
+
+const CATEGORY_SLUG = { PISTON: 'porshni', RING: 'koltsa', BEARING: 'vkladyshi', LINER: 'gilzy', KIT: 'remkomplekty' };
+const CATEGORY_LABEL = { PISTON: 'Поршни', RING: 'Кольца', BEARING: 'Вкладыши', LINER: 'Гильзы', KIT: 'Ремкомплекты' };
 
 if (!process.env.DATABASE_URL) {
-  console.error('[search-index] DATABASE_URL не задан');
-  process.exit(1);
+  console.warn('[search-index] DATABASE_URL not set — writing empty index');
+  const out = resolve(__dirname, '..', 'public', 'search-index.json');
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, JSON.stringify({ generated_at: new Date().toISOString(), products: [] }));
+  process.exit(0);
 }
 
-const brandSlug = {
-  Toyota: 'toyota', Nissan: 'nissan', Mitsubishi: 'mitsubishi', Mazda: 'mazda',
-  Honda: 'honda', Subaru: 'subaru', Suzuki: 'suzuki', Lexus: 'lexus', Infiniti: 'infiniti',
-};
-const categorySlug = { PISTON: 'porshni', RING: 'koltsa-porshnevye' };
-
-function engineSlug(code) {
-  return code.toLowerCase()
-    .replace(/[\/\\]/g, '-')
-    .replace(/[^a-z0-9а-я\-]+/gi, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-const pool = new pg.Pool({
+const { Pool } = pg;
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
   max: 2,
 });
 
-const engines = (await pool.query(`
-  SELECT engine_code, brand_name, engine_name, volume_l, is_diesel
-    FROM engines WHERE is_active = true
-`)).rows;
-
-const partNumbers = (await pool.query(`
-  SELECT pn.engine_code, pn.category_code, pn.number_value, pn.number_type,
-         e.brand_name
-    FROM engine_part_numbers pn
-    JOIN engines e USING (engine_code)
-   WHERE pn.is_active = true AND e.is_active = true
-`)).rows;
-
-// Множества: какие (engine, category) реально доступны в каталоге (есть варианты)
-const enginePartsAvail = new Set(
-  (await pool.query(`
-    SELECT DISTINCT engine_code, category_code FROM engine_parts WHERE is_active = true
-  `)).rows.map((r) => `${r.engine_code}|${r.category_code}`)
-);
-
-await pool.end();
-
-// Собираем индекс. Формат записи компактный:
-//   t: тип ('e'=двигатель, 'a'=артикул)
-//   q: текст для поиска (lowercased, без дефисов/пробелов)
-//   l: лейбл (то что показываем юзеру)
-//   s: сабтайтл (контекст: бренд+мотор / тип номера)
-//   u: ссылка
-const items = [];
-
-const catalogDir = resolve(__dirname, '../public/teikin-catalog');
-function engineImage(engineCode) {
-  const slug = engineSlug(engineCode);
-  const path = `${catalogDir}/${slug}.png`;
-  return existsSync(path) ? `/teikin-catalog/${slug}.png` : null;
+async function dumpFromMv() {
+  const { rows } = await pool.query(`
+    SELECT
+      engine_code,
+      category_code,
+      MAX(image_url) AS image_url,
+      bool_or(in_stock) AS in_stock,
+      SUM(stock_qty)::int AS stock_qty,
+      count(*)::int AS variant_count,
+      count(DISTINCT brand_name)::int AS brand_count,
+      count(DISTINCT size_code)::int  AS size_count,
+      array_agg(DISTINCT brand_name)::text[] AS brands,
+      array_agg(DISTINCT size_code)::text[]  AS sizes,
+      (ARRAY(SELECT DISTINCT unnest(oem_numbers)    FROM mv_search_products m2 WHERE m2.engine_code = mv.engine_code AND m2.category_code = mv.category_code))::text[] AS oem_numbers,
+      (ARRAY(SELECT DISTINCT unnest(cross_numbers)  FROM mv_search_products m2 WHERE m2.engine_code = mv.engine_code AND m2.category_code = mv.category_code))::text[] AS cross_numbers,
+      (ARRAY(SELECT DISTINCT unnest(engine_aliases) FROM mv_search_products m2 WHERE m2.engine_code = mv.engine_code AND m2.category_code = mv.category_code))::text[] AS engine_aliases,
+      (ARRAY(SELECT DISTINCT unnest(vehicles)       FROM mv_search_products m2 WHERE m2.engine_code = mv.engine_code AND m2.category_code = mv.category_code))::text[] AS vehicles,
+      MIN(price_kzt) AS price_from
+    FROM mv_search_products mv
+    GROUP BY engine_code, category_code
+    ORDER BY in_stock DESC, engine_code, category_code
+  `);
+  return rows.map((r) => ({
+    ...r,
+    slug: `${r.engine_code.toLowerCase()}/${CATEGORY_SLUG[r.category_code] ?? r.category_code.toLowerCase()}`,
+    category_label: CATEGORY_LABEL[r.category_code] ?? r.category_code,
+    title: `${CATEGORY_LABEL[r.category_code] ?? r.category_code} ${r.engine_code}`,
+  }));
 }
 
-for (const e of engines) {
-  const bSlug = brandSlug[e.brand_name] ?? e.brand_name.toLowerCase();
-  const ePath = `/${bSlug}/dvigateli/${engineSlug(e.engine_code)}/`;
-  const vol = e.volume_l ? ` ${e.volume_l}L` : '';
-  const fuel = e.is_diesel ? ' дизель' : '';
-  const img = engineImage(e.engine_code);
-  items.push({
-    t: 'e',
-    q: `${e.engine_code} ${e.brand_name} ${e.engine_name ?? ''}`.toLowerCase().replace(/[\s\-]/g, ''),
-    l: e.engine_code,
-    s: `${e.brand_name}${vol}${fuel}`,
-    u: ePath,
-    b: e.brand_name,
-    ...(img ? { i: img } : {}),
-  });
+async function main() {
+  const products = await dumpFromMv();
+  console.log(`[search-index] ${products.length} engine+category cards`);
+  const out = resolve(__dirname, '..', 'public', 'search-index.json');
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, JSON.stringify({
+    generated_at: new Date().toISOString(),
+    count: products.length,
+    products,
+  }));
+  console.log(`[search-index] wrote ${out}`);
+  await pool.end();
 }
 
-for (const p of partNumbers) {
-  const bSlug = brandSlug[p.brand_name] ?? p.brand_name.toLowerCase();
-  const catSlug = categorySlug[p.category_code];
-  if (!catSlug) continue;
-  // линкуем на листинг (без знания размера — на SKU не уйдём)
-  const path = `/${bSlug}/dvigateli/${engineSlug(p.engine_code)}/${catSlug}/`;
-  // Показываем только если категория реально есть (иначе ссылка ведёт в никуда)
-  if (!enginePartsAvail.has(`${p.engine_code}|${p.category_code}`)) continue;
-  const catLabel = p.category_code === 'PISTON' ? 'Поршни' : 'Кольца';
-  const img = engineImage(p.engine_code);
-  items.push({
-    t: 'a',
-    q: p.number_value.toLowerCase().replace(/[\s\-]/g, ''),
-    l: p.number_value,
-    s: `${p.number_type} · ${catLabel} ${p.brand_name} ${p.engine_code}`,
-    u: path,
-    b: p.brand_name,
-    nt: p.number_type,
-    c: p.category_code,
-    ...(img ? { i: img } : {}),
-  });
-}
-
-// dedupe: один артикул может быть привязан к нескольким моторам — оставляем все,
-// но добавим дополнительный q-вариант с дефисами для частичного матча
-const out = {
-  generated: new Date().toISOString(),
-  count: items.length,
-  items,
-};
-
-const outPath = resolve(__dirname, '../public/search-index.json');
-mkdirSync(dirname(outPath), { recursive: true });
-writeFileSync(outPath, JSON.stringify(out));
-const sizeKB = (JSON.stringify(out).length / 1024).toFixed(1);
-console.log(`[search-index] wrote ${items.length} items (${sizeKB} KB) → ${outPath}`);
+main().catch((e) => {
+  console.error('[search-index] failed:', e);
+  process.exit(1);
+});
