@@ -38,7 +38,15 @@ function ProductInner() {
   const [notFound, setNotFound] = useState(false);
   const [pickedVariant, setPickedVariant] = useState<string | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoom, setZoom] = useState(false);
   const isOwner = useIsOwner();
+
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoom(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [zoom]);
 
   useEffect(() => {
     if (!id) return;
@@ -118,9 +126,12 @@ function ProductInner() {
           <div className="gallery">
             <div className="gallery__main">
               <div className="gallery__badge">
-                <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? `В наличии · ${totalQty} шт` : 'Под заказ'}</span>
+                <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? (isOwner ? `В наличии · ${totalQty} шт` : 'В наличии') : 'Под заказ'}</span>
               </div>
-              {img ? <img className="gimg" src={img} alt={p.title} /> : <span className="gallery__ph">{p.brand_code[0]}</span>}
+              {img
+                ? <img className="gimg" src={img} alt={p.title} onClick={() => setZoom(true)} style={{ cursor: 'zoom-in' }} />
+                : <span className="gallery__ph">{p.brand_code[0]}</span>}
+              {img && <button className="gallery__zoom" onClick={() => setZoom(true)} aria-label="Открыть на весь экран"><Icon name="search" size={18} /></button>}
             </div>
             {p.images.length > 1 && (
               <div className="gallery__thumbs">
@@ -139,7 +150,7 @@ function ProductInner() {
               <span className="pill pill--brand">{p.brand_code}</span>
               {logo && <><span className="pinfo__divider" /><span className="pinfo__brandlogo"><img src={logo} alt={p.brand_code} /></span></>}
             </div>
-            <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? `В наличии · ${totalQty} шт на складе в Алматы` : 'Под заказ'}</span>
+            <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? (isOwner ? `В наличии · ${totalQty} шт на складе в Алматы` : 'В наличии на складе в Алматы') : 'Под заказ'}</span>
             <h1>{p.title}</h1>
             {isOwner && <div className="pinfo__sku">Артикул <b className="mono">{p.master_sku}</b><Copy value={p.master_sku} /></div>}
 
@@ -248,6 +259,22 @@ function ProductInner() {
           </section>
         )}
       </div>
+
+      {zoom && img && (
+        <div className="lightbox" onClick={() => setZoom(false)} role="dialog" aria-modal="true">
+          <button className="lightbox__close" onClick={() => setZoom(false)} aria-label="Закрыть"><Icon name="x" size={26} /></button>
+          <img className="lightbox__img" src={img} alt={p.title} onClick={(e) => e.stopPropagation()} />
+          {p.images.length > 1 && (
+            <div className="lightbox__thumbs" onClick={(e) => e.stopPropagation()}>
+              {p.images.map((u, i) => (
+                <button key={u} className={'thumb' + (i === activeImg ? ' is-active' : '')} onClick={() => setActiveImg(i)}>
+                  <img src={u} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
