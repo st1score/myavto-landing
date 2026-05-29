@@ -5,14 +5,16 @@ import Link from 'next/link';
 type Item = { src: string; label: string; href: string };
 
 /* Auto-advancing logo carousel.
-   - Touch: native horizontal scroll (finger drag with momentum). Auto-advance
-     pauses on touch and resumes after idle.
-   - Mouse: click-drag via pointer events.
+   - Speed is time-based (px/ms), so 60Hz and 120Hz ProMotion screens move at
+     the same pace (fixes the old "too fast on mobile" bug).
+   - Position kept as a float; mobile floors scrollLeft to an int, so a float
+     accumulator is required or sub-pixel steps never commit (carousel froze).
+   - Touch = native horizontal scroll (finger drag). Mouse = JS click-drag.
    Items rendered twice for a seamless wrap. variant controls idle color. */
 export default function Marquee({
-  items, dur, reverse = false, variant = 'makes',
+  items, reverse = false, variant = 'makes',
 }: {
-  items: Item[]; dur?: string; reverse?: boolean; variant?: 'makes' | 'brands';
+  items: Item[]; reverse?: boolean; variant?: 'makes' | 'brands';
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef({ down: false, startX: 0, startScroll: 0, moved: false });
@@ -21,16 +23,20 @@ export default function Marquee({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const speed = reverse ? -0.4 : 0.4;
-    let raf = 0;
-    const tick = () => {
+    const v = (reverse ? -1 : 1) * 0.03; // px per ms ≈ 30 px/s
+    let raf = 0, last = 0, pos = el.scrollLeft;
+    const tick = (ts: number) => {
+      if (!last) last = ts;
+      const dt = Math.min(ts - last, 50); // clamp after tab-switch
+      last = ts;
       const half = el.scrollWidth / 2;
-      if (!reduced && half > 0 && !drag.current.down && Date.now() > pauseUntil.current) {
-        let next = el.scrollLeft + speed;
-        if (next >= half) next -= half;
-        if (next < 0) next += half;
-        el.scrollLeft = next;
+      if (half > 0 && !drag.current.down && Date.now() > pauseUntil.current) {
+        pos += v * dt;
+        if (pos >= half) pos -= half;
+        if (pos < 0) pos += half;
+        el.scrollLeft = pos;
+      } else {
+        pos = el.scrollLeft; // user is in control → keep float in sync
       }
       raf = requestAnimationFrame(tick);
     };
@@ -38,7 +44,6 @@ export default function Marquee({
     return () => cancelAnimationFrame(raf);
   }, [reverse]);
 
-  // Pause auto-advance while the finger is on the strip / just after.
   const pause = () => { pauseUntil.current = Date.now() + 2000; };
 
   // Mouse-only click-drag. Touch uses native scroll (do not hijack).
@@ -75,7 +80,7 @@ export default function Marquee({
     <div
       ref={ref} className={`marquee marquee--${variant}`}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
-      onTouchStart={pause} onScroll={pause}
+      onTouchStart={pause} onTouchMove={pause}
     >
       <div className="marquee__track">{set}{set}</div>
     </div>

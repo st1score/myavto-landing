@@ -301,6 +301,7 @@ body { background:var(--c-bg); color:var(--c-text); font-family:var(--font-sans)
 .footer{background:var(--c-black);color:#d4d4d8}
 .footer__top{max-width:var(--container);margin:0 auto;padding:56px 24px 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1.2fr;gap:40px}
 .footer__brand .logo{color:#fff;margin-bottom:16px}
+.footer__brand .logo--img img{filter:brightness(0) invert(1);height:44px}
 .footer__brand p{font-size:13.5px;line-height:1.6;color:#a1a1aa;max-width:34ch}
 .footer__brand .addr{margin-top:16px;display:flex;flex-direction:column;gap:9px}
 .footer__brand .addr div{display:flex;align-items:center;gap:10px;font-size:14px;color:#e4e4e7;font-weight:500}
