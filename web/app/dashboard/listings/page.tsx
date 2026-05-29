@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import type { Channel, Listing, Product, ProductVariant } from '@/lib/types';
@@ -10,8 +10,8 @@ type Row = {
   byChannel: Record<string, Listing | undefined>;
 };
 
-export default function ListingsPage() {
-  const { id } = useParams<{ id: string }>();
+function ListingsInner() {
+  const id = useSearchParams().get('id');
   const [product, setProduct] = useState<Product | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
@@ -166,5 +166,13 @@ function ChannelEditor({ channel, listing, onSave, onDelete }: {
         {onDelete && <button onClick={onDelete} className="ml-2 text-red-600 text-xs">✕</button>}
       </td>
     </tr>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={<div className="text-neutral-500">Загрузка…</div>}>
+      <ListingsInner />
+    </Suspense>
   );
 }

@@ -75,8 +75,8 @@ export default function DashboardList() {
                 <option value="active">Опубликован</option>
                 <option value="archived">Архив</option>
               </select>
-              <Link href={`/dashboard/${p.id}/edit`} className="px-3 py-1.5 rounded-md border border-neutral-300 hover:border-black">Изменить</Link>
-              <Link href={`/dashboard/${p.id}/listings`} className="px-3 py-1.5 rounded-md border border-neutral-300 hover:border-black">Площадки</Link>
+              <Link href={`/dashboard/edit?id=${p.id}`} className="px-3 py-1.5 rounded-md border border-neutral-300 hover:border-black">Изменить</Link>
+              <Link href={`/dashboard/listings?id=${p.id}`} className="px-3 py-1.5 rounded-md border border-neutral-300 hover:border-black">Площадки</Link>
               <button onClick={() => remove(p)} className="px-3 py-1.5 rounded-md text-red-600 hover:bg-red-50">Удалить</button>
             </div>
           </div>

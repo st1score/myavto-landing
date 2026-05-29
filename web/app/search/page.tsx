@@ -126,7 +126,7 @@ function CardSkeleton() {
 function Card({ p }: { p: CatalogRow }) {
   const inStock = p.total_stock > 0;
   return (
-    <Link href={`/p/${p.id}`} className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:border-black transition flex flex-col">
+    <Link href={`/p?id=${p.id}`} className="bg-white border border-neutral-200 rounded-xl overflow-hidden hover:border-black transition flex flex-col">
       <div className="aspect-[4/3] bg-neutral-50 flex items-center justify-center overflow-hidden">
         {p.image_url
           ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain p-3" />

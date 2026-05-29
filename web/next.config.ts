@@ -1,13 +1,10 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'export',          // static SPA → GitHub Pages
   reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '*.supabase.co' },
-      { protocol: 'https', hostname: 'my-avto.kz' },
-    ],
-  },
+  trailingSlash: true,       // emit /p/index.html so direct URLs resolve on Pages
+  images: { unoptimized: true },
 };
 
 export default nextConfig;

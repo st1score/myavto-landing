@@ -320,7 +320,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
 
     setBusy(false);
     // After create — go to edit so user can add multiple images.
-    router.replace(mode === 'create' ? `/dashboard/${productId_}/edit` : '/dashboard');
+    router.replace(mode === 'create' ? `/dashboard/edit?id=${productId_}` : '/dashboard');
   }
 
   const typeOptions = KASPI_TYPE_BY_CATEGORY[form.category_code] ?? [];

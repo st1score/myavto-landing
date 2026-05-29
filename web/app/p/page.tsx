@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CATEGORY_LABEL, type Product, type ProductVariant, type Listing, type Stock } from '@/lib/types';
@@ -44,8 +44,8 @@ function Gallery({ images, fallback, alt }: { images: string[]; fallback: string
   );
 }
 
-export default function ProductPage() {
-  const { id } = useParams<{ id: string }>();
+function ProductInner() {
+  const id = useSearchParams().get('id');
   const [p, setP] = useState<FullProduct | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [pickedVariant, setPickedVariant] = useState<string | null>(null);
@@ -218,7 +218,7 @@ export default function ProductPage() {
           <h2 className="text-xl font-bold mb-3">Другие запчасти для этих моторов</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {p.related.map((r) => (
-              <Link key={r.id} href={`/p/${r.id}`} className="bg-white border border-neutral-200 rounded-lg overflow-hidden hover:border-black transition">
+              <Link key={r.id} href={`/p?id=${r.id}`} className="bg-white border border-neutral-200 rounded-lg overflow-hidden hover:border-black transition">
                 <div className="aspect-square bg-neutral-50 flex items-center justify-center overflow-hidden">
                   {r.image_url
                     ? <img src={r.image_url} alt="" className="max-w-full max-h-full object-contain p-2" />
@@ -235,5 +235,13 @@ export default function ProductPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function ProductPage() {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-neutral-500">Загрузка…</div>}>
+      <ProductInner />
+    </Suspense>
   );
 }

@@ -1,15 +1,12 @@
-name: Deploy SEO site to GitHub Pages
+name: Deploy marketplace (web/) to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
-      - 'site/**'
+      - 'web/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
-  schedule:
-    # Раз в сутки в 04:00 UTC (10:00 Алматы) — пересобираем чтобы курс USD освежился
-    - cron: '0 4 * * *'
 
 permissions:
   contents: read
@@ -25,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: site
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
 
@@ -33,26 +30,21 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: site/package-lock.json
+          cache-dependency-path: web/package-lock.json
 
       - name: Install dependencies
-        # npm bug #4828: lock сгенерён на macOS не содержит Linux-binary rollup.
-        # Workaround: rm lock + npm install для пересборки на текущей платформе.
-        run: |
-          rm -f package-lock.json
-          npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
-      - name: Build Astro site
+      - name: Build Next.js (static export)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          PLASMIC_PROJECT_ID: ${{ secrets.PLASMIC_PROJECT_ID }}
-          PLASMIC_API_TOKEN: ${{ secrets.PLASMIC_API_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site/dist
+          path: web/out
 
   deploy:
     needs: build
