@@ -8,6 +8,7 @@ import { Icon } from '@/components/Icon';
 import ProductCard from '@/components/ProductCard';
 import Reveal from '@/components/Reveal';
 import { partsBrandLogo, fmtKzt, waLink, PHONE_HUMAN, CATEGORY_ICON } from '@/lib/ui';
+import { useIsOwner } from '@/lib/useIsOwner';
 
 type RelatedRow = { id: string; title: string; brand_code: string; category_code: string; image_url: string | null; price_own: number | null; master_sku: string; total_stock: number; compatible_engines: string[] };
 
@@ -37,6 +38,7 @@ function ProductInner() {
   const [notFound, setNotFound] = useState(false);
   const [pickedVariant, setPickedVariant] = useState<string | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const isOwner = useIsOwner();
 
   useEffect(() => {
     if (!id) return;
@@ -108,7 +110,7 @@ function ProductInner() {
           <Link href="/">Главная</Link> <Icon name="chevR" size={14} />
           <Link href="/search">Каталог</Link> <Icon name="chevR" size={14} />
           <Link href={`/search?category=${p.category_code}`}>{CATEGORY_LABEL[p.category_code] ?? p.category_code}</Link> <Icon name="chevR" size={14} />
-          <span>{p.master_sku}</span>
+          <span>{isOwner ? p.master_sku : p.title}</span>
         </div>
 
         <div className="pdp__grid">
@@ -139,7 +141,7 @@ function ProductInner() {
             </div>
             <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? `В наличии · ${totalQty} шт на складе в Алматы` : 'Под заказ'}</span>
             <h1>{p.title}</h1>
-            <div className="pinfo__sku">Артикул <b className="mono">{p.master_sku}</b><Copy value={p.master_sku} /></div>
+            {isOwner && <div className="pinfo__sku">Артикул <b className="mono">{p.master_sku}</b><Copy value={p.master_sku} /></div>}
 
             {p.variants.length > 1 && (
               <div className="variants">

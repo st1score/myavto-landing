@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { partsBrandLogo, fmtKzt, waLink, CATEGORY_ICON } from '@/lib/ui';
+import { useIsOwner } from '@/lib/useIsOwner';
 import type { CatalogRow } from '@/lib/types';
 
 export default function ProductCard({ p }: { p: CatalogRow }) {
+  const isOwner = useIsOwner();
   const inStock = p.total_stock > 0;
   const logo = partsBrandLogo(p.brand_code);
   const partIcon = CATEGORY_ICON[p.category_code] ?? 'piston';
@@ -25,7 +27,7 @@ export default function ProductCard({ p }: { p: CatalogRow }) {
       </Link>
       <div className="pcard__body">
         <Link href={`/p?id=${p.id}`} className="pcard__name">{p.title}</Link>
-        <div className="pcard__sku">Артикул <b className="mono">{p.master_sku}</b></div>
+        {isOwner && <div className="pcard__sku">Артикул <b className="mono">{p.master_sku}</b></div>}
         <div className="pcard__foot">
           <div className="pcard__price">
             {p.price_own != null
