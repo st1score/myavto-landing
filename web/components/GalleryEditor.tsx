@@ -2,6 +2,30 @@
 import { useEffect, useState } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/client';
 
+// Resize to max `maxSide`px (long edge) + JPEG quality 0.85, in-browser via canvas.
+// Returns a JPEG Blob when it ends up smaller; otherwise returns the original File.
+async function compressImage(file: File, maxSide = 1600, quality = 0.85): Promise<File | Blob> {
+  if (!file.type.startsWith('image/')) return file;
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  let { width, height } = bitmap;
+  const scale = Math.min(1, maxSide / Math.max(width, height));
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { bitmap.close?.(); return file; }
+  ctx.fillStyle = '#fff';                 // flatten transparency (PNG → white bg)
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close?.();
+  const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+  if (!blob || blob.size >= file.size) return file; // already smaller → keep original
+  return blob;
+}
+
 export type GalleryItem = {
   product_media_pk?: string; // not used (composite PK in DB)
   media_id: string;
@@ -55,15 +79,19 @@ export default function GalleryEditor({ productId, onPrimaryChange }: { productI
     for (const file of arr) {
       console.log('[gallery] file', file.name, file.size, 'type', file.type);
       try {
-        const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
+        const payload = await compressImage(file);
+        const isJpeg = payload !== file;       // helper returns a JPEG Blob only when smaller
+        const ext = isJpeg ? 'jpg' : (file.name.split('.').pop() ?? 'jpg').toLowerCase();
+        const contentType = isJpeg ? 'image/jpeg' : (file.type || 'application/octet-stream');
+        console.log('[gallery] compress', file.name, file.size, '→', payload.size, isJpeg ? 'jpeg' : 'original');
         const path = `${u.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
-        const up = await s.storage.from('product-images').upload(path, file, { contentType: file.type || 'application/octet-stream' });
+        const up = await s.storage.from('product-images').upload(path, payload, { contentType });
         console.log('[gallery] storage upload', up.error?.message ?? 'ok', 'path', path);
         if (up.error) { errors.push(`storage(${file.name}): ${up.error.message}`); continue; }
         const { data: pub } = s.storage.from('product-images').getPublicUrl(path);
         const { data: m, error: mErr } = await s.from('media').insert({
           owner_id: u.user.id, url: pub.publicUrl, storage_path: path,
-          media_type: 'image', mime_type: file.type, bytes: file.size,
+          media_type: 'image', mime_type: contentType, bytes: payload.size,
         }).select('id').single();
         console.log('[gallery] media insert', mErr?.message ?? 'ok', 'id', (m as any)?.id);
         if (mErr) { errors.push(`media(${file.name}): ${mErr.message}`); continue; }
