@@ -9,7 +9,7 @@ import Marquee from '@/components/Marquee';
 import Reveal from '@/components/Reveal';
 import ProductCard from '@/components/ProductCard';
 import { MAKE_ITEMS, PARTS_BRAND_ITEMS, CATEGORY_ICON } from '@/lib/ui';
-import { DEFAULT_HOME, loadHomeDoc, type Block, type HeroProps, type HeadProps, type BannerProps } from '@/lib/homeContent';
+import { DEFAULT_HOME, loadHomeDoc, type Block, type HeroProps, type HeadProps, type BannerProps, type CarouselProps, type CategoriesProps } from '@/lib/homeContent';
 
 const CATS = ['PISTON', 'RING', 'BEARING', 'LINER', 'KIT'];
 
@@ -108,7 +108,8 @@ export default function Home() {
     );
   }
 
-  function renderCategories(p: HeadProps, key: string) {
+  function renderCategories(p: CategoriesProps, key: string) {
+    const custom = p.items && p.items.length > 0 ? p.items : null;
     return (
       <section key={key} className="section section--soft">
         <div className="container">
@@ -120,23 +121,39 @@ export default function Home() {
             <Link className="sec-link" href="/search">Весь каталог <Icon name="arrowR" size={16} /></Link>
           </Reveal>
           <Reveal variant="stagger" step={60} className="cats">
-            {CATS.map((code) => (
-              <Link key={code} className={'cat' + (catImg[code] ? ' cat--photo' : '')} href={`/search?category=${code}`}>
-                <span className="cat__go"><Icon name="arrowR" size={16} /></span>
-                {catImg[code]
-                  ? <span className="cat__photo"><img src={catImg[code]} alt={CATEGORY_LABEL[code] ?? code} loading="lazy" /></span>
-                  : <span className="cat__ico"><Icon name={CATEGORY_ICON[code] ?? 'piston'} size={32} stroke={1.8} /></span>}
-                <div className="cat__name">{CATEGORY_LABEL[code] ?? code}</div>
-                <div className="cat__count">Перейти в каталог</div>
-              </Link>
-            ))}
+            {custom
+              ? custom.map((it, i) => {
+                  const code = new URLSearchParams(it.href.split('?')[1] ?? '').get('category') ?? '';
+                  const photo = it.imageUrl || catImg[code] || '';
+                  return (
+                    <Link key={i} className={'cat' + (photo ? ' cat--photo' : '')} href={it.href || '/search'}>
+                      <span className="cat__go"><Icon name="arrowR" size={16} /></span>
+                      {photo
+                        ? <span className="cat__photo"><img src={photo} alt={it.label} loading="lazy" /></span>
+                        : <span className="cat__ico"><Icon name={CATEGORY_ICON[code] ?? 'piston'} size={32} stroke={1.8} /></span>}
+                      <div className="cat__name">{it.label}</div>
+                      <div className="cat__count">Перейти в каталог</div>
+                    </Link>
+                  );
+                })
+              : CATS.map((code) => (
+                  <Link key={code} className={'cat' + (catImg[code] ? ' cat--photo' : '')} href={`/search?category=${code}`}>
+                    <span className="cat__go"><Icon name="arrowR" size={16} /></span>
+                    {catImg[code]
+                      ? <span className="cat__photo"><img src={catImg[code]} alt={CATEGORY_LABEL[code] ?? code} loading="lazy" /></span>
+                      : <span className="cat__ico"><Icon name={CATEGORY_ICON[code] ?? 'piston'} size={32} stroke={1.8} /></span>}
+                    <div className="cat__name">{CATEGORY_LABEL[code] ?? code}</div>
+                    <div className="cat__count">Перейти в каталог</div>
+                  </Link>
+                ))}
           </Reveal>
         </div>
       </section>
     );
   }
 
-  function renderMakes(p: HeadProps, key: string) {
+  function renderMakes(p: CarouselProps, key: string) {
+    const items = p.items && p.items.length > 0 ? p.items : MAKE_ITEMS;
     return (
       <Reveal key={key} className="marquee-wrap">
         <div className="marquee-head">
@@ -144,12 +161,13 @@ export default function Home() {
           <h3>{p.title}</h3>
           <span className="rule" />
         </div>
-        <Marquee items={MAKE_ITEMS} dur="40s" variant="makes" />
+        <Marquee items={items} variant="makes" />
       </Reveal>
     );
   }
 
-  function renderParts(p: HeadProps, key: string) {
+  function renderParts(p: CarouselProps, key: string) {
+    const items = p.items && p.items.length > 0 ? p.items : PARTS_BRAND_ITEMS;
     return (
       <section key={key} className="section section--soft">
         <div className="marquee-wrap" style={{ paddingTop: 0 }}>
@@ -159,7 +177,7 @@ export default function Home() {
             <span className="rule" />
           </div>
           <Reveal>
-            <Marquee items={PARTS_BRAND_ITEMS} dur="34s" reverse variant="brands" />
+            <Marquee items={items} reverse variant="brands" />
           </Reveal>
         </div>
       </section>

@@ -4,11 +4,13 @@ import Link from 'next/link';
 
 type Item = { src: string; label: string; href: string };
 
-/* Drag-scrollable + auto-advancing logo carousel. Works on touch (real scroll
-   container) and auto-loops via rAF. Items rendered twice for seamless wrap.
-   variant controls idle color (makes=grayscale, brands=color). */
+/* Auto-advancing logo carousel.
+   - Touch: native horizontal scroll (finger drag with momentum). Auto-advance
+     pauses on touch and resumes after idle.
+   - Mouse: click-drag via pointer events.
+   Items rendered twice for a seamless wrap. variant controls idle color. */
 export default function Marquee({
-  items, dur = '38s', reverse = false, variant = 'makes',
+  items, dur, reverse = false, variant = 'makes',
 }: {
   items: Item[]; dur?: string; reverse?: boolean; variant?: 'makes' | 'brands';
 }) {
@@ -19,12 +21,12 @@ export default function Marquee({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const speed = reverse ? -0.5 : 0.5;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const speed = reverse ? -0.4 : 0.4;
     let raf = 0;
     const tick = () => {
       const half = el.scrollWidth / 2;
-      if (half > 0 && !drag.current.down && Date.now() > pauseUntil.current) {
+      if (!reduced && half > 0 && !drag.current.down && Date.now() > pauseUntil.current) {
         let next = el.scrollLeft + speed;
         if (next >= half) next -= half;
         if (next < 0) next += half;
@@ -36,7 +38,12 @@ export default function Marquee({
     return () => cancelAnimationFrame(raf);
   }, [reverse]);
 
+  // Pause auto-advance while the finger is on the strip / just after.
+  const pause = () => { pauseUntil.current = Date.now() + 2000; };
+
+  // Mouse-only click-drag. Touch uses native scroll (do not hijack).
   const onDown = (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return;
     const el = ref.current!;
     drag.current = { down: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
     el.setPointerCapture(e.pointerId);
@@ -49,8 +56,9 @@ export default function Marquee({
     el.scrollLeft = drag.current.startScroll - dx;
   };
   const onUp = (e: React.PointerEvent) => {
+    if (!drag.current.down) return;
     drag.current.down = false;
-    pauseUntil.current = Date.now() + 1800;
+    pause();
     ref.current?.releasePointerCapture(e.pointerId);
   };
 
@@ -67,6 +75,7 @@ export default function Marquee({
     <div
       ref={ref} className={`marquee marquee--${variant}`}
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
+      onTouchStart={pause} onScroll={pause}
     >
       <div className="marquee__track">{set}{set}</div>
     </div>
