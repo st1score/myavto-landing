@@ -4,43 +4,30 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CATEGORY_LABEL, type Product, type ProductVariant, type Listing, type Stock } from '@/lib/types';
+import { Icon } from '@/components/Icon';
+import ProductCard from '@/components/ProductCard';
+import Reveal from '@/components/Reveal';
+import { partsBrandLogo, fmtKzt, waLink, PHONE_HUMAN, CATEGORY_ICON } from '@/lib/ui';
 
-const WA_PHONE = '77015509377';
-const waLink = (text: string) => `https://wa.me/${WA_PHONE}?text=${encodeURIComponent(text)}`;
+type RelatedRow = { id: string; title: string; brand_code: string; category_code: string; image_url: string | null; price_own: number | null; master_sku: string; total_stock: number; compatible_engines: string[] };
 
 type FullProduct = Product & {
   variants: ProductVariant[];
   listings: Listing[];
   stock: Stock[];
-  primary_image: string | null;
   images: string[];
-  related: { id: string; title: string; brand_code: string; category_code: string; image_url: string | null; price_own: number | null }[];
+  related: RelatedRow[];
 };
 
-function Gallery({ images, fallback, alt }: { images: string[]; fallback: string; alt: string }) {
-  const [active, setActive] = useState(0);
-  const img = images[active];
+function Copy({ value }: { value: string }) {
+  const [done, setDone] = useState(false);
   return (
-    <div className="flex flex-col gap-3">
-      <div className="bg-neutral-50 border border-neutral-200 rounded-xl aspect-[4/3] flex items-center justify-center p-6">
-        {img
-          ? <img src={img} alt={alt} className="max-w-full max-h-full object-contain" />
-          : <div className="text-neutral-300 text-6xl font-bold">{fallback}</div>}
-      </div>
-      {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto">
-          {images.map((u, i) => (
-            <button
-              key={u}
-              onClick={() => setActive(i)}
-              className={'flex-shrink-0 w-20 h-20 border-2 rounded-md flex items-center justify-center bg-neutral-50 ' + (i === active ? 'border-[var(--c-red)]' : 'border-neutral-200 hover:border-black')}
-            >
-              <img src={u} alt="" className="max-w-full max-h-full object-contain p-1" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <button
+      aria-label="Скопировать"
+      onClick={() => { navigator.clipboard?.writeText(value); setDone(true); setTimeout(() => setDone(false), 1200); }}
+    >
+      <Icon name={done ? 'check' : 'copy'} size={15} />
+    </button>
   );
 }
 
@@ -49,6 +36,7 @@ function ProductInner() {
   const [p, setP] = useState<FullProduct | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [pickedVariant, setPickedVariant] = useState<string | null>(null);
+  const [activeImg, setActiveImg] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -74,16 +62,15 @@ function ProductInner() {
         return a.sort_order - b.sort_order;
       });
       const allImages = sortedMedia.map((m: any) => m.media?.url).filter(Boolean) as string[];
-      const primary = allImages[0] ?? null;
 
-      let related: FullProduct['related'] = [];
+      let related: RelatedRow[] = [];
       if ((prod as Product).compatible_engines.length > 0) {
         const { data: rel } = await s.from('v_catalog')
-          .select('id,title,brand_code,category_code,image_url,price_own')
+          .select('*')
           .eq('status', 'active')
           .neq('id', (prod as Product).id)
           .overlaps('compatible_engines', (prod as Product).compatible_engines)
-          .limit(8);
+          .limit(4);
         related = (rel ?? []) as any;
       }
 
@@ -92,7 +79,6 @@ function ProductInner() {
         variants: (variants ?? []) as ProductVariant[],
         listings: (listings ?? []) as Listing[],
         stock: (stock ?? []) as Stock[],
-        primary_image: primary,
         images: allImages,
         related,
       });
@@ -100,147 +86,173 @@ function ProductInner() {
     })();
   }, [id]);
 
-  if (notFound) return <div className="max-w-6xl mx-auto px-4 py-16 text-neutral-500">Товар не найден. <Link href="/search" className="text-[var(--c-red)] font-semibold">К каталогу</Link>.</div>;
-  if (!p) return <div className="max-w-6xl mx-auto px-4 py-16 text-neutral-500">Загрузка…</div>;
+  if (notFound) return <div className="container" style={{ padding: '60px 24px', color: 'var(--c-muted)' }}>Товар не найден. <Link href="/search" style={{ color: 'var(--c-red)', fontWeight: 600 }}>К каталогу</Link>.</div>;
+  if (!p) return <div className="container" style={{ padding: '60px 24px', color: 'var(--c-muted)' }}>Загрузка…</div>;
 
   const pv = p.variants.find((v) => v.id === pickedVariant) ?? p.variants[0];
   const own = p.listings.find((l) => l.variant_id === pv?.id && l.channel_code === 'OWN');
+  const compare = own?.compare_at_price ?? null;
   const totalQty = p.stock.filter((s) => s.variant_id === pv?.id).reduce((a, b) => a + b.qty, 0);
-
+  const inStock = totalQty > 0;
+  const logo = partsBrandLogo(p.brand_code);
+  const partIcon = CATEGORY_ICON[p.category_code] ?? 'piston';
   const waText = `Здравствуйте! Интересует «${p.title}»${pv ? ` (SKU ${pv.sku})` : ''}. Есть в наличии?`;
+  const img = p.images[activeImg];
+  const save = own?.price != null && compare != null && compare > Number(own.price)
+    ? Math.round((1 - Number(own.price) / compare) * 100) : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <nav className="text-xs text-neutral-500 mb-4 flex flex-wrap gap-1.5">
-        <Link href="/" className="hover:text-[var(--c-red)]">Главная</Link>
-        <span>·</span>
-        <Link href={`/search?category=${p.category_code}`} className="hover:text-[var(--c-red)]">{CATEGORY_LABEL[p.category_code] ?? p.category_code}</Link>
-        <span>·</span>
-        <span>{p.brand_code}</span>
-      </nav>
+    <div className="container">
+      <div className="pdp">
+        <div className="crumbs">
+          <Link href="/">Главная</Link> <Icon name="chevR" size={14} />
+          <Link href="/search">Каталог</Link> <Icon name="chevR" size={14} />
+          <Link href={`/search?category=${p.category_code}`}>{CATEGORY_LABEL[p.category_code] ?? p.category_code}</Link> <Icon name="chevR" size={14} />
+          <span>{p.master_sku}</span>
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        <Gallery images={p.images} fallback={p.brand_code[0]} alt={p.title} />
-
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="bg-black text-white px-3 py-1 rounded-full font-bold text-sm">{p.brand_code}</span>
-            <span className={'flex items-center gap-1.5 text-sm font-semibold ' + (totalQty > 0 ? 'text-green-700' : 'text-neutral-500')}>
-              <span className={'w-2 h-2 rounded-full ' + (totalQty > 0 ? 'bg-green-600' : 'bg-neutral-400')}></span>
-              {totalQty > 0 ? `В наличии · ${totalQty} шт` : 'Под заказ'}
-            </span>
+        <div className="pdp__grid">
+          {/* GALLERY */}
+          <div className="gallery">
+            <div className="gallery__main">
+              <div className="gallery__badge">
+                <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? `В наличии · ${totalQty} шт` : 'Под заказ'}</span>
+              </div>
+              {img ? <img className="gimg" src={img} alt={p.title} /> : <span className="gallery__ph">{p.brand_code[0]}</span>}
+            </div>
+            {p.images.length > 1 && (
+              <div className="gallery__thumbs">
+                {p.images.map((u, i) => (
+                  <button key={u} className={'thumb' + (i === activeImg ? ' is-active' : '')} onClick={() => setActiveImg(i)}>
+                    <img src={u} alt="" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-bold leading-tight">{p.title}</h1>
-          {p.short_desc && <p className="text-neutral-600">{p.short_desc}</p>}
+          {/* INFO */}
+          <div className="pinfo">
+            <div className="pinfo__brandrow">
+              <span className="pill pill--brand">{p.brand_code}</span>
+              {logo && <><span className="pinfo__divider" /><span className="pinfo__brandlogo"><img src={logo} alt={p.brand_code} /></span></>}
+            </div>
+            <span className={'stock' + (inStock ? '' : ' stock--out')}><span className="led" />{inStock ? `В наличии · ${totalQty} шт на складе в Алматы` : 'Под заказ'}</span>
+            <h1>{p.title}</h1>
+            <div className="pinfo__sku">Артикул <b className="mono">{p.master_sku}</b><Copy value={p.master_sku} /></div>
 
-          {p.variants.length > 1 && (
-            <div className="mt-2">
-              <div className="text-xs uppercase tracking-wide text-neutral-500 font-semibold mb-2">Вариант</div>
-              <div className="flex flex-wrap gap-2">
-                {p.variants.map((v) => {
-                  const inStock = p.stock.filter((s) => s.variant_id === v.id).reduce((a, b) => a + b.qty, 0) > 0;
-                  const isActive = v.id === pv?.id;
-                  return (
-                    <button
-                      key={v.id}
-                      onClick={() => setPickedVariant(v.id)}
-                      className={
-                        'px-3 py-2 rounded-lg border-2 font-mono text-sm flex items-center gap-1.5 ' +
-                        (isActive ? 'border-[var(--c-red)] bg-red-50 text-[var(--c-red)]' : 'border-neutral-300 hover:border-black')
-                      }
-                    >
-                      {v.variant_attrs.size ?? v.sku}
-                      {v.variant_attrs.insert && <span className="text-xs text-neutral-500">{v.variant_attrs.insert}</span>}
-                      {inStock && <span className="w-1.5 h-1.5 rounded-full bg-green-600"></span>}
-                    </button>
-                  );
-                })}
+            {p.variants.length > 1 && (
+              <div className="variants">
+                <div className="variants__label">Вариант</div>
+                <div className="variants__row">
+                  {p.variants.map((v) => {
+                    const vStock = p.stock.filter((s) => s.variant_id === v.id).reduce((a, b) => a + b.qty, 0) > 0;
+                    return (
+                      <button key={v.id} className={'vchip' + (v.id === pv?.id ? ' is-on' : '')} onClick={() => setPickedVariant(v.id)}>
+                        <span className="mono">{v.variant_attrs?.size ?? v.sku}</span>
+                        {v.variant_attrs?.insert && <span style={{ fontSize: 12 }}>{v.variant_attrs.insert}</span>}
+                        {vStock && <span className="dot" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="priceblock">
+              <div className="priceblock__row">
+                {own?.price != null
+                  ? <span className="now">{fmtKzt(Number(own.price))}</span>
+                  : <span className="now" style={{ fontSize: 24 }}>Цена по запросу</span>}
+                {compare != null && save > 0 && <span className="old">{fmtKzt(compare)}</span>}
+                {save > 0 && <span className="save">−{save}%</span>}
+              </div>
+              {p.short_desc && <div className="priceblock__meta">{p.short_desc}</div>}
+              <div className="cta-stack">
+                <a className="btn btn--wa btn--block" href={waLink(waText)} target="_blank" rel="noopener"><Icon name="wa" size={20} /> Заказать в WhatsApp</a>
+                <div className="row">
+                  <a className="btn btn--ghost" href={`tel:${PHONE_HUMAN.replace(/[^+\d]/g, '')}`}><Icon name="phone" size={18} /> Позвонить</a>
+                  <Link className="btn btn--ghost" href={`/search?category=${p.category_code}`}><Icon name="repeat" size={18} /> Аналоги</Link>
+                </div>
+                <div className="cta-note"><Icon name="check" size={15} /> Ответим за 5 минут · поможем с подбором</div>
               </div>
             </div>
-          )}
 
-          {own?.price != null && <div className="text-3xl font-extrabold mt-2">{Number(own.price).toLocaleString('ru-RU')} ₸</div>}
-
-          <div className="flex gap-3 mt-4">
-            <a href={waLink(waText)} target="_blank" rel="noopener" className="bg-[var(--c-red)] hover:bg-[var(--c-red-dark)] text-white px-6 py-3 rounded-lg font-bold">
-              Заказать в WhatsApp
-            </a>
-            <a href="tel:+77015509377" className="border-2 border-neutral-300 hover:border-black px-6 py-3 rounded-lg font-bold">
-              +7 701 550-93-77
-            </a>
+            <div className="perks">
+              <div className="perk"><Icon name="truck" size={20} /><div><b>Доставка по РК</b><small>Отправка в день заказа</small></div></div>
+              <div className="perk"><Icon name="shield" size={20} /><div><b>Оригинал</b><small>Проверенные бренды</small></div></div>
+              <div className="perk"><Icon name="wallet" size={20} /><div><b>Оплата Kaspi</b><small>Наличные · перевод</small></div></div>
+              <div className="perk"><Icon name="box" size={20} /><div><b>Самовывоз</b><small>ТЦ CarCity, 135В</small></div></div>
+            </div>
           </div>
-
-          {pv && <div className="text-xs text-neutral-500 mt-2">SKU: <code className="font-mono">{pv.sku}</code> · Master: <code className="font-mono">{p.master_sku}</code></div>}
         </div>
+
+        {/* DETAILS */}
+        <div className="pdetails">
+          <div>
+            {p.description && (
+              <Reveal className="pblock">
+                <h3><Icon name="file" size={19} /> Описание</h3>
+                <p>{p.description}</p>
+              </Reveal>
+            )}
+            {p.compatible_engines.length > 0 && (
+              <Reveal className="pblock">
+                <h3><Icon name="wrench" size={19} /> Совместимые двигатели</h3>
+                <div className="engine-chips">
+                  {p.compatible_engines.map((e) => (
+                    <Link key={e} className="engine-chip" href={`/search?engine=${e}`}><Icon name="check" size={14} /><span className="mono">{e}</span></Link>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+            {p.oem_numbers.length > 0 && (
+              <Reveal className="pblock">
+                <h3><Icon name="layers" size={19} /> OEM-номера</h3>
+                <div className="oem-list">
+                  {p.oem_numbers.map((o) => (
+                    <div key={o} className="oem"><span className="mono">{o}</span><Copy value={o} /></div>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+          </div>
+          <div>
+            {p.cross_numbers.length > 0 && (
+              <Reveal className="pblock">
+                <h3><Icon name="repeat" size={19} /> Кроссы / аналоги по номеру</h3>
+                <div className="oem-list">
+                  {p.cross_numbers.map((o) => (
+                    <div key={o} className="oem"><span className="mono">{o}</span><Copy value={o} /></div>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+          </div>
+        </div>
+
+        {/* RELATED */}
+        {p.related.length > 0 && (
+          <section className="section" style={{ padding: '40px 0 0' }}>
+            <Reveal className="sec-head">
+              <div>
+                <div className="sec-eyebrow">Тот же мотор</div>
+                <h2 className="sec-title">Другие запчасти</h2>
+              </div>
+            </Reveal>
+            <div className="grid-products">
+              {p.related.map((r) => <ProductCard key={r.id} p={r as any} />)}
+            </div>
+          </section>
+        )}
       </div>
-
-      {p.description && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">Описание</h2>
-          <p className="whitespace-pre-wrap text-neutral-700">{p.description}</p>
-        </section>
-      )}
-
-      {p.compatible_engines.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">Совместимые двигатели</h2>
-          <div className="flex flex-wrap gap-2">
-            {p.compatible_engines.map((e) => (
-              <Link key={e} href={`/search?engine=${e}`} className="bg-neutral-100 hover:bg-black hover:text-white transition px-3 py-1.5 rounded-full font-mono font-bold text-sm">
-                {e}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {p.oem_numbers.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">OEM-номера</h2>
-          <div className="flex flex-wrap gap-1.5">
-            {p.oem_numbers.map((n) => <span key={n} className="bg-neutral-50 border border-neutral-200 px-3 py-1 rounded-md font-mono text-sm">{n}</span>)}
-          </div>
-        </section>
-      )}
-
-      {p.cross_numbers.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">Аналоги по номеру</h2>
-          <div className="flex flex-wrap gap-1.5">
-            {p.cross_numbers.map((n) => <span key={n} className="bg-neutral-50 border border-neutral-200 px-3 py-1 rounded-md font-mono text-sm">{n}</span>)}
-          </div>
-        </section>
-      )}
-
-      {p.related.length > 0 && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold mb-3">Другие запчасти для этих моторов</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {p.related.map((r) => (
-              <Link key={r.id} href={`/p?id=${r.id}`} className="bg-white border border-neutral-200 rounded-lg overflow-hidden hover:border-black transition">
-                <div className="aspect-square bg-neutral-50 flex items-center justify-center overflow-hidden">
-                  {r.image_url
-                    ? <img src={r.image_url} alt="" className="max-w-full max-h-full object-contain p-2" />
-                    : <div className="text-neutral-300 text-2xl font-bold">{r.brand_code[0]}</div>}
-                </div>
-                <div className="p-2.5">
-                  <div className="text-xs text-neutral-500 font-semibold">{r.brand_code} · {CATEGORY_LABEL[r.category_code] ?? r.category_code}</div>
-                  <div className="font-semibold text-sm line-clamp-2">{r.title}</div>
-                  {r.price_own != null && <div className="font-bold text-sm mt-1">от {Number(r.price_own).toLocaleString('ru-RU')} ₸</div>}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
 
 export default function ProductPage() {
   return (
-    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-16 text-neutral-500">Загрузка…</div>}>
+    <Suspense fallback={<div className="container" style={{ padding: '60px 24px', color: 'var(--c-muted)' }}>Загрузка…</div>}>
       <ProductInner />
     </Suspense>
   );

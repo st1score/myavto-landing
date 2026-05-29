@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Icon } from '@/components/Icon';
+import { PHONE_HUMAN, WA_PHONE } from '@/lib/ui';
 
 const NAV = [
   { href: '/search', label: 'Каталог' },
@@ -12,58 +13,58 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
+  const [stuck, setStuck] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setStuck(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
-    <header className="border-b border-neutral-200 sticky top-0 bg-white/95 backdrop-blur z-50">
-      <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
-        <Link href="/" onClick={() => setOpen(false)} className="font-extrabold text-lg tracking-tight shrink-0">
-          MY <span className="text-[var(--c-red)]">AVTO</span>
+    <header className={'hdr' + (stuck ? ' is-stuck' : '')}>
+      <div className="hdr__bar">
+        <Link className="logo" href="/" onClick={() => setOpen(false)}>
+          <span className="logo__mark"><Icon name="piston" size={20} /></span>
+          MY <b>AVTO</b>
         </Link>
-
-        <nav className="hidden md:flex gap-5 text-sm">
+        <nav className="hdr__nav">
           {NAV.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={'hover:text-[var(--c-red)] transition ' + (pathname === n.href ? 'text-[var(--c-red)] font-semibold' : '')}
-            >{n.label}</Link>
+            <Link key={n.label} href={n.href}>{n.label}</Link>
           ))}
         </nav>
-
-        <div className="ml-auto flex gap-3 items-center text-sm">
-          <a href="tel:+77015509377" className="hidden lg:inline hover:text-[var(--c-red)]">+7 701 550-93-77</a>
-          <a
-            href="https://wa.me/77015509377"
-            target="_blank" rel="noopener"
-            className="bg-[var(--c-red)] text-white px-3 py-1.5 rounded-md font-semibold hover:bg-[var(--c-red-dark)] transition"
-          >WhatsApp</a>
-          <Link href="/dashboard" className="hidden md:inline text-neutral-500 hover:text-black text-xs">Кабинет</Link>
-
-          <button
-            type="button"
-            aria-label="Меню"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="md:hidden -mr-1 p-2 text-neutral-700"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              {open ? <><line x1="6" y1="6" x2="18" y2="18" /><line x1="6" y1="18" x2="18" y2="6" /></>
-                    : <><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>}
-            </svg>
+        <div className="hdr__spacer" />
+        <div className="hdr__phone">
+          <small>Алматы · ТЦ CarCity</small>
+          <b className="mono">{PHONE_HUMAN}</b>
+        </div>
+        <div className="hdr__icons">
+          <a className="btn btn--wa btn--sm" href={`https://wa.me/${WA_PHONE}`} target="_blank" rel="noopener">
+            <Icon name="wa" size={18} /><span className="hdr__wa-text">WhatsApp</span>
+          </a>
+          <Link className="icon-btn icon-btn--cab" href="/dashboard" aria-label="Кабинет">
+            <Icon name="user" size={19} />
+          </Link>
+          <button className="icon-btn burger" aria-label="Меню" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+            <Icon name={open ? 'x' : 'menu'} size={20} />
           </button>
         </div>
       </div>
 
-      {open && (
-        <nav className="md:hidden border-t border-neutral-200 bg-white px-4 py-2 flex flex-col text-sm">
+      <div className={'mmenu' + (open ? ' is-open' : '')}>
+        <div className="mmenu__inner">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="py-2.5 border-b border-neutral-100 hover:text-[var(--c-red)]">{n.label}</Link>
+            <Link key={n.label} href={n.href} onClick={() => setOpen(false)}>
+              {n.label} <Icon name="chevR" size={18} />
+            </Link>
           ))}
-          <Link href="/dashboard" onClick={() => setOpen(false)} className="py-2.5 text-neutral-500">Кабинет продавца</Link>
-          <a href="tel:+77015509377" className="py-2.5 font-semibold">+7 701 550-93-77</a>
-        </nav>
-      )}
+          <Link href="/dashboard" onClick={() => setOpen(false)}>
+            Кабинет продавца <Icon name="chevR" size={18} />
+          </Link>
+          <a className="mphone mono" href={`tel:${PHONE_HUMAN.replace(/[^+\d]/g, '')}`}>{PHONE_HUMAN}</a>
+        </div>
+      </div>
     </header>
   );
 }
