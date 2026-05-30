@@ -106,7 +106,7 @@ export async function uploadHomeImage(file: File): Promise<{ url: string | null;
   const { data: u } = await s.auth.getUser();
   if (!u.user) return { url: null, error: 'Не авторизован' };
   const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
-  const path = `home/${u.user.id}/${Date.now()}.${ext}`;
+  const path = `${u.user.id}/home/${Date.now()}.${ext}`;
   const up = await s.storage.from('product-images').upload(path, file, { contentType: file.type });
   if (up.error) return { url: null, error: up.error.message };
   const { data: pub } = s.storage.from('product-images').getPublicUrl(path);
