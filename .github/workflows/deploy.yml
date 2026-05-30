@@ -7,6 +7,13 @@ on:
       - 'web/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
+  # Rebuild so newly added products get their own static pages + sitemap entry,
+  # even when no code changed. Cron = baseline; repository_dispatch = instant
+  # trigger fired by a Supabase webhook / dashboard "Publish" button.
+  repository_dispatch:
+    types: [rebuild-catalog]
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
 
 permissions:
   contents: read

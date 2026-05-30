@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://my-avto.kz/sitemap-index.xml
+Sitemap: https://my-avto.kz/sitemap.xml
