@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { Icon } from '@/components/Icon';
 import { partsBrandLogo, fmtKzt, waLink, CATEGORY_ICON } from '@/lib/ui';
+import { productSlug } from '@/lib/slug';
 import { useIsOwner } from '@/lib/useIsOwner';
 import type { CatalogRow } from '@/lib/types';
 
@@ -19,10 +20,11 @@ export default function ProductCard({ p }: { p: CatalogRow }) {
   const logo = partsBrandLogo(p.brand_code);
   const partIcon = CATEGORY_ICON[p.category_code] ?? 'piston';
   const wa = waLink(`Здравствуйте! Интересует «${p.title}» (${p.master_sku}). Есть в наличии?`);
+  const href = `/p/${productSlug(p)}/`;
 
   return (
     <article className="pcard">
-      <Link href={`/p?id=${p.id}`} className="pcard__media" aria-label={p.title}>
+      <Link href={href} className="pcard__media" aria-label={p.title}>
         {p.image_url
           ? <img className="pimg" src={p.image_url} alt={p.title} loading="lazy" />
           : <span className="part"><Icon name={partIcon} size={80} /></span>}
@@ -34,7 +36,7 @@ export default function ProductCard({ p }: { p: CatalogRow }) {
             : <span className="stock stock--out"><span className="led" />Под заказ</span>}
           {logo && <span className="pcard__brandlogo"><img src={logo} alt={p.brand_code} loading="lazy" /></span>}
         </div>
-        <Link href={`/p?id=${p.id}`} className="pcard__name">{p.title}</Link>
+        <Link href={href} className="pcard__name">{p.title}</Link>
         {isOwner && <div className="pcard__sku">Артикул <b className="mono">{p.master_sku}</b></div>}
         <div className="pcard__foot">
           <div className="pcard__price">
