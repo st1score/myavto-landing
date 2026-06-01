@@ -82,7 +82,8 @@ export async function fetchFullProductById(id: string): Promise<FullProduct | nu
       .eq('status', 'active')
       .neq('id', (prod as Product).id)
       .overlaps('compatible_engines', (prod as Product).compatible_engines)
-      .limit(4);
+      .order('total_stock', { ascending: false })
+      .limit(12);
     related = (rel ?? []) as any;
   }
 

@@ -52,6 +52,8 @@ body { background:var(--c-bg); color:var(--c-text); font-family:var(--font-sans)
 
 /* section heads */
 .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}
+.sec-more{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-weight:600;color:var(--c-red);text-decoration:none}
+.sec-more:hover{text-decoration:underline}
 .sec-eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--c-red);display:flex;align-items:center;gap:8px}
 .sec-eyebrow::before{content:"";width:18px;height:2px;background:var(--c-red);border-radius:2px}
 .sec-title{font-size:30px;font-weight:800;letter-spacing:-.02em;color:var(--c-ink);margin-top:8px}
@@ -356,6 +358,17 @@ body { background:var(--c-bg); color:var(--c-text); font-family:var(--font-sans)
 .afilter button{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center}
 .afilter button svg{width:11px;height:11px}
 .empty{border:1px dashed var(--c-border-strong);border-radius:var(--r-2xl);padding:48px 24px;text-align:center;color:var(--c-muted)}
+.search-miss{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  border:1px solid var(--c-border-strong);background:var(--c-bg-soft);border-radius:var(--r-2xl);
+  padding:18px 22px;margin-bottom:18px}
+.search-miss__txt{display:flex;flex-direction:column;gap:4px;min-width:240px;flex:1}
+.search-miss__txt b{font-size:16px}
+.search-miss__txt span{color:var(--c-muted);font-size:14px;line-height:1.45}
+.search-miss__eng{color:var(--c-fg)!important}
+.search-miss__wa{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+  background:#25D366;color:#fff;font-weight:600;padding:12px 20px;border-radius:999px;text-decoration:none}
+.search-miss__wa:hover{filter:brightness(.95)}
+@media (max-width:560px){ .search-miss__wa{width:100%;justify-content:center} }
 @media (max-width:880px){
   .catalog{grid-template-columns:1fr}
   .filters{display:none}

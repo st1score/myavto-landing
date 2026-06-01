@@ -1,6 +1,7 @@
 export type Category = { code: string; name: string; sort_order: number; parent_code: string | null; kaspi_category_id: string | null };
 export type Brand    = { code: string; name: string; logo_url: string | null; is_oem: boolean };
 export type Engine   = { code: string; name: string | null; is_diesel: boolean; displacement: number | null; cylinders: number | null };
+export type CatalogTag = { slug: string; label: string; sort_order: number };
 export type Warehouse = { code: string; name: string; address: string | null };
 export type Channel  = { code: string; name: string; kind: 'own' | 'marketplace' | 'retail' | 'social'; is_active: boolean };
 
@@ -20,6 +21,7 @@ export type Product = {
   oem_numbers: string[];
   cross_numbers: string[];
   compatible_engines: string[];
+  group_tag: string | null;
   status: ProductStatus;
   seo_title: string | null;
   seo_desc: string | null;
@@ -99,6 +101,7 @@ export type CatalogRow = {
   brand_code: string;
   compatible_engines: string[];
   oem_numbers: string[];
+  group_tag: string | null;
   status: ProductStatus;
   image_url: string | null;
   price_own: number | null;
