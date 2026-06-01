@@ -5,7 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import type { Brand, Category, Engine, ProductStatus, ProductVariant, KaspiVehicle, CatalogTag } from '@/lib/types';
 import { KASPI_TYPE_BY_CATEGORY } from '@/lib/types';
 import GalleryEditor from '@/components/GalleryEditor';
-import { buildMasterSku, calculateKztPrice, DEFAULT_MARGIN_PERCENT, DEFAULT_USD_KZT_RATE } from '@/lib/pricing';
+import { buildMasterSku, calculateKztPrice, marginFromKzt, roundUpToStep, DEFAULT_MARGIN_PERCENT, DEFAULT_USD_KZT_RATE } from '@/lib/pricing';
 
 type FormState = {
   title: string;
@@ -25,6 +25,7 @@ type FormState = {
   price_usd: string;
   exchange_rate: string;
   margin_percent: string;
+  price_kzt: string;
   qty: string;
   image_url: string;
   image_media_id: string | null;
@@ -60,7 +61,7 @@ const blankForm = (): FormState => ({
   manufacturer_part_number: '',
   oem_numbers_raw: '', cross_numbers_raw: '', compatible_engines_raw: '', group_tag: '',
   status: 'draft',
-  size: '', insert_type: '', price_usd: '', exchange_rate: String(DEFAULT_USD_KZT_RATE), margin_percent: String(DEFAULT_MARGIN_PERCENT), qty: '',
+  size: '', insert_type: '', price_usd: '', exchange_rate: String(DEFAULT_USD_KZT_RATE), margin_percent: String(DEFAULT_MARGIN_PERCENT), price_kzt: '', qty: '',
   image_url: '', image_media_id: null,
   kaspi_type: '', youtube_id: '', kaspi_image_code: '', weight_kg: '', additional_info: '',
   kaspi_vehicles: [],
@@ -82,9 +83,6 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
     manufacturerPartNumber: form.manufacturer_part_number,
     size: form.size,
   });
-  const finalPrice = form.price_usd.trim() === ''
-    ? null
-    : calculateKztPrice(Number(form.price_usd), Number(form.exchange_rate || DEFAULT_USD_KZT_RATE), Number(form.margin_percent || DEFAULT_MARGIN_PERCENT));
 
   useEffect(() => {
     const s = supabaseBrowser();
@@ -161,6 +159,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
         price_usd: priceUsd,
         exchange_rate: exchangeRate,
         margin_percent: marginPercent,
+        price_kzt: priceUsd.trim() === '' ? '' : String(calculateKztPrice(Number(priceUsd), Number(exchangeRate || DEFAULT_USD_KZT_RATE), Number(marginPercent || 0))),
         qty,
         image_url: (pm as any)?.media?.url ?? '',
         image_media_id: (pm as any)?.media_id ?? null,
@@ -176,6 +175,26 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
   }, [mode, productId]);
 
   function set<K extends keyof FormState>(k: K, v: FormState[K]) { setForm((f) => ({ ...f, [k]: v })); }
+
+  // --- Dynamic price fields -------------------------------------------------
+  // The four price inputs (закуп $, курс, наценка %, цена ₸) are linked:
+  // editing cost / rate / margin recomputes the final ₸ price; editing the
+  // final ₸ price back-computes the margin %. So the owner can drive pricing
+  // from whichever direction is convenient.
+  const rateOf = (f: FormState) => Number(f.exchange_rate || DEFAULT_USD_KZT_RATE);
+  const recalcKzt = (f: FormState) =>
+    f.price_usd.trim() === '' ? '' : String(calculateKztPrice(Number(f.price_usd), rateOf(f), Number(f.margin_percent || 0)));
+
+  function setUsd(v: string)    { setForm((f) => { const nf = { ...f, price_usd: v };    return { ...nf, price_kzt: recalcKzt(nf) }; }); }
+  function setRate(v: string)   { setForm((f) => { const nf = { ...f, exchange_rate: v }; return { ...nf, price_kzt: recalcKzt(nf) }; }); }
+  function setMargin(v: string) { setForm((f) => { const nf = { ...f, margin_percent: v };return { ...nf, price_kzt: recalcKzt(nf) }; }); }
+  function setKzt(v: string) {
+    setForm((f) => {
+      const usd = Number(f.price_usd), rate = rateOf(f);
+      const margin = v.trim() === '' || !usd || !rate ? f.margin_percent : String(marginFromKzt(Number(v), usd, rate));
+      return { ...f, price_kzt: v, margin_percent: margin };
+    });
+  }
 
   async function uploadImage(file: File) {
     setUploading(true); setErr(null);
@@ -269,7 +288,11 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
       const priceUsd = Number(form.price_usd);
       const exchangeRate = Number(form.exchange_rate || DEFAULT_USD_KZT_RATE);
       const marginPercent = Number(form.margin_percent || DEFAULT_MARGIN_PERCENT);
-      const price = calculateKztPrice(priceUsd, exchangeRate, marginPercent);
+      // If the owner typed a final ₸ price directly, honour it (snapped to the
+      // 500 grid); otherwise derive it from cost × rate × margin.
+      const price = form.price_kzt.trim() !== ''
+        ? roundUpToStep(Number(form.price_kzt))
+        : calculateKztPrice(priceUsd, exchangeRate, marginPercent);
       const fullListing = {
         variant_id: variantId, channel_code: 'OWN',
         price,
@@ -409,18 +432,16 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
           <Field label="Insert"><input value={form.insert_type} onChange={(e) => set('insert_type', e.target.value)} className={input} placeholder="plain / A / AG" /></Field>
         </div>
         <div className="grid grid-cols-4 gap-3">
-          <Field label="Цена закупа, $"><input type="number" min="0" step="0.01" value={form.price_usd} onChange={(e) => set('price_usd', e.target.value)} className={input} /></Field>
-          <Field label="Курс $ → ₸"><input type="number" min="1" step="0.01" value={form.exchange_rate} onChange={(e) => set('exchange_rate', e.target.value)} className={input} /></Field>
-          <Field label="Наценка, %"><input type="number" min="0" step="0.01" value={form.margin_percent} onChange={(e) => set('margin_percent', e.target.value)} className={input} /></Field>
-          <Field label="Остаток (MAIN), шт"><input type="number" min="0" value={form.qty} onChange={(e) => set('qty', e.target.value)} className={input} /></Field>
+          <Field label="Цена закупа, $"><input type="number" min="0" step="0.01" value={form.price_usd} onChange={(e) => setUsd(e.target.value)} className={input} /></Field>
+          <Field label="Курс $ → ₸"><input type="number" min="1" step="0.01" value={form.exchange_rate} onChange={(e) => setRate(e.target.value)} className={input} /></Field>
+          <Field label="Наценка, %"><input type="number" step="0.1" value={form.margin_percent} onChange={(e) => setMargin(e.target.value)} className={input} /></Field>
+          <Field label="Цена продажи, ₸"><input type="number" min="0" step="500" value={form.price_kzt} onChange={(e) => setKzt(e.target.value)} className={input} placeholder="13 000" /></Field>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Итоговая цена, ₸">
-            <input readOnly value={finalPrice == null ? '' : String(finalPrice)} className={input + ' bg-neutral-50'} />
-          </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Остаток (MAIN), шт"><input type="number" min="0" value={form.qty} onChange={(e) => set('qty', e.target.value)} className={input} /></Field>
           <Field label="Вес, кг (для Каспи)"><input type="number" step="0.01" min="0" value={form.weight_kg} onChange={(e) => set('weight_kg', e.target.value)} className={input} placeholder="0.45" /></Field>
         </div>
-        <p className="text-xs text-neutral-500">Итог считается как цена в долларах × курс × (1 + наценка/100), затем округляется вверх до 1000 ₸. Курс сохраняется глобально и пересчитывает все товары с USD-ценой.</p>
+        <p className="text-xs text-neutral-500">Поля связаны: меняешь закуп / курс / наценку — пересчитывается цена продажи; впишешь цену продажи — пересчитается наценка. Цена округляется до 500 ₸. Курс сохраняется глобально и пересчитывает все товары с USD-ценой.</p>
       </Section>
 
       <Section title="Каспи-поля">
