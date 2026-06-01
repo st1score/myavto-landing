@@ -42,5 +42,6 @@ export const CATEGORY_ICON: Record<string, string> = {
   PISTON: 'piston', RING: 'ring', BEARING: 'bearing', LINER: 'sleeve', KIT: 'gasket',
 };
 
+// Non-breaking spaces throughout so price + ₸ never wraps onto two lines.
 export const fmtKzt = (n: number) =>
-  n.toLocaleString('ru-RU').replace(/,/g, ' ') + ' ₸';
+  n.toLocaleString('ru-RU').replace(/[\s,]/g, ' ') + ' ₸';

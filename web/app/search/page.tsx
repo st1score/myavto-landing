@@ -6,33 +6,67 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import { CATEGORY_LABEL, type CatalogRow } from '@/lib/types';
 import { Icon } from '@/components/Icon';
 import ProductCard from '@/components/ProductCard';
-import { partsBrandLogo } from '@/lib/ui';
+import { partsBrandLogo, waLink } from '@/lib/ui';
 
 function SearchInner() {
   const sp = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<CatalogRow[] | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // When the literal query found nothing, we keep it here to show the "не нашли,
+  // напишите в WhatsApp" banner. engineFallback = engine codes we recognised in
+  // the query, used to show all parts we DO stock for that engine.
+  const [notFoundQuery, setNotFoundQuery] = useState<string | null>(null);
+  const [engineFallback, setEngineFallback] = useState<string[] | null>(null);
 
   const q = sp.get('q') ?? '';
   const category = sp.get('category') ?? '';
   const brand = sp.get('brand') ?? '';
   const engine = sp.get('engine') ?? '';
+  const tag = sp.get('tag') ?? '';
   const inStock = sp.get('in_stock') === '1';
 
   useEffect(() => {
     const s = supabaseBrowser();
-    let req = s.from('v_catalog').select('*').eq('status', 'active');
-    if (category) req = req.eq('category_code', category);
-    if (brand)    req = req.eq('brand_code', brand);
-    if (engine)   req = req.contains('compatible_engines', [engine.toUpperCase()]);
-    if (inStock)  req = req.gt('total_stock', 0);
-    if (q)        req = req.or(`title.ilike.%${q}%,master_sku.ilike.%${q}%`);
     setProducts(null);
-    req.order('created_at', { ascending: false }).limit(120).then(({ data }) => {
-      setProducts((data ?? []) as CatalogRow[]);
-    });
-  }, [q, category, brand, engine, inStock]);
+    setNotFoundQuery(null);
+    setEngineFallback(null);
+
+    (async () => {
+      let req = s.from('v_catalog').select('*').eq('status', 'active');
+      if (category) req = req.eq('category_code', category);
+      if (brand)    req = req.eq('brand_code', brand);
+      if (engine)   req = req.contains('compatible_engines', [engine.toUpperCase()]);
+      if (tag)      req = req.eq('group_tag', tag);
+      if (inStock)  req = req.gt('total_stock', 0);
+      if (q)        req = req.or(`title.ilike.%${q}%,master_sku.ilike.%${q}%,oem_numbers.cs.{${q}}`);
+      const { data } = await req.order('created_at', { ascending: false }).limit(120);
+      let rows = (data ?? []) as CatalogRow[];
+
+      // Smart fallback: the text query matched nothing. The user likely typed an
+      // engine code or a part number we don't list yet. Recognise engine tokens
+      // and surface everything we DO stock for that engine, with a banner saying
+      // the exact item isn't on the site (but may be in stock — write WhatsApp).
+      if (rows.length === 0 && q) {
+        const tokens = q.toUpperCase().split(/[^A-ZА-Я0-9-]+/).filter((t) => t.length >= 2);
+        if (tokens.length) {
+          let er = s.from('v_catalog').select('*').eq('status', 'active').overlaps('compatible_engines', tokens);
+          if (category) er = er.eq('category_code', category);
+          if (inStock)  er = er.gt('total_stock', 0);
+          const { data: ed } = await er.order('total_stock', { ascending: false }).limit(120);
+          const erows = (ed ?? []) as CatalogRow[];
+          if (erows.length) {
+            const matched = new Set<string>();
+            for (const r of erows) for (const e of r.compatible_engines) if (tokens.includes(e)) matched.add(e);
+            setEngineFallback([...matched]);
+            rows = erows;
+          }
+        }
+        setNotFoundQuery(q);
+      }
+      setProducts(rows);
+    })();
+  }, [q, category, brand, engine, tag, inStock]);
 
   const facets = useMemo(() => {
     if (!products) return { categories: [], brands: [], engines: [] };
@@ -57,8 +91,8 @@ function SearchInner() {
   }
   const toggle = (k: string, cur: string, v: string) => setParam(k, cur === v ? null : v);
 
-  const title = category ? (CATEGORY_LABEL[category] ?? category) : 'Каталог запчастей';
-  const hasFilters = !!(q || category || brand || engine || inStock);
+  const title = tag ? `Запчасти: ${tag}` : category ? (CATEGORY_LABEL[category] ?? category) : 'Каталог запчастей';
+  const hasFilters = !!(q || category || brand || engine || tag || inStock);
 
   return (
     <>
@@ -143,8 +177,30 @@ function SearchInner() {
                 {category && <span className="afilter">{CATEGORY_LABEL[category] ?? category} <button onClick={() => setParam('category', null)}><Icon name="x" size={11} /></button></span>}
                 {brand && <span className="afilter">{brand} <button onClick={() => setParam('brand', null)}><Icon name="x" size={11} /></button></span>}
                 {engine && <span className="afilter">{engine} <button onClick={() => setParam('engine', null)}><Icon name="x" size={11} /></button></span>}
+                {tag && <span className="afilter">Тег: {tag} <button onClick={() => setParam('tag', null)}><Icon name="x" size={11} /></button></span>}
                 {inStock && <span className="afilter">В наличии <button onClick={() => setParam('in_stock', null)}><Icon name="x" size={11} /></button></span>}
                 <button className="chip" onClick={() => router.replace('/search')}>Сбросить всё</button>
+              </div>
+            )}
+
+            {notFoundQuery && (
+              <div className="search-miss">
+                <div className="search-miss__txt">
+                  <b>«{notFoundQuery}» пока нет на сайте.</b>
+                  <span>Эта запчасть может быть в ассортименте — мы ещё не всё добавили. Напишите в WhatsApp, подберём и скажем цену.</span>
+                  {engineFallback && engineFallback.length > 0 && (
+                    <span className="search-miss__eng">
+                      А вот что уже есть для двигателя <b className="mono">{engineFallback.join(', ')}</b>:
+                    </span>
+                  )}
+                </div>
+                <a
+                  className="search-miss__wa"
+                  href={waLink(`Здравствуйте! Ищу запчасть по запросу «${notFoundQuery}». Есть в наличии?`)}
+                  target="_blank" rel="noopener"
+                >
+                  Написать в WhatsApp
+                </a>
               </div>
             )}
 
@@ -154,7 +210,7 @@ function SearchInner() {
                 : products.map((p) => <ProductCard key={p.id} p={p} />)}
             </div>
 
-            {products && products.length === 0 && (
+            {products && products.length === 0 && !notFoundQuery && (
               <div className="empty">Ничего не нашли. Попробуй код двигателя или OEM-номер.</div>
             )}
           </main>

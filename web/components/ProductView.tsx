@@ -153,6 +153,14 @@ export default function ProductView({ p }: { p: FullProduct }) {
                 </div>
               </Reveal>
             )}
+            {p.group_tag && (
+              <Reveal className="pblock">
+                <h3><Icon name="layers" size={19} /> Весь комплект</h3>
+                <Link className="engine-chip" href={`/search?tag=${encodeURIComponent(p.group_tag)}`}>
+                  <Icon name="chevR" size={14} /><span>Все запчасти: {p.group_tag}</span>
+                </Link>
+              </Reveal>
+            )}
             {p.oem_numbers.length > 0 && (
               <Reveal className="pblock">
                 <h3><Icon name="layers" size={19} /> OEM-номера</h3>
@@ -186,6 +194,11 @@ export default function ProductView({ p }: { p: FullProduct }) {
                 <div className="sec-eyebrow">Тот же мотор</div>
                 <h2 className="sec-title">Другие запчасти</h2>
               </div>
+              {p.compatible_engines.length > 0 && (
+                <Link className="sec-more" href={`/search?engine=${p.compatible_engines[0]}`}>
+                  Все запчасти для <span className="mono">{p.compatible_engines[0]}</span> <Icon name="chevR" size={15} />
+                </Link>
+              )}
             </Reveal>
             <div className="grid-products">
               {p.related.map((r) => <ProductCard key={r.id} p={r as any} />)}

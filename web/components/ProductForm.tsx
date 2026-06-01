@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '@/lib/supabase/client';
-import type { Brand, Category, Engine, ProductStatus, ProductVariant, KaspiVehicle } from '@/lib/types';
+import type { Brand, Category, Engine, ProductStatus, ProductVariant, KaspiVehicle, CatalogTag } from '@/lib/types';
 import { KASPI_TYPE_BY_CATEGORY } from '@/lib/types';
 import GalleryEditor from '@/components/GalleryEditor';
 import { buildMasterSku, calculateKztPrice, DEFAULT_MARGIN_PERCENT, DEFAULT_USD_KZT_RATE } from '@/lib/pricing';
@@ -18,6 +18,7 @@ type FormState = {
   oem_numbers_raw: string;
   cross_numbers_raw: string;
   compatible_engines_raw: string;
+  group_tag: string;
   status: ProductStatus;
   size: string;
   insert_type: string;
@@ -57,7 +58,7 @@ const blankForm = (): FormState => ({
   category_code: 'PISTON', brand_code: 'TEIKIN',
   master_sku: '',
   manufacturer_part_number: '',
-  oem_numbers_raw: '', cross_numbers_raw: '', compatible_engines_raw: '',
+  oem_numbers_raw: '', cross_numbers_raw: '', compatible_engines_raw: '', group_tag: '',
   status: 'draft',
   size: '', insert_type: '', price_usd: '', exchange_rate: String(DEFAULT_USD_KZT_RATE), margin_percent: String(DEFAULT_MARGIN_PERCENT), qty: '',
   image_url: '', image_media_id: null,
@@ -71,6 +72,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
   const [cats, setCats] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [engines, setEngines] = useState<Engine[]>([]);
+  const [tagList, setTagList] = useState<CatalogTag[]>([]);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -91,8 +93,10 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
       s.from('brands').select('*').order('name'),
       s.from('engines').select('*').order('code'),
       s.from('pricing_settings').select('usd_kzt_rate, default_margin_percent').eq('id', true).maybeSingle(),
-    ]).then(([c, b, e, ps]) => {
+      s.from('catalog_tags').select('*').order('sort_order'),
+    ]).then(([c, b, e, ps, tg]) => {
       setCats((c.data ?? []) as Category[]);
+      setTagList((tg.data ?? []) as CatalogTag[]);
       const dbBrands = (b.data ?? []) as Brand[];
       const merged = dbBrands.some((x) => x.code === 'ND')
         ? dbBrands
@@ -150,6 +154,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
         oem_numbers_raw: (p.oem_numbers ?? []).join(', '),
         cross_numbers_raw: (p.cross_numbers ?? []).join(', '),
         compatible_engines_raw: (p.compatible_engines ?? []).join(', '),
+        group_tag: p.group_tag ?? '',
         status: p.status,
         size: variant?.variant_attrs?.size ?? '',
         insert_type: variant?.variant_attrs?.insert ?? '',
@@ -201,6 +206,16 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
 
     const masterSku = form.master_sku.trim() || generatedMasterSku;
 
+    // New group tag typed in the field → add it to the catalog so it shows up
+    // in the dropdown next time. Idempotent (slug is PK), ignore conflicts.
+    const groupTag = form.group_tag.trim();
+    if (groupTag && !tagList.some((t) => t.slug === groupTag)) {
+      await s.from('catalog_tags').upsert(
+        { slug: groupTag, label: groupTag, owner_id: u.user.id },
+        { onConflict: 'slug', ignoreDuplicates: true },
+      );
+    }
+
     const productPayload = {
       owner_id: u.user.id,
       master_sku: masterSku,
@@ -213,6 +228,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
       oem_numbers: tags(form.oem_numbers_raw),
       cross_numbers: tags(form.cross_numbers_raw),
       compatible_engines: tags(form.compatible_engines_raw).map((x) => x.toUpperCase()),
+      group_tag: form.group_tag.trim() || null,
       status: form.status,
       kaspi_type: form.kaspi_type || null,
       youtube_id: form.youtube_id || null,
@@ -366,6 +382,22 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
         <Field label="Совместимые двигатели (через запятую)">
           <input value={form.compatible_engines_raw} onChange={(e) => set('compatible_engines_raw', e.target.value)} className={input} placeholder="1KZ, 1KZ-TE, 2L" />
           <p className="text-xs text-neutral-500 mt-1">В справочнике сейчас {engines.length} мотор(а/ов).</p>
+        </Field>
+        <Field label="Группа / тег (для сборки всех запчастей по мотору)">
+          <input
+            value={form.group_tag}
+            onChange={(e) => set('group_tag', e.target.value)}
+            className={input}
+            list="group-tags"
+            placeholder="напр. Капремонт 4D56 — выбери из списка или впиши новый"
+          />
+          <datalist id="group-tags">
+            {tagList.map((t) => <option key={t.slug} value={t.slug}>{t.label}</option>)}
+          </datalist>
+          <p className="text-xs text-neutral-500 mt-1">
+            Один тег на товар. Все карточки с этим тегом соберутся на одной странице
+            (<code className="bg-neutral-100 px-1 rounded">/search?tag=…</code>). Новый тег добавится в список автоматически. Тегов: {tagList.length}.
+          </p>
         </Field>
         <Field label="OEM-номера (через запятую) — Каспи требует"><input value={form.oem_numbers_raw} onChange={(e) => set('oem_numbers_raw', e.target.value)} className={input} placeholder="13101-67010, 13101-67020" /></Field>
         <Field label="Аналоги-номера (через запятую)"><input value={form.cross_numbers_raw} onChange={(e) => set('cross_numbers_raw', e.target.value)} className={input} /></Field>
