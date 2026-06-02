@@ -3,10 +3,10 @@ import Link from 'next/link';
 
 // GitHub Pages serves this as 404.html for ANY unknown path — including the
 // thousands of dead legacy-Astro URLs still in Yandex/Google that aren't in the
-// explicit redirect list. So we auto-bounce every dead URL to the pistons hub
+// explicit redirect list. So we auto-bounce every dead URL to the catalog search
 // (a real selling page) instead of leaving the visitor at a dead end.
 // noindex,follow: don't index the 404 itself; let crawlers follow the link out.
-const FALLBACK = '/zapchasti/porshni/';
+const FALLBACK = '/search/';
 
 export const metadata: Metadata = {
   title: 'Страница не найдена — MY AVTO',
@@ -29,12 +29,11 @@ export default function NotFound() {
       </noscript>
       <h1 style={{ fontSize: 32, margin: '0 0 12px' }}>Страница не найдена</h1>
       <p style={{ color: 'var(--c-muted)', margin: '0 0 24px' }}>
-        Возможно, ссылка устарела. Открываем каталог поршней…
+        Возможно, ссылка устарела. Открываем каталог…
       </p>
       <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Link href={FALLBACK} style={{ color: 'var(--c-red)', fontWeight: 600 }}>Поршни</Link>
+        <Link href={FALLBACK} style={{ color: 'var(--c-red)', fontWeight: 600 }}>Каталог</Link>
         <Link href="/" style={{ color: 'var(--ph-blue, #0066cc)', fontWeight: 600 }}>На главную</Link>
-        <Link href="/search/" style={{ color: 'var(--ph-blue, #0066cc)', fontWeight: 600 }}>Поиск по каталогу</Link>
       </div>
     </div>
   );

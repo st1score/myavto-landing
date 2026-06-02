@@ -26,18 +26,10 @@ try {
   }
 } catch {}
 
-const CATEGORY_SLUG = { PISTON: 'porshni', RING: 'koltsa', BEARING: 'vkladyshi', LINER: 'gilzy', KIT: 'remkomplekty' };
 const engineSlug = (c) => c.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-// Old category URL segment → our category code.
-const OLD_CAT = {
-  porshni: 'PISTON',
-  'koltsa-porshnevye': 'RING',
-  kolca: 'RING',
-  vkladyshi: 'BEARING',
-  gilzy: 'LINER',
-  remkomplekty: 'KIT',
-};
+// Generic fallback for anything without a relevant engine hub.
+const SEARCH = '/search/';
 
 // Paths owned by real Next routes — never shadow them with a redirect stub.
 const isLiveRoute = (p) =>
@@ -46,39 +38,30 @@ const isLiveRoute = (p) =>
   p.startsWith('/search') ||
   p.startsWith('/dashboard') ||
   p.startsWith('/login') ||
-  p.startsWith('/dvigateli/') ||
-  p.startsWith('/zapchasti/');
+  p.startsWith('/dvigateli/');
 
 async function loadHubs() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) { console.warn('gen-redirects: no Supabase env, using category fallback only'); return { engines: new Set(), cats: new Set(['PISTON']) }; }
+  if (!url || !key) { console.warn('gen-redirects: no Supabase env, using search fallback only'); return { engines: new Set() }; }
   const s = createClient(url, key, { auth: { persistSession: false } });
-  const { data } = await s.from('v_catalog').select('compatible_engines, category_code').eq('status', 'active');
+  const { data } = await s.from('v_catalog').select('compatible_engines').eq('status', 'active');
   const engines = new Set();
-  const cats = new Set();
-  for (const r of data ?? []) {
-    cats.add(r.category_code);
+  for (const r of data ?? [])
     for (const e of r.compatible_engines ?? []) engines.add(engineSlug(e));
-  }
-  return { engines, cats };
+  return { engines };
 }
 
 function pickTarget(p, hubs) {
   const seg = p.replace(/^\/|\/$/g, '').split('/');
-  const categoryHub = (code) => (hubs.cats.has(code) && CATEGORY_SLUG[code] ? `/zapchasti/${CATEGORY_SLUG[code]}/` : '/zapchasti/porshni/');
-
-  // /{brand}/dvigateli/{engine}/porshni/{sku}/  (560)  и  /{brand}/dvigateli/{engine}/{cat}/  (32)
+  // /{brand}/dvigateli/{engine}/...  → engine hub if that engine is stocked, else search
   if (seg[1] === 'dvigateli' && seg[2]) {
     const eslug = engineSlug(seg[2]);
     if (hubs.engines.has(eslug)) return `/dvigateli/${eslug}/`;
-    // engine not stocked → best category hub
-    const catSeg = seg[4] ? 'porshni' : seg[3]; // sku path → pistons; else the listing category
-    const code = OLD_CAT[catSeg] ?? 'PISTON';
-    return categoryHub(code);
+    return SEARCH;
   }
-  // /zapchasti handled by live route; /brendy/* and bare /{brand}/ and /landing/ → home
-  return '/';
+  // brands, /brendy/*, /landing/, everything else → catalog search
+  return SEARCH;
 }
 
 function stub(target, title) {

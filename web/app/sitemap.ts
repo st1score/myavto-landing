@@ -1,28 +1,19 @@
 import type { MetadataRoute } from 'next';
-import { allProductSlugs, engineHubs, categoryHubs } from '@/lib/productData';
-import { CATEGORY_SLUG } from '@/lib/slug';
+import { allProductSlugs, engineHubs } from '@/lib/productData';
 
 const SITE = 'https://my-avto.kz';
 
 export const dynamic = 'force-static';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, engines, categories] = await Promise.all([
-    allProductSlugs(),
-    engineHubs(),
-    categoryHubs(),
-  ]);
+  const [products, engines] = await Promise.all([allProductSlugs(), engineHubs()]);
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: `${SITE}/`, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE}/search/`, changeFrequency: 'daily', priority: 0.8 },
   ];
 
-  // Category + engine hubs — landing pages that capture broad/long-tail queries.
-  const categoryPages: MetadataRoute.Sitemap = categories
-    .filter((c) => CATEGORY_SLUG[c.code])
-    .map((c) => ({ url: `${SITE}/zapchasti/${CATEGORY_SLUG[c.code]}/`, changeFrequency: 'daily', priority: 0.8 }));
-
+  // Engine hubs — landing pages that capture long-tail "<part> <engine>" queries.
   const enginePages: MetadataRoute.Sitemap = engines.map((e) => ({
     url: `${SITE}/dvigateli/${e.slug}/`,
     changeFrequency: 'weekly',
@@ -36,5 +27,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...categoryPages, ...enginePages, ...productPages];
+  return [...staticPages, ...enginePages, ...productPages];
 }
