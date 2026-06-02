@@ -9,6 +9,7 @@ import './globals.css';
 // GA4 measures organic/traffic; Ads tag enables Google Ads conversion tracking.
 const GA4_ID = 'G-YQ21411TM0';
 const ADS_ID = 'AW-18062973221';
+const YM_ID = 109590508; // Yandex.Metrika counter
 
 const DESCRIPTION =
   'Поршни, кольца, вкладыши, гильзы и ремкомплекты для японских двигателей. Оригинал и проверенные бренды. Алматы, доставка по Казахстану.';
@@ -63,6 +64,13 @@ gtag('js', new Date());
 gtag('config', '${GA4_ID}');
 gtag('config', '${ADS_ID}');`}
         </Script>
+
+        {/* Yandex.Metrika — visits, Webvisor, click map */}
+        <Script id="ym-metrika" strategy="afterInteractive">
+          {`(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=${YM_ID}','ym');
+ym(${YM_ID},'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",accurateTrackBounce:true,trackLinks:true});`}
+        </Script>
+        <noscript><div><img src={`https://mc.yandex.ru/watch/${YM_ID}`} style={{ position: 'absolute', left: '-9999px' }} alt="" /></div></noscript>
       </body>
     </html>
   );
