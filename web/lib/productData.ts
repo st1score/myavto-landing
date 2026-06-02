@@ -1,6 +1,6 @@
 import { supabaseServer } from '@/lib/supabase/server';
-import { productSlug } from '@/lib/slug';
-import type { Product, ProductVariant, Listing, Stock } from '@/lib/types';
+import { productSlug, engineSlug } from '@/lib/slug';
+import type { Product, ProductVariant, Listing, Stock, CatalogRow } from '@/lib/types';
 
 export type RelatedRow = {
   id: string; title: string; brand_code: string; category_code: string;
@@ -135,4 +135,63 @@ export async function fetchFullProductBySlug(slug: string): Promise<FullProduct 
   const id = (await slugMap()).get(slug);
   if (!id) return null;
   return fetchFullProductById(id);
+}
+
+// ---- Catalog hubs (category / engine landing pages) ----
+
+// Full v_catalog of active products, memoized per build. Powers hub pages.
+let _vcatalog: Promise<CatalogRow[]> | null = null;
+export function allActiveCatalog(): Promise<CatalogRow[]> {
+  if (!_vcatalog) {
+    _vcatalog = q<CatalogRow[]>(
+      () => supabaseServer().from('v_catalog').select('*').eq('status', 'active').order('total_stock', { ascending: false }),
+      'allActiveCatalog',
+    ).catch((e) => {
+      _vcatalog = null;
+      throw e;
+    });
+  }
+  return _vcatalog;
+}
+
+/** Distinct engine hubs: { code, slug, count } for every engine that has ≥1 active product. */
+export async function engineHubs(): Promise<{ code: string; slug: string; count: number }[]> {
+  const rows = await allActiveCatalog();
+  const bySlug = new Map<string, { code: string; slug: string; count: number }>();
+  for (const r of rows) {
+    for (const code of r.compatible_engines ?? []) {
+      const slug = engineSlug(code);
+      if (!slug) continue;
+      const cur = bySlug.get(slug);
+      if (cur) cur.count++;
+      else bySlug.set(slug, { code, slug, count: 1 });
+    }
+  }
+  return [...bySlug.values()].sort((a, b) => b.count - a.count);
+}
+
+export async function productsForEngine(slug: string): Promise<{ code: string; products: CatalogRow[] } | null> {
+  const rows = await allActiveCatalog();
+  let code = '';
+  const products = rows.filter((r) =>
+    (r.compatible_engines ?? []).some((e) => {
+      if (engineSlug(e) === slug) { code = code || e; return true; }
+      return false;
+    }),
+  );
+  if (products.length === 0) return null;
+  return { code, products };
+}
+
+/** Distinct category hubs that have ≥1 active product. */
+export async function categoryHubs(): Promise<{ code: string; count: number }[]> {
+  const rows = await allActiveCatalog();
+  const byCode = new Map<string, number>();
+  for (const r of rows) byCode.set(r.category_code, (byCode.get(r.category_code) ?? 0) + 1);
+  return [...byCode.entries()].map(([code, count]) => ({ code, count })).sort((a, b) => b.count - a.count);
+}
+
+export async function productsForCategory(code: string): Promise<CatalogRow[]> {
+  const rows = await allActiveCatalog();
+  return rows.filter((r) => r.category_code === code);
 }
