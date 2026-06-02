@@ -49,12 +49,18 @@ export default async function ProductSlugPage({ params }: { params: Promise<{ sl
   const inStock = p.stock.reduce((a, b) => a + b.qty, 0) > 0;
 
   // Product structured data → eligible for Google rich results.
-  const jsonLd = {
-    '@context': 'https://schema.org',
+  // Offer price valid ~1 year out; static export rebuilds (cron 6h / on change)
+  // keep this date rolling forward. Required by Google for clean rich results.
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  const productLd = {
     '@type': 'Product',
     name: p.title,
     description: p.short_desc ?? p.description ?? p.title,
     sku: p.master_sku,
+    ...(p.manufacturer_part_number ? { mpn: p.manufacturer_part_number } : {}),
     category: catRu,
     brand: { '@type': 'Brand', name: p.brand_code },
     ...(p.images.length > 0 ? { image: p.images } : {}),
@@ -63,11 +69,23 @@ export default async function ProductSlugPage({ params }: { params: Promise<{ sl
       '@type': 'Offer',
       url: `${SITE}/p/${slug}/`,
       priceCurrency: 'KZT',
-      ...(own?.price != null ? { price: String(own.price) } : {}),
+      ...(own?.price != null ? { price: String(own.price), priceValidUntil } : {}),
+      itemCondition: 'https://schema.org/NewCondition',
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
-      seller: { '@type': 'Organization', name: 'MY AVTO' },
+      seller: { '@id': `${SITE}/#business` },
     },
   };
+
+  const breadcrumbLd = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Главная', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: catRu, item: `${SITE}/search/?category=${p.category_code}` },
+      { '@type': 'ListItem', position: 3, name: p.title, item: `${SITE}/p/${slug}/` },
+    ],
+  };
+
+  const jsonLd = { '@context': 'https://schema.org', '@graph': [productLd, breadcrumbLd] };
 
   return (
     <>
