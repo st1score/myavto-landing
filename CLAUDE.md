@@ -1,245 +1,157 @@
 # MY AVTO — project state for Claude
 
-> Этот файл — точка входа для агента. Здесь зафиксировано всё, что нужно знать,
-> чтобы не переоткрывать заново. Обновляй после крупных изменений.
+> Точка входа для агента. Здесь зафиксирован РЕАЛЬНЫЙ фундамент проекта.
+> Источник истины по коду — `web/` (Next.js). Если этот файл расходится с кодом —
+> верь коду и **сразу чини этот файл**. Обновляй после каждого крупного изменения.
+>
+> ⚠️ **История:** проект мигрировал Astro → Next.js. Старые упоминания `site/`,
+> Astro, GitHub Pages-через-Astro — устарели. Актуальное приложение в `web/`.
 
 ---
 
 ## Бизнес
 
 **MY AVTO** — магазин запчастей для капремонта двигателей в Алматы (Казахстан).
-Владелец — Семён (Semen). Адрес: ТЦ CarCity, 3 ярус, бутик 135В. Доставка по
-Казахстану. Цены и заказы — через WhatsApp `+7 701 550-93-77`.
+Владелец — Семён. Один продавец (НЕ multi-vendor). Адрес: ТЦ CarCity, 3 ярус,
+бутик 135В. Доставка по Казахстану. Заказы — WhatsApp `+7 701 550-93-77`.
 
-Сайт **my-avto.kz** — SEO-витрина для органического трафика. Конкурент: motorist.kz
-(они ранжируются за счёт per-article товарных страниц — мы делаем аналогично).
+Сайт **my-avto.kz** — SEO-витрина + лёгкий e-commerce под органику и Google Ads.
+В будущем: раздел объявлений (колёса/разное), Kaspi-фид, Telegram-бот, микросервисы.
 
----
-
-## Стек
-
-- **Astro 6.3.1** (static site generation, TypeScript)
-- **PostgreSQL** на Supabase (раньше был Render, мигрировали)
-- **GitHub Pages** через GitHub Actions (`.github/workflows/deploy.yml`)
-- **GA4** (`G-YQ21411TM0`) + Google Ads (`AW-18062973221`) в [Base.astro](site/src/layouts/Base.astro)
-- **pdftoppm + pdftotext** (poppler-utils) для парсинга TEIKIN PDF
-- `pg` (node-postgres) для запросов к БД
-
-Корневой `package.json` нет — всё внутри `site/`. Build: `cd site && npm run build`.
+**Цель архитектуры:** сильный фундамент, который работает автоматически — товары
+добавляются через админку, страницы под SEO создаются сами, без переделок и
+пересозданий проекта.
 
 ---
 
-## База данных
+## Стек (РЕАЛЬНЫЙ)
 
-**Supabase** (session pooler, port 5432):
-```
-DATABASE_URL=postgresql://<user>:<password>@<supabase-pooler-host>:5432/postgres
-```
+- **Next.js 16** (App Router) + **React 19** + **TypeScript** — каталог `web/`
+- **`output: 'export'`** → статический экспорт в `web/out/` (SPA + пререндер страниц)
+- **`trailingSlash: true`**, `images.unoptimized: true` (нужно для GH Pages)
+- **Tailwind CSS 4** (`@tailwindcss/postcss`)
+- **Supabase** — Postgres + Auth + Storage. Клиенты: `web/lib/supabase/{client,server}.ts`
+- **GitHub Pages** через GitHub Actions (`.github/workflows/deploy.yml`), домен через `web/public/CNAME`
+- **GA4** `G-YQ21411TM0` + **Google Ads** `AW-18062973221`
+- `xlsx`, `jszip` — импорт/экспорт в админке
 
-Пароль хранится только локально в `.env` (в `.gitignore`) и в GitHub Actions secret `DATABASE_URL`.
+Корневого `package.json` нет — всё в `web/`. Build: `cd web && npm run build` → `web/out/`.
 
-⚠️ Если пароль или строка подключения попали в чат, логи или git history, нужно сразу ротировать
-пароль в Supabase (Settings → Database → Reset password), обновить `.env` и `DATABASE_URL`
-в GitHub Actions secrets. Не хранить реальные пароли в репозитории.
-
-### Таблицы
-
-- `engines` — каталог моторов (312 active). Ключ `engine_code`.
-- `part_categories` — `PISTON`, `RING` и т.п.
-- `engine_part_numbers` — OEM/TEIKIN номера на (engine, category).
-- `engine_part_attribute_values` — атрибуты (диаметр, толщина).
-- `part_variants` + `part_variant_sizes` — варианты (brand × insert × size).
-- `stock_items` — реальные остатки (qty, warehouse_code). 185 моторов имеют поршни в наличии.
+⚠️ **Билд читает Supabase под anon-key** (`NEXT_PUBLIC_SUPABASE_*` secrets). Значит
+RLS должен разрешать `anon` SELECT активных товаров. Если БД лежит — билд пустой.
 
 ---
 
-## Master Database Stage A Applied
+## Деплой и авто-обновление (это и есть «работает само»)
 
-**Дата:** 2026-05-26. **Статус:** ✅ применено вручную в production Supabase. Seed `seed_1kz_master_example.sql` залит, все checks прошли. См. [supabase/README.md](supabase/README.md) и [supabase/migrations/20260526_stage_a_master_db_foundation.sql](supabase/migrations/20260526_stage_a_master_db_foundation.sql).
+`.github/workflows/deploy.yml`, job `build` (working-directory `web`) → `web/out` → Pages.
 
-### Что добавлено (11 новых таблиц + общий триггер `tg_touch_updated_at()`)
+Триггеры rebuild:
+- `push` в `main` по путям `web/**`
+- `workflow_dispatch` — руками
+- **`repository_dispatch: rebuild-catalog`** — мгновенный ребилд от Supabase webhook /
+  кнопки «Publish» в админке. **Так новый товар сам получает страницу + sitemap.**
+- `schedule: cron '0 */6 * * *'` — базовый ребилд каждые 6 ч
 
-Слой **vehicles** (применяемость двигателей к авто):
-- `vehicle_makes` — марки (Toyota, Nissan…)
-- `vehicle_models` — модель + generation + chassis_code (источник: otoba.ru)
-- `engine_fitments` — `engine_code` ↔ `vehicle_models.id`, с `confidence` и `source_id`
-- `vehicle_specs` — EAV-характеристики автомобиля (body_type, drive_type, power_hp, frame_code…)
-
-Слой **provenance** (откуда что пришло):
-- `data_sources` — каталоги/сайты/manual/AI/n8n (11 seed-источников)
-- `data_source_runs` — лог запусков парсеров/импортов
-- `data_source_links` — универсальная связь «источник → сущность» по `(entity_type, entity_key)`
-- `audit_log` — таблица создана, **триггеры НЕ подключены**
-
-Слой **aliases + crosses**:
-- `engine_aliases` — `1KZ-TE`/`1KZTE`/`1 KZ` → `engine_code='1KZ'`
-- `vehicle_model_aliases` — `J120`/`KZJ120`/`Prado 120` → model row
-- `part_number_crosses` — OEM ↔ TEIKIN ↔ NPR ↔ KP ↔ Taiho ↔ ACL
-
-### Зачем
-
-Master database с одним правилом: **у каждого факта есть источник**. От этой базы будут работать сайт, Kaspi, Telegram-бот, Google Ads, n8n, AI-агенты — все читают одну БД через свои views/RPC.
-
-- `engines` остаётся источником истины по моторам (не пересоздавать).
-- **otoba.ru** — авторитетный источник по машинам, годам, кузовам, фитментам.
-- Каталоги (TEIKIN/NPR/KP/Taiho/ACL) — источники по номерам и атрибутам запчастей.
-
-### Текущий статус 1KZ (reference engine)
-
-- 8 fitments в `engine_fitments` (Prado 90, Prado 120, Hiace, Hilux Surf, Granvia, Regius, Land Cruiser, Dyna/Toyoace) — все с `confidence = 0.70` и `notes = 'needs verification until otoba.ru parsed'`.
-- 2 эффективных alias в `engine_aliases` (`1KZ` и `1KZTE` после нормализации; в seed было 4, два схлопнулись по `(engine_code, alias_norm)` — **штатно**).
-- 4 alias для Prado 120 в `vehicle_model_aliases`.
-- 1 provenance link в `data_source_links` (`entity_key = '1KZ:toyota:land-cruiser-prado:120'`).
-
-Годы/кузова пока NULL — заполнятся после парсера otoba.ru.
-
-### Что нельзя ломать
-
-- **Не трогать существующие таблицы** (engines, brands, part_*, stock_items, warehouses, size_codes, attributes, category_attributes, engine_parts, engine_part_numbers, engine_part_attribute_values, part_variants, part_variant_sizes, v_piston_card). Сайт читает только их.
-- **Не удалять и не переименовывать Stage A таблицы.** Все будущие миграции — additive-only.
-- **Не добавлять GRANT/RLS на Stage A таблицы** до отдельного security-этапа — сейчас доступ только у owner/`postgres`. `anon` и `authenticated` намеренно без прав.
-- **Не подключать audit triggers** на горячие таблицы (`stock_items`, `part_variant_sizes`) без замеров — могут просадить bulk-импорты.
-- **Не выдумывать годы/совместимости** — все спорные данные с `confidence < 1.0` и `notes = 'needs verification'`. Источник истины по машинам — otoba.ru.
-- **Канонические `entity_key`-форматы** для `data_source_links` зафиксированы в [supabase/README.md](supabase/README.md) (формат `<engine>:<make>:<model-slug>:<generation>` и т.п.) — не менять формат произвольно, иначе ломаются индексы и аналитика.
-
-### Stage B1 applied ✅
-
-**Status:** B1 применён вручную в Supabase. Факт: `products_count = 50`, `pvs_count = 50` для 1KZ PISTON — backfill сошёлся 1:1.
-
-Файлы:
-- [supabase/migrations/20260526_stage_b1_products.sql](supabase/migrations/20260526_stage_b1_products.sql)
-
-Файлы:
-- [supabase/migrations/20260526_stage_b1_products.sql](supabase/migrations/20260526_stage_b1_products.sql)
-- [supabase/seeds/seed_b1_1kz_products.sql](supabase/seeds/seed_b1_1kz_products.sql)
-- [supabase/checks/stage_b1_verify.sql](supabase/checks/stage_b1_verify.sql)
-- [supabase/rollbacks/20260526_stage_b1_products_rollback.sql](supabase/rollbacks/20260526_stage_b1_products_rollback.sql)
-
-**Что добавит B1:**
-- `sales_channels` — справочник каналов (website/kaspi/telegram/google_ads/n8n/retail/wholesale/promo).
-- `products` — стабильный SKU-слой поверх `part_variant_sizes` с тем же natural key.
-- 4 SQL-функции: `normalize_sku_part`, `size_code_to_sku`, `category_code_to_sku`, `generate_product_sku`.
-- Триггеры: `BEFORE INSERT` авто-заполняет sku, `BEFORE UPDATE` запрещает менять sku (immutable contract), `BEFORE UPDATE` обновляет `updated_at`.
-- Backfill seed для 1KZ PISTON из `part_variant_sizes`.
-
-**Формат SKU:** `MYA-{ENGINE}-{CAT}-{BRAND}-{VARIANT}[-{INSERT}]-{SIZE}` — например `MYA-1KZ-PSTN-TEIKIN-46283-AG-050`. `INSERT` опускается при `insert_type='plain'`. После генерации sku **immutable** — триггер отклоняет UPDATE.
-
-**Что B1 НЕ делает:**
-- Не меняет `part_variant_sizes`. **Сайт продолжает читать старые таблицы**, не products.
-- Не добавляет FK `products.engine_code → engines` (composite PK блокер).
-- Не вставляет цены, медиа, контент — это B2/B3/B4.
-- Не выдаёт GRANT/RLS, не меняет Astro-сборку.
-
-### Stage B3 applied ✅ — media layer
-
-**Status:** B3 применён вручную в Supabase. См. раздел "Stage B3" в [supabase/README.md](supabase/README.md).
-
-Файлы:
-- [supabase/migrations/20260526_stage_b3_media.sql](supabase/migrations/20260526_stage_b3_media.sql)
-- [supabase/seeds/seed_b3_1kz_media.sql](supabase/seeds/seed_b3_1kz_media.sql)
-- [supabase/checks/stage_b3_verify.sql](supabase/checks/stage_b3_verify.sql)
-- [supabase/rollbacks/20260526_stage_b3_media_rollback.sql](supabase/rollbacks/20260526_stage_b3_media_rollback.sql)
-
-**Что добавил B3:**
-- `media_assets` — канонический справочник медиа (`url` UNIQUE, `media_type` ∈ image/pdf/video/doc/3d, `mime_type`, `alt_text`, `width/height/bytes/sha256`, `source_id`, `confidence`).
-- `engine_media` — связь `engine_code` ↔ медиа с ролями `catalog`/`schema`/`cross_section`/`photo`. Partial UNIQUE: **не больше одной catalog-картинки на мотор**. `engine_code` plain text (нет FK на `engines`).
-- `product_media` — связь `product_id` ↔ медиа с ролями `primary`/`gallery`/`spec_sheet`/`install_diagram`/`box`. Partial UNIQUE: **не больше одной primary-картинки на product**. CASCADE с обеих сторон.
-- Seed для 1KZ: одна `media_assets` строка `https://my-avto.kz/teikin-catalog/1KZ.png` + engine_media `('1KZ','catalog')` + product_media `role='primary'` на все активные `1KZ PISTON TEIKIN` products.
-
-**Что B3 НЕ делает:**
-- **Не меняет Astro-сайт.** Сайт продолжает использовать hardcoded fallback `/teikin-catalog/{engine_code}.png`. Подключение `engine_media`/`product_media` к Astro — отдельная задача в `site/`.
-- Не сидит медиа для других моторов (только 1KZ TEIKIN — рабочий reference).
-- Не добавляет FK `engine_media.engine_code → engines` (composite PK).
-- Не вставляет цены, контент, feed views — это B2/B4/B6.
-- Не выдаёт GRANT/RLS.
-
-### Stage C1 prepared (not yet applied) — catalog import staging
-
-**Status:** локальные SQL-файлы готовы, в Supabase **ещё не залиты**. См. раздел "Stage C1" в [supabase/README.md](supabase/README.md).
-
-Файлы:
-- [supabase/migrations/20260526_stage_c1_catalog_import_staging.sql](supabase/migrations/20260526_stage_c1_catalog_import_staging.sql)
-- [supabase/seeds/seed_c1_import_sources.sql](supabase/seeds/seed_c1_import_sources.sql)
-- [supabase/checks/stage_c1_verify.sql](supabase/checks/stage_c1_verify.sql)
-- [supabase/rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql](supabase/rollbacks/20260526_stage_c1_catalog_import_staging_rollback.sql)
-
-**Зачем staging-слой:**
-Внешние источники (Otoba.ru, TEIKIN/NPR/KP/Taiho PDF, supplier CSV, AI-extraction) шумные. Писать их сразу в master-таблицы = испортить кураторские данные. C1 — это inbox для всего внешнего: parse → normalize → review → approve → потом promote в master.
-
-**Workflow:**
-```
-external source → catalog_import_batches → catalog_import_rows
-                  (raw_text, raw_json, normalized_json)
-                                ↓
-                  catalog_import_decisions (approve/reject/merge/skip)
-                                ↓
-                  promote to master (engine_fitments / engine_part_numbers / etc.)
-                  + data_source_links (provenance)
-```
-
-**Что добавит C1:**
-- `catalog_import_batches` — один ряд на запуск парсера/файла. `import_type` ∈ otoba_fitment/teikin_pistons/npr_rings/kp_rings/taiho_bearings/supplier_csv/manual_excel/ai_extraction/other. `status` — 12 значений от draft до archived. Счётчики parsed/normalized/approved/imported/failed.
-- `catalog_import_rows` — staging строки. Поля `engine_code`/`vehicle_make`/`vehicle_model`/`brand_name`/`part_number` — plain text (FK только на `part_categories`), т.к. staging держит ещё неразрешённые значения. UNIQUE на `(batch_id, row_number)` для идемпотентности. GIN-индексы на `raw_json`/`normalized_json`.
-- `catalog_import_decisions` — вердикт по строке (`approve`/`reject`/`merge`/`skip`/`needs_manual_review`) с указанием target_table/target_id.
-- `catalog_import_mappings` — декларативные правила маппинга source_field → target_field для каждого `(source, import_type)`.
-- Seed: один тестовый batch `1kz_otoba_fitment_manual_test` + 3 примерные строки для 1KZ (Prado 120/Hilux Surf/Hiace), все `status='needs_review'`, `confidence=0.70`. Это **демо-данные**, в `engine_fitments` ничего не пишется.
-
-**Что C1 НЕ делает:**
-- **НЕ пишет в master-таблицы.** Promotion из staging в `engine_fitments`/`engine_part_numbers`/`part_number_crosses` — отдельная задача (RPC или скрипт), не часть C1.
-- Не меняет существующие таблицы.
-- Не подключает Astro-сайт.
-- Не выдаёт GRANT/RLS.
-- Не запускает парсеры — они живут вне БД (n8n / Node-скрипты), C1 — только хранилище их выхода.
-
-**Первое реальное применение C1:** парсинг Otoba.ru для верификации 8 fitments 1KZ из Stage A. После promotion confidence поднимется с 0.70 до ≥0.95.
-
-### Следующие этапы — Stage B2, B4, B5, B6
-
-**Status:** дизайн готов, SQL не написан. См. раздел "Future Stage B sub-stages" в [supabase/README.md](supabase/README.md).
-
-Stage B добавит SKU/commerce-слой поверх существующего каталога:
-- `products` — стабильный синтетический SKU (сайт продолжит читать `part_variant_sizes`; маркетплейсы — `products`).
-- `prices` — multi-channel (retail/kaspi/wholesale/promo) с окнами действия.
-- `media_assets` + `product_media` + `engine_media` — единый медиа-слой (вместо хардкода `/teikin-catalog/*.png`, с fallback в коде).
-- `product_content` + `engine_content` — multi-locale, per-channel (Kaspi сможет переопределять копирайт без форка шаблонов).
-- `marketplace_categories` + `marketplace_mappings` — куда выгружать SKU на Kaspi/Google Merchant.
-- Export views: `v_kaspi_feed`, `v_google_merchant_feed`, `v_sitemap`, `v_telegram_search`.
-- `export_jobs` — лог исходящих выгрузок (для n8n).
-
-Stage B будет разбит на под-миграции B1…B6, каждая с отдельным seed/checks/rollback.
+**Контракт:** добавил товар в админке → `status='active'` → дёрнулся `rebuild-catalog`
+→ через ~2-3 мин страница `/p/<slug>/` в воздухе и в sitemap. Не ломать этот контракт.
 
 ---
 
-### Helpers в [site/src/lib/db.ts](site/src/lib/db.ts)
+## Модель данных (Supabase) — источник: `web/lib/types.ts`
 
-- `getEngines()`, `getCategories()`, `getEnginePartsIndex()`
-- `getPartNumbers(engine, category)`, `getAttributes(...)`, `getVariantSizes(...)`, `getStock(...)`
-- `getPistonProductsInStock()` — для генерации SKU-страниц
-- Pool: max=4, keepAlive, retry на ETIMEDOUT/57P03/Connection terminated
+Нормализованная коммерц-схема (НЕ плоская). Связи:
+
+```
+products ──< product_variants ──< listings   (мультиканал: OWN / Kaspi / ...)
+   │                │
+   │                ├──< stock        (warehouse_code, qty, reserved_qty)
+   │                └─ (variant_attrs JSON: размер, insert и т.п.)
+   └──< product_media >── media       (url, role primary/gallery, alt_text)
+```
+
+Справочники: `categories`, `brands`, `engines`, `catalog_tags`, `warehouses`, `channels`.
+View `v_catalog` — денормализованная строка карточки (image_url, price_own, total_stock, …).
+
+Ключевые поля `products`: `master_sku`, `title`, `category_code`, `brand_code`,
+`oem_numbers[]`, `cross_numbers[]`, `compatible_engines[]` (text array — фитмент
+денормализован, для одного продавца ок), `status` (draft/active/archived),
+`seo_title/seo_desc/seo_keywords`, Kaspi-расширения (`kaspi_type`, `kaspi_vehicles[]`,
+`weight_kg`, `youtube_id`, `manufacturer_part_number`).
+
+`CATEGORY_LABEL` и `KASPI_TYPE_BY_CATEGORY` — справочные мапы в `types.ts`.
+
+⚠️ **Историческая БД:** в `supabase/` лежат SQL миграции master-DB (Stage A/B/C:
+engines/fitment/products/SKU). Часть из них — предшественники текущей схемы. **Не
+считать `supabase/*.sql` источником истины** — реальная схема та, что читает `web/lib`.
+Сверять перед любой миграцией; БД управляется владельцем вручную.
 
 ---
 
-## Структура страниц
+## Структура страниц (`web/app/`)
 
 ```
-/                                 — главная
-/{brand}/                         — Toyota, Nissan и т.п.
-/{brand}/dvigateli/{engine}/      — двигатель (1KZ, 2JZ, ...)
-/{brand}/dvigateli/{engine}/porshni/             — листинг поршней этого мотора
-/{brand}/dvigateli/{engine}/porshni/{product}/   — SKU (каждый бренд × размер × insert)
-/{brand}/dvigateli/{engine}/koltsa-porshnevye/   — аналогично для колец
-/zapchasti/porshni/                              — общий лендинг поршней
+/                      app/page.tsx            — главная (контент из Supabase, редактируется)
+/search/               app/search/page.tsx     — поиск
+/p/                    app/p/page.tsx          — листинг каталога
+/p/[slug]/             app/p/[slug]/page.tsx   — карточка товара (PDP), static-prerender
+/sitemap.xml           app/sitemap.ts          — генерится из активных товаров
+/login/                                        — Supabase auth
+/dashboard/...         app/dashboard/*         — АДМИНКА (см. ниже)
 ```
 
-### Slug-правила (в [site/src/lib/slugs.ts](site/src/lib/slugs.ts))
+PDP `dynamicParams = false` → существуют только пресобранные slug, прочее → 404.
+Slug-логика: `web/lib/slug.ts` (`productSlug`). Данные PDP: `web/lib/productData.ts`
+(`fetchFullProductBySlug`, мемоизация каталога на процесс билда).
 
-- `engineSlug('1KZ')` → `'1kz'`, `'B6 16V'` → `'b6-16v'`, `'FE 8V / F8'` → `'fe-8v-f8'`
-- `brandSlug['Toyota']` → `'toyota'`
-- Product slug:
-  - TEIKIN: `teikin-<article>-<size>` (где article — `teikin_pistons[0]`, например `46283`)
-  - Прочие: `<parts-brand>-<size>` (`nd-050`, `izumi-std`)
-  - С insert: вставляется суффикс: `nd-ag-050`, `teikin-46283-ag-050`
-  - Size slug: `STD`→`std`, `0.25`→`025`, `0.50`→`050`, `0.75`→`075`, `1.00`→`100`
+### Админка (`web/app/dashboard/`)
+
+`login` + `useIsOwner` (один владелец). Страницы: `home` (редактор главной),
+`listings` / `new` / `edit` (CRUD товаров), `import` (xlsx), `export-kaspi` (фид),
+`reference` (справочники). Всё пишет в Supabase → потом `rebuild-catalog`.
+
+---
+
+## SEO-фундамент (уже заложен — не дублировать, расширять)
+
+- **Отдельный URL на товар** `/p/<slug>/` со static-пререндером ✅
+- `app/p/[slug]/page.tsx` `generateMetadata`: `title`, `description`, `keywords`,
+  `alternates.canonical`, `openGraph` (+image) ✅
+- **JSON-LD `Product` + `Offer`** на PDP: `sku`, `brand`, `image[]`, `availability`
+  (`InStock`/`PreOrder` — намеренно НЕ `OutOfStock`), `priceCurrency: KZT`, `seller` ✅
+- `app/sitemap.ts` — все активные товары + `lastModified` ✅
+- `web/public/robots.txt` — `Allow: /` + Sitemap ✅
+- `schema.org` понимают и Google, и Яндекс (важно для KZ) — одна разметка на оба.
+
+### SEO-дыры (roadmap, закрывать аккуратно, без переделок)
+
+- [ ] `metadataBase: new URL('https://my-avto.kz')` в `app/layout.tsx` (OG-URL абсолютные)
+- [ ] **`LocalBusiness` JSON-LD** сайтово (адрес CarCity, гео, часы) → локал-SEO Алматы + панель Google
+- [ ] `BreadcrumbList` JSON-LD на PDP/категориях
+- [ ] `Offer.priceValidUntil` (убрать warning Merchant/rich-results)
+- [ ] `itemCondition` (`NewCondition`/`UsedCondition`) — нужно для объявлений б/у
+- [ ] Verify-мета Яндекс.Вебмастер + Google Search Console (ветка `claude/yandex-verify` — домержить)
+- [ ] Google Merchant Center фид (бесплатные free-listings в Shopping) из той же модели, что PDP JSON-LD
+
+### Правила SEO (не нарушать)
+
+- **Один канонический URL на товар.** Фасеты/фильтры — в client state, НЕ плодить
+  индексируемые thin-страницы под каждую комбинацию.
+- **JSON-LD `Product` только на карточке товара**, не на категориях/листингах.
+- Никаких фейковых `aggregateRating`/`review` — только реальные.
+- Объявления (колёса/разное) с истечением: `unavailable_after` мета или `410`/`noindex`
+  для протухших — не оставлять thin/битые страницы (жрут crawl budget).
+
+---
+
+## Google Ads (цель — конверсии, не просто трафик)
+
+- Конверсия = реальное действие: клик «Купить на Kaspi», WhatsApp, форма. Отдельные
+  URL товаров делают атрибуцию возможной (на одностраничнике её нет).
+- Conversion tracking в Google Ads + связка с GA4 (`G-YQ21411TM0`).
+- Performance Max / Shopping на Target ROAS: стартовый таргет в пределах 10-20% от
+  текущего факта, не агрессивно — иначе алгоритм режет показы. Бенчмарк eCom ROAS ~2.87:1.
+- Фид для Shopping/Merchant строить из той же payload, что PDP JSON-LD (SKU = `master_sku`).
 
 ---
 
@@ -247,157 +159,52 @@ Stage B будет разбит на под-миграции B1…B6, кажда
 
 | Файл | Назначение |
 |------|------------|
-| [site/src/pages/[brand]/dvigateli/[engine]/porshni/[product]/index.astro](site/src/pages/[brand]/dvigateli/[engine]/porshni/[product]/index.astro) | SKU product-page (редизайн в стиле nipponfz.com — синий акцент + красная CTA) |
-| [site/src/pages/[brand]/dvigateli/[engine]/[category].astro](site/src/pages/[brand]/dvigateli/[engine]/[category].astro) | Листинг поршней/колец мотора. Чипы размеров с зелёным `●` → линк на SKU |
-| [site/src/pages/[brand]/dvigateli/[engine]/index.astro](site/src/pages/[brand]/dvigateli/[engine]/index.astro) | Engine landing |
-| [site/src/data/teikin-catalog.ts](site/src/data/teikin-catalog.ts) | Ручные TeikinEntry (только 1KZ заполнен полностью) + merge с auto-каталогом |
-| [site/src/data/teikin-catalog-auto.ts](site/src/data/teikin-catalog-auto.ts) | **АВТО-СГЕНЕРИРОВАННЫЙ** скриптом — 176 моторов с image+specs+OEM |
-| [site/src/lib/db.ts](site/src/lib/db.ts) | DB pool + helpers |
-| [site/src/lib/slugs.ts](site/src/lib/slugs.ts) | URL слаги |
-| [site/src/lib/labels.ts](site/src/lib/labels.ts) | Русские подписи (`Toyota`, `Стандарт`, и т.п.) |
-| [site/src/layouts/Base.astro](site/src/layouts/Base.astro) | Layout + GA/Ads + tokens (--c-red #E50914 и т.п.) |
-| [site/scripts/scrape-teikin.mjs](site/scripts/scrape-teikin.mjs) | Скрейпер teikin.com → PDF → PNG-кроп |
-| [site/scripts/gen-teikin-catalog.mjs](site/scripts/gen-teikin-catalog.mjs) | Парсер PDF через pdftotext → `teikin-catalog-auto.ts` |
-| [site/scripts/scrape-teikin-report.json](site/scripts/scrape-teikin-report.json) | Отчёт matched/unmatched/errors |
-| [site/public/teikin-catalog/](site/public/teikin-catalog/) | 177 PNG-картинок (по одной на engine_code) |
-| [site/public/assets/parts-brands/](site/public/assets/parts-brands/) | Лого брендов (Teikin/Izumi/ND/NM/Riken/...) |
+| `web/next.config.ts` | static export, trailingSlash, unoptimized images |
+| `web/app/layout.tsx` | root layout + sitewide `<head>`/metadata |
+| `web/app/p/[slug]/page.tsx` | PDP: static params + metadata + JSON-LD |
+| `web/app/sitemap.ts` | генерация sitemap из активных товаров |
+| `web/lib/types.ts` | **модель данных** (источник истины по схеме) |
+| `web/lib/productData.ts` | загрузка товара из Supabase + мемоизация |
+| `web/lib/slug.ts` | slug товара |
+| `web/lib/pricing.ts` | расчёт цен/маржи |
+| `web/lib/supabase/{client,server}.ts` | Supabase клиенты |
+| `web/app/dashboard/*` | админка (CRUD, import, export-kaspi, reference) |
+| `.github/workflows/deploy.yml` | CI: build `web/` → Pages, авто-rebuild |
+| `web/public/{robots.txt,CNAME}` | robots + домен |
 
 ---
 
-## Скрейпер TEIKIN
+## База данных (Supabase)
 
-Запускается раз в N недель/после изменения списка моторов:
-
-```bash
-cd site
-TEIKIN_EMAIL='<email>' TEIKIN_PASSWORD='<password>' node scripts/scrape-teikin.mjs
-node scripts/gen-teikin-catalog.mjs
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...   # build + клиент
+# service_role — только серверные операции, НИКОГДА не в клиент/в репо
 ```
 
-Сейчас: **176 / 185** моторов с поршневым стоком получили картинку (95%).
+Секреты — локально в `web/.env*` (в `.gitignore`) и в GitHub Actions secrets.
 
-### Логика матчинга (engine_code → TEIKIN engine_model)
-
-1. **Token match**: токенизируем TEIKIN-кластер `"1KZ-TE, 1KZ"` → `["1KZ-TE", "1KZ"]`,
-   нормализуем (strip `8V/16V/Dohs/NEW/OLD/II/III/...`), сравниваем с кандидатами
-   из engine_code (тоже после strip + split по `/`).
-2. **Prefix match** (fallback): база engine_code (до первого пробела/дефиса) +
-   суффикс ≤5 символов → e.g. `1ZZ`→`1ZZFE`, `2JZ`→`2JZGE`/`2JZGTE`, `1MZ`→`1MZFE`.
-
-### Что НЕ матчится (нужен ручной mapping)
-
-7 моторов с дилерскими кодами:
-- `Mazda RFT III`, `Mitsubishi 4D56TNew III`, `4G64K`, `64K II Аутл`,
-  `6G72K 24V`, `6G72K 24V #3`, `D4BA`
-- 2 ошибки: `Nissan YD22 II`, `Toyota 1ND` (TEIKIN отдал 404)
-
----
-
-## PDF parser
-
-Из каждого TEIKIN PDF через `pdftotext -layout` выдёргивается:
-- `bore_mm` — паттерн `cc Ø XX.XX`
-- `cc`, `cyl` — `(\d{3,5}) cc`, `(\d{1,2}) cyl`
-- `fuel` — DIESEL/GASOLINE в первых строках
-- `pin_diameter_mm` — `Ø NN.NNN` (3 знака)
-- `oem_piston` — строки под первой `REFERENCE NO.` колонкой
-
-CD/TL/MRC/MP/surface_treatment/ring sizes пока **только в ручной записи 1KZ**.
-Можно расширить парсер на эти поля, если потребуется.
-
----
-
-## Деплой
-
-Push в main → GitHub Actions запускает `astro build` → деплоит в Pages → `my-avto.kz`.
-
-Билд ~180-220с. Все 1549 страниц рендерятся при каждом релизе.
-
-⚠️ Билд **зависит от Supabase** — если DB лежит, билд падает. Есть retry на
-transient ошибки в [db.ts](site/src/lib/db.ts).
-
----
-
-## Дизайн product-page
-
-Редизайн вдохновлён [nipponfz.com](https://www.nipponfz.com/):
-- Синий акцент `#0066cc` (`--ph-blue`), navy `#194681` (`--ph-navy`)
-- Брендовый красный `#E50914` (`--c-red`) — только на главной CTA
-- Белые карточки + лёгкие тени `0 6px 24px rgba(15,23,42,0.06)`
-- Inter (body) + JetBrains Mono (артикулы/коды)
-
-### Структура (5 блоков)
-
-1. **Hero** (2 колонки на десктопе, sticky правый блок):
-   - Слева: каталожная картинка TEIKIN
-   - Справа: бренд-пилл + статус ● в наличии + `Поршень №46283` + facts 2×2 (диаметр / размер / двигатель / топливо) + CTA
-2. **Варианты** — 3 колонки: модификации (A/G/AG) + другие размеры + аналоги других брендов
-3. **Бренды поршней** — 4-card горизонтальная полоса с лого Teikin/Izumi/ND/NM
-4. **Details** (накопительные `<details>`): реальные фото, OEM, совместимые авто, FAQ
-5. **Final CTA** — навигационный градиент-блок
-
-### Терминология (по официальному каталогу TEIKIN VOL_26)
-
-- `A` = **ALFIN reinforcement** (никель-чугунная вставка вокруг канавки 1-го кольца)
-- `G` = **Oil cooling gallery** (масляная галерея в днище)
-- `AG` = ALFIN + Gallery
-- `HK` = Half keystone (на кольце), `FK` = Full keystone
-- Surface: Tin Coated / Moly Skirt / Anodized Crown / 1st Ring Anodized / Chromated
-
----
-
-## Бренды поршней
-
-Из БД встречаются: TEIKIN, IZUMI, ND, NM, RIKEN, KA, OEM, NPR, TP, ART, MOTREX,
-FGM, GRM, RW, KOREA, KITAI, MIXED, NIPPON_SAITAMA.
-
-В alt-chips на product-page **показываем только**: ND, IZUMI, NM, OEM, TEIKIN, KA
-(`ALT_BRAND_WHITELIST` в `[product]/index.astro`). RIKEN намеренно скрыт — мало позиций.
-
-В компактной полосе с лого: **Teikin, Izumi, ND, NM** (компактное узнавание).
-
----
-
-## Размеры для дизелей
-
-В чипах на product-page фильтруем: `engine.is_diesel === true` → показываем только
-`STD` и `0.50` (другие на дизелях в продаже не встречаются). Бензин — все 5 размеров.
-
----
-
-## Последние PR (хронологически)
-
-| PR | Описание |
-|----|----------|
-| #6-10 | Старые: per-SKU страницы, GA4, sendBeacon |
-| #11 | Compact piston page + remove rings/liner from kit |
-| #12 | Refine с фактами по размерам и фото |
-| #13 | Migration to Supabase + новая 1KZ-картинка с teikin.com |
-| #14 | Hide pin numbers + limit diesel sizes + brand logos |
-| #15 | Redesign nipponfz vibe (clean above-the-fold + accordions) |
-| #16 | **Bulk**: 176 TEIKIN catalog images + auto-data |
-| #17 | Make piston listing link to per-SKU pages (✅ навигация работает) |
-
-Все merged в `main`, задеплоено.
-
----
-
-## TODO / Известное
-
-- [ ] Ротировать Supabase/TEIKIN доступы, если они попадали в чат, логи или git history
-- [ ] Расширить PDF-парсер: CD, TL, MRC, MP, surface, ring sizes — сейчас только 1KZ ручной
-- [ ] Подтянуть совместимые модели авто (`models`) — TEIKIN их не публикует, надо отдельный источник или вручную
-- [ ] Доработать unmatched 7 моторов — добавить ручные mapping/handwritten entries
-- [ ] Аналогичная витрина для **колец** и **вкладышей** (сейчас только поршни)
-- [ ] Submit sitemap в Google Search Console для индексации новых SKU-страниц
-- [ ] Sticky-мобильная CTA (есть `StickyMobileCTA.astro` — проверить что работает на SKU)
+⚠️ Если ключ/строка подключения/service_role попали в чат, логи или git history —
+немедленно ротировать в Supabase (Settings → API / Database), обновить `.env` и
+GitHub secrets. Реальные ключи в репозитории не хранить.
 
 ---
 
 ## Что НЕ делать без спроса
 
-- Не коммитить пока пользователь не подтвердит
-- Не делать `git reset --hard` / force-push к main
-- Не править данные в БД через миграции — БД управляется владельцем отдельно
-- Не менять `--c-red` глобально (брендовый цвет MY AVTO)
-- Не пересоздавать `teikin-catalog-auto.ts` руками — он AUTO-GEN
+- **Не пересоздавать проект и не менять стек.** Фундамент зафиксирован — расширять, не переписывать.
+- Не коммитить, пока владелец не подтвердит. Не `git reset --hard` / force-push к `main`.
+- Не ломать контракт авто-rebuild (`repository_dispatch: rebuild-catalog`).
+- Не плодить индексируемые фасет-страницы (SEO-правила выше).
+- Не вешать `OutOfStock` (используем `PreOrder`).
+- Не править данные/схему в проде через миграции вслепую — БД у владельца; сверять с `web/lib/types.ts`.
+- Не считать `supabase/*.sql` и старые Astro-упоминания актуальными.
+
+---
+
+## Состояние веток (на момент правки)
+
+`main` — прод. Активная работа шла в `claude/fix-rollup-lock` (мерджи #33-38).
+Висящие фичевые ветки на доработку/мердж: `claude/schema-price`, `claude/yandex-verify`,
+`claude/tinacms`, `claude/stackbit-config`, `claude/animations-mobile`, `claude/mobile-flicker-fix`.
+Проверять `git branch -a` перед работой — не плодить дубли.
