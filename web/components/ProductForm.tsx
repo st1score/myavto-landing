@@ -40,6 +40,24 @@ type FormState = {
 
 const tags = (s: string) => s.split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);
 const pricingMetaPrefix = 'pricing:';
+const cyrillicToLatin: Record<string, string> = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z',
+  и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r',
+  с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh',
+  щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya',
+};
+
+function referenceCode(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .split('')
+    .map((char) => cyrillicToLatin[char] ?? char)
+    .join('')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase();
+}
 
 function pricingMeta(exchangeRate: number, marginPercent: number) {
   return `${pricingMetaPrefix}${JSON.stringify({ exchange_rate: exchangeRate, margin_percent: marginPercent })}`;
@@ -77,6 +95,14 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [referenceBusy, setReferenceBusy] = useState<'category' | 'brand' | null>(null);
+  const [referenceErr, setReferenceErr] = useState<string | null>(null);
+  const [newCategoryOpen, setNewCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryCode, setNewCategoryCode] = useState('');
+  const [newBrandOpen, setNewBrandOpen] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
+  const [newBrandCode, setNewBrandCode] = useState('');
   const [loaded, setLoaded] = useState(mode === 'create');
   const generatedMasterSku = buildMasterSku({
     brandCode: form.brand_code,
@@ -175,6 +201,73 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
   }, [mode, productId]);
 
   function set<K extends keyof FormState>(k: K, v: FormState[K]) { setForm((f) => ({ ...f, [k]: v })); }
+
+  async function addCategory() {
+    const name = newCategoryName.trim();
+    const code = referenceCode(newCategoryCode || name);
+    setReferenceErr(null);
+    if (!name) { setReferenceErr('Введите название новой категории.'); return; }
+    if (!code) { setReferenceErr('Введите код категории латиницей, например GASKET.'); return; }
+
+    const existing = cats.find((c) => c.code === code || c.name.toLocaleLowerCase('ru') === name.toLocaleLowerCase('ru'));
+    if (existing) {
+      set('category_code', existing.code);
+      setNewCategoryOpen(false);
+      setNewCategoryName('');
+      setNewCategoryCode('');
+      return;
+    }
+
+    setReferenceBusy('category');
+    const nextSortOrder = Math.max(0, ...cats.map((c) => c.sort_order ?? 0)) + 10;
+    const { data, error } = await supabaseBrowser()
+      .from('categories')
+      .insert({ code, name, sort_order: nextSortOrder })
+      .select('*')
+      .single();
+    setReferenceBusy(null);
+    if (error) { setReferenceErr(`Не удалось добавить категорию: ${error.message}`); return; }
+
+    const category = data as Category;
+    setCats((items) => [...items, category].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)));
+    set('category_code', category.code);
+    setNewCategoryOpen(false);
+    setNewCategoryName('');
+    setNewCategoryCode('');
+  }
+
+  async function addBrand() {
+    const name = newBrandName.trim();
+    const code = referenceCode(newBrandCode || name);
+    setReferenceErr(null);
+    if (!name) { setReferenceErr('Введите название нового бренда.'); return; }
+    if (!code) { setReferenceErr('Введите код бренда латиницей, например KOLBENSCHMIDT.'); return; }
+
+    const existing = brands.find((b) => b.code === code || b.name.toLocaleLowerCase('ru') === name.toLocaleLowerCase('ru'));
+    if (existing) {
+      set('brand_code', existing.code);
+      setNewBrandOpen(false);
+      setNewBrandName('');
+      setNewBrandCode('');
+      return;
+    }
+
+    setReferenceBusy('brand');
+    const { data, error } = await supabaseBrowser()
+      .from('brands')
+      .insert({ code, name, is_oem: false })
+      .select('*')
+      .single();
+    setReferenceBusy(null);
+    if (error) { setReferenceErr(`Не удалось добавить бренд: ${error.message}`); return; }
+
+    const brand = data as Brand;
+    setBrands((items) => [...items, brand].sort((a, b) => a.name.localeCompare(b.name)));
+    set('brand_code', brand.code);
+    setNewBrandOpen(false);
+    setNewBrandName('');
+    setNewBrandCode('');
+  }
 
   // --- Dynamic price fields -------------------------------------------------
   // The four price inputs (закуп $, курс, наценка %, цена ₸) are linked:
@@ -376,18 +469,67 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
 
       <Section title="Основное">
         <Field label="Название*"><input required value={form.title} onChange={(e) => set('title', e.target.value)} className={input} placeholder="Поршень 1KZ TEIKIN +0.50" /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Категория*">
-            <select value={form.category_code} onChange={(e) => set('category_code', e.target.value)} className={input}>
-              {cats.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
-            </select>
-          </Field>
-          <Field label="Бренд*">
-            <select value={form.brand_code} onChange={(e) => set('brand_code', e.target.value)} className={input}>
-              {brands.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
-            </select>
-          </Field>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Field label="Категория*">
+              <div className="flex gap-2">
+                <select required value={form.category_code} onChange={(e) => set('category_code', e.target.value)} className={input}>
+                  {cats.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => { setNewCategoryOpen((open) => !open); setNewBrandOpen(false); setReferenceErr(null); }}
+                  className="shrink-0 border border-neutral-300 hover:border-black rounded-lg px-3 text-sm"
+                  aria-expanded={newCategoryOpen}
+                >
+                  + Новая
+                </button>
+              </div>
+            </Field>
+            {newCategoryOpen && (
+              <ReferenceCreator
+                kind="category"
+                name={newCategoryName}
+                code={newCategoryCode}
+                busy={referenceBusy === 'category'}
+                onNameChange={(value) => { setNewCategoryName(value); setNewCategoryCode(referenceCode(value)); }}
+                onCodeChange={setNewCategoryCode}
+                onSave={addCategory}
+                onCancel={() => { setNewCategoryOpen(false); setReferenceErr(null); }}
+              />
+            )}
+          </div>
+          <div>
+            <Field label="Бренд*">
+              <div className="flex gap-2">
+                <select required value={form.brand_code} onChange={(e) => set('brand_code', e.target.value)} className={input}>
+                  {brands.map((b) => <option key={b.code} value={b.code}>{b.name}</option>)}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => { setNewBrandOpen((open) => !open); setNewCategoryOpen(false); setReferenceErr(null); }}
+                  className="shrink-0 border border-neutral-300 hover:border-black rounded-lg px-3 text-sm"
+                  aria-expanded={newBrandOpen}
+                >
+                  + Новый
+                </button>
+              </div>
+            </Field>
+            {newBrandOpen && (
+              <ReferenceCreator
+                kind="brand"
+                name={newBrandName}
+                code={newBrandCode}
+                busy={referenceBusy === 'brand'}
+                onNameChange={(value) => { setNewBrandName(value); setNewBrandCode(referenceCode(value)); }}
+                onCodeChange={setNewBrandCode}
+                onSave={addBrand}
+                onCancel={() => { setNewBrandOpen(false); setReferenceErr(null); }}
+              />
+            )}
+          </div>
         </div>
+        {referenceErr && <div className="text-sm text-red-600">{referenceErr}</div>}
         <Field label="Master SKU (внутренний артикул)">
           <div className="flex gap-2">
             <input value={form.master_sku} onChange={(e) => set('master_sku', e.target.value)} className={input} placeholder={generatedMasterSku} />
@@ -523,6 +665,55 @@ function VehiclesEditor({ value, onChange }: { value: KaspiVehicle[]; onChange: 
           </div>
         ))}
         <button type="button" onClick={add} className="border border-neutral-300 hover:border-black rounded-md px-3 py-1.5 text-sm">+ Добавить авто</button>
+      </div>
+    </div>
+  );
+}
+
+function ReferenceCreator({
+  kind,
+  name,
+  code,
+  busy,
+  onNameChange,
+  onCodeChange,
+  onSave,
+  onCancel,
+}: {
+  kind: 'category' | 'brand';
+  name: string;
+  code: string;
+  busy: boolean;
+  onNameChange: (value: string) => void;
+  onCodeChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const isCategory = kind === 'category';
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+      <div className="text-sm font-semibold">{isCategory ? 'Новая категория' : 'Новый бренд'}</div>
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => onNameChange(e.target.value)}
+        className={input}
+        placeholder={isCategory ? 'Например: Прокладки' : 'Например: Kolbenschmidt'}
+      />
+      <input
+        value={code}
+        onChange={(e) => onCodeChange(referenceCode(e.target.value))}
+        className={input}
+        placeholder={isCategory ? 'Код: GASKET' : 'Код: KOLBENSCHMIDT'}
+      />
+      <p className="text-xs text-neutral-500">Код заполняется автоматически. Его можно поправить до сохранения.</p>
+      <div className="flex gap-2">
+        <button type="button" disabled={busy} onClick={onSave} className="rounded-md bg-black px-3 py-2 text-sm font-semibold text-white disabled:opacity-50">
+          {busy ? 'Сохраняю…' : 'Добавить и выбрать'}
+        </button>
+        <button type="button" disabled={busy} onClick={onCancel} className="rounded-md border border-neutral-300 px-3 py-2 text-sm">
+          Отмена
+        </button>
       </div>
     </div>
   );
