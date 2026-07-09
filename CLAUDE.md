@@ -33,7 +33,7 @@
 - **Supabase** — Postgres + Auth + Storage. Клиенты: `web/lib/supabase/{client,server}.ts`
 - **GitHub Pages** через GitHub Actions (`.github/workflows/deploy.yml`), домен через `web/public/CNAME`
 - **GA4** `G-YQ21411TM0` + **Google Ads** `AW-18062973221`
-- `xlsx`, `jszip` — импорт/экспорт в админке
+- `xlsx`, `jszip` — только экспорт Каспи-фида (импорт удалён)
 
 Корневого `package.json` нет — всё в `web/`. Build: `cd web && npm run build` → `web/out/`.
 
@@ -49,8 +49,10 @@ RLS должен разрешать `anon` SELECT активных товаро�
 Триггеры rebuild:
 - `push` в `main` по путям `web/**`
 - `workflow_dispatch` — руками
-- **`repository_dispatch: rebuild-catalog`** — мгновенный ребилд от Supabase webhook /
-  кнопки «Publish» в админке. **Так новый товар сам получает страницу + sitemap.**
+- **`repository_dispatch: rebuild-catalog`** — мгновенный ребилд. Дёргается
+  кнопкой «⟳ Опубликовать сайт» в админке через Edge Function
+  `supabase/functions/rebuild-site` (секрет `GITHUB_PAT` в Supabase secrets).
+  Fallback — cron ≤6 ч.
 - `schedule: cron '0 */6 * * *'` — базовый ребилд каждые 6 ч
 
 **Контракт:** добавил товар в админке → `status='active'` → дёрнулся `rebuild-catalog`
@@ -81,10 +83,9 @@ View `v_catalog` — денормализованная строка карто�
 
 `CATEGORY_LABEL` и `KASPI_TYPE_BY_CATEGORY` — справочные мапы в `types.ts`.
 
-⚠️ **Историческая БД:** в `supabase/` лежат SQL миграции master-DB (Stage A/B/C:
-engines/fitment/products/SKU). Часть из них — предшественники текущей схемы. **Не
-считать `supabase/*.sql` источником истины** — реальная схема та, что читает `web/lib`.
-Сверять перед любой миграцией; БД управляется владельцем вручную.
+⚠️ **БД управляется владельцем вручную** (Supabase Studio). Источник истины по
+схеме — `web/lib/types.ts`. Старые SQL-миграции удалены из репо (2026-07, есть в
+git history); в `supabase/` остались только Edge Functions.
 
 ---
 
@@ -106,9 +107,12 @@ Slug-логика: `web/lib/slug.ts` (`productSlug`). Данные PDP: `web/lib
 
 ### Админка (`web/app/dashboard/`)
 
-`login` + `useIsOwner` (один владелец). Страницы: `home` (редактор главной),
-`listings` / `new` / `edit` (CRUD товаров), `import` (xlsx), `export-kaspi` (фид),
-`reference` (справочники). Всё пишет в Supabase → потом `rebuild-catalog`.
+`login` + `useIsOwner` (один владелец; **регистрация закрыта** — новые аккаунты
+только руками в Supabase Studio). Страницы: `home` (редактор главной),
+`listings` / `new` / `edit` (CRUD товаров), `export-kaspi` (фид), `reference`
+(справочники). Кнопка «⟳ Опубликовать сайт» → Edge Function `rebuild-site` →
+`repository_dispatch`. Всё пишет в Supabase.
+xlsx-импорт удалён намеренно (2026-07) — товары добавляются только через кабинет.
 
 ---
 
@@ -123,15 +127,18 @@ Slug-логика: `web/lib/slug.ts` (`productSlug`). Данные PDP: `web/lib
 - `web/public/robots.txt` — `Allow: /` + Sitemap ✅
 - `schema.org` понимают и Google, и Яндекс (важно для KZ) — одна разметка на оба.
 
-### SEO-дыры (roadmap, закрывать аккуратно, без переделок)
+### SEO-дыры — статус на 2026-07 (почти всё закрыто)
 
-- [ ] `metadataBase: new URL('https://my-avto.kz')` в `app/layout.tsx` (OG-URL абсолютные)
-- [ ] **`LocalBusiness` JSON-LD** сайтово (адрес CarCity, гео, часы) → локал-SEO Алматы + панель Google
-- [ ] `BreadcrumbList` JSON-LD на PDP/категориях
-- [ ] `Offer.priceValidUntil` (убрать warning Merchant/rich-results)
-- [ ] `itemCondition` (`NewCondition`/`UsedCondition`) — нужно для объявлений б/у
-- [ ] Verify-мета Яндекс.Вебмастер + Google Search Console (ветка `claude/yandex-verify` — домержить)
-- [ ] Google Merchant Center фид (бесплатные free-listings в Shopping) из той же модели, что PDP JSON-LD
+- [x] `metadataBase` в `app/layout.tsx` ✅
+- [x] **`LocalBusiness` JSON-LD** сайтово — `web/lib/seo.ts` (`siteJsonLd`: Store/AutoPartsStore + WebSite + SearchAction) ✅
+- [x] `BreadcrumbList` JSON-LD на PDP ✅
+- [x] `Offer.priceValidUntil` (+1 год, катится вперёд при ребилдах) ✅
+- [x] `itemCondition: NewCondition` ✅
+- [x] Verify-мета Яндекс + Google (env-токены, layout.tsx) ✅
+- [x] Merchant-фид `/feed.xml` (RSS 2.0 + g:) — `app/feed.xml/route.ts` ✅
+- [ ] Гео-координаты в LocalBusiness (lat/lng CarCity — не выдумывать, взять точные)
+- [ ] Merchant-фид: добавить `g:shipping` + return policy (сейчас Merchant даёт warnings)
+- [ ] Сабмит feed.xml в Merchant Center + верификация (ручное, владелец)
 
 ### Правила SEO (не нарушать)
 
@@ -168,7 +175,8 @@ Slug-логика: `web/lib/slug.ts` (`productSlug`). Данные PDP: `web/lib
 | `web/lib/slug.ts` | slug товара |
 | `web/lib/pricing.ts` | расчёт цен/маржи |
 | `web/lib/supabase/{client,server}.ts` | Supabase клиенты |
-| `web/app/dashboard/*` | админка (CRUD, import, export-kaspi, reference) |
+| `web/app/dashboard/*` | админка (CRUD, export-kaspi, reference) |
+| `supabase/functions/rebuild-site` | Edge Function: кнопка «Опубликовать сайт» |
 | `.github/workflows/deploy.yml` | CI: build `web/` → Pages, авто-rebuild |
 | `web/public/{robots.txt,CNAME}` | robots + домен |
 
@@ -198,7 +206,7 @@ GitHub secrets. Реальные ключи в репозитории не хр�
 - Не плодить индексируемые фасет-страницы (SEO-правила выше).
 - Не вешать `OutOfStock` (используем `PreOrder`).
 - Не править данные/схему в проде через миграции вслепую — БД у владельца; сверять с `web/lib/types.ts`.
-- Не считать `supabase/*.sql` и старые Astro-упоминания актуальными.
+- Не считать старые Astro-упоминания актуальными. Не возвращать xlsx-импорт.
 
 ---
 

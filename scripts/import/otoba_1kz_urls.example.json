@@ -1,6 +1,0 @@
-{
-  "_comment": "Input for otoba_1kz_fitment_parser.ts. The engine page lists every car this engine was installed in. Copy this file to otoba_1kz_urls.json before running.",
-  "urls": [
-    "https://otoba.ru/dvigatel/toyota/1kz-te.html"
-  ]
-}
