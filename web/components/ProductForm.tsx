@@ -5,6 +5,7 @@ import { supabaseBrowser } from '@/lib/supabase/client';
 import type { Brand, Category, Engine, ProductStatus, ProductVariant, KaspiVehicle, CatalogTag } from '@/lib/types';
 import { KASPI_TYPE_BY_CATEGORY } from '@/lib/types';
 import GalleryEditor from '@/components/GalleryEditor';
+import { prepareImageUpload } from '@/lib/compressImage';
 import { buildMasterSku, calculateKztPrice, marginFromKzt, roundUpToStep, DEFAULT_MARGIN_PERCENT, DEFAULT_USD_KZT_RATE } from '@/lib/pricing';
 
 type FormState = {
@@ -201,18 +202,22 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
     const s = supabaseBrowser();
     const { data: u } = await s.auth.getUser();
     if (!u.user) { setErr('Не авторизован'); setUploading(false); return; }
-    const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
-    const path = `${u.user.id}/${Date.now()}.${ext}`;
-    const up = await s.storage.from('product-images').upload(path, file, { contentType: file.type });
-    if (up.error) { setErr(up.error.message); setUploading(false); return; }
-    const { data: pub } = s.storage.from('product-images').getPublicUrl(path);
-    const { data: m, error: mErr } = await s.from('media').insert({
-      owner_id: u.user.id, url: pub.publicUrl, storage_path: path,
-      media_type: 'image', mime_type: file.type, bytes: file.size,
-    }).select('id, url').single();
-    if (mErr) { setErr(mErr.message); setUploading(false); return; }
-    set('image_url', (m as any).url);
-    set('image_media_id', (m as any).id);
+    try {
+      const { payload, ext, contentType } = await prepareImageUpload(file);
+      const path = `${u.user.id}/${Date.now()}.${ext}`;
+      const up = await s.storage.from('product-images').upload(path, payload, { contentType });
+      if (up.error) { setErr(up.error.message); setUploading(false); return; }
+      const { data: pub } = s.storage.from('product-images').getPublicUrl(path);
+      const { data: m, error: mErr } = await s.from('media').insert({
+        owner_id: u.user.id, url: pub.publicUrl, storage_path: path,
+        media_type: 'image', mime_type: contentType, bytes: payload.size,
+      }).select('id, url').single();
+      if (mErr) { setErr(mErr.message); setUploading(false); return; }
+      set('image_url', (m as any).url);
+      set('image_media_id', (m as any).id);
+    } catch (e: any) {
+      setErr(e?.message ?? String(e));
+    }
     setUploading(false);
   }
 
@@ -317,6 +322,10 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
         if (error) { setErr(error.message); setBusy(false); return; }
       }
 
+      const { data: prevSettings } = await s.from('pricing_settings')
+        .select('usd_kzt_rate').eq('id', true).maybeSingle();
+      const rateChanged = Number((prevSettings as any)?.usd_kzt_rate) !== exchangeRate;
+
       await s.from('pricing_settings').upsert({
         id: true,
         usd_kzt_rate: exchangeRate,
@@ -324,7 +333,11 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
         updated_at: new Date().toISOString(),
       }, { onConflict: 'id' });
 
-      const { data: pricedListings } = await s.from('listings').select('*');
+      // Global reprice touches every listing (one request each) — only worth it
+      // when the exchange rate actually moved, not on every product save.
+      const { data: pricedListings } = rateChanged
+        ? await s.from('listings').select('*')
+        : { data: [] };
       for (const listing of (pricedListings ?? []) as any[]) {
         const meta = readPricingMeta(listing.description_override);
         const usd = listing.price_usd ?? listing.compare_at_price;
@@ -431,7 +444,7 @@ export default function ProductForm({ mode, productId }: { mode: 'create' | 'edi
           <Field label="Размер"><input value={form.size} onChange={(e) => set('size', e.target.value)} className={input} placeholder="STD / 0.50 / 1.00" /></Field>
           <Field label="Insert"><input value={form.insert_type} onChange={(e) => set('insert_type', e.target.value)} className={input} placeholder="plain / A / AG" /></Field>
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Field label="Цена закупа, $"><input type="number" min="0" step="0.01" value={form.price_usd} onChange={(e) => setUsd(e.target.value)} className={input} /></Field>
           <Field label="Курс $ → ₸"><input type="number" min="1" step="0.01" value={form.exchange_rate} onChange={(e) => setRate(e.target.value)} className={input} /></Field>
           <Field label="Наценка, %"><input type="number" step="0.1" value={form.margin_percent} onChange={(e) => setMargin(e.target.value)} className={input} /></Field>
@@ -514,12 +527,12 @@ function VehiclesEditor({ value, onChange }: { value: KaspiVehicle[]; onChange: 
       <p className="text-xs text-neutral-500 mb-2">Каждая строка превращается в Replacement parts × car brand / model / year при экспорте.</p>
       <div className="space-y-2">
         {value.map((v, i) => (
-          <div key={i} className="grid grid-cols-[2fr_2fr_100px_100px_auto] gap-2 items-center">
+          <div key={i} className="grid grid-cols-[1fr_1fr_auto] sm:grid-cols-[2fr_2fr_100px_100px_auto] gap-2 items-center">
             <input value={v.brand} onChange={(e) => update(i, { brand: e.target.value })} placeholder="Toyota" className={input} />
             <input value={v.model} onChange={(e) => update(i, { model: e.target.value })} placeholder="Land Cruiser Prado" className={input} />
+            <button type="button" onClick={() => remove(i)} className="text-red-600 text-sm sm:order-last" aria-label="Удалить авто">✕</button>
             <input type="number" value={v.year_from ?? ''} onChange={(e) => update(i, { year_from: e.target.value === '' ? null : Number(e.target.value) })} placeholder="1996" className={input} />
             <input type="number" value={v.year_to ?? ''} onChange={(e) => update(i, { year_to: e.target.value === '' ? null : Number(e.target.value) })} placeholder="2002" className={input} />
-            <button type="button" onClick={() => remove(i)} className="text-red-600 text-sm">✕</button>
           </div>
         ))}
         <button type="button" onClick={add} className="border border-neutral-300 hover:border-black rounded-md px-3 py-1.5 text-sm">+ Добавить авто</button>
