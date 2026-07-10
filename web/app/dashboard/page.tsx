@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabaseBrowser } from '@/lib/supabase/client';
 import { CATEGORY_LABEL, type CatalogRow, type ProductStatus } from '@/lib/types';
+import PublishSiteButton from '@/components/PublishSiteButton';
 
 export default function DashboardList() {
   const [products, setProducts] = useState<CatalogRow[]>([]);
@@ -29,10 +30,10 @@ export default function DashboardList() {
 
   return (
     <div>
-      <div className="flex items-end justify-between mb-6">
+      <div className="flex items-end justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Мои товары</h1>
-        <div className="flex gap-2">
-          <Link href="/dashboard/import" className="border border-neutral-300 hover:border-black px-3 py-2 rounded-md text-sm">Импорт CSV</Link>
+        <div className="flex gap-2 flex-wrap">
+          <PublishSiteButton />
           <Link href="/dashboard/new" className="bg-[var(--c-red)] text-white px-4 py-2 rounded-md font-semibold">+ Добавить товар</Link>
         </div>
       </div>
@@ -46,7 +47,7 @@ export default function DashboardList() {
 
       <div className="space-y-2">
         {products.map((p) => (
-          <div key={p.id} className="border border-neutral-200 rounded-lg p-3 flex items-center gap-4">
+          <div key={p.id} className="border border-neutral-200 rounded-lg p-3 flex items-center gap-4 flex-wrap sm:flex-nowrap">
             <div className="w-16 h-16 bg-neutral-50 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden">
               {p.image_url
                 ? <img src={p.image_url} alt="" className="max-w-full max-h-full object-contain" />
@@ -65,7 +66,7 @@ export default function DashboardList() {
                 {p.price_own != null && <span className="font-semibold text-black">от {Number(p.price_own).toLocaleString('ru-RU')} ₸</span>}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm flex-wrap">
               <select
                 value={p.status}
                 onChange={(e) => setStatus(p, e.target.value as ProductStatus)}

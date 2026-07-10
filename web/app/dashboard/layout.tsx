@@ -17,7 +17,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard',              label: 'Мои товары' },
     { href: '/dashboard/home',         label: 'Главная страница' },
     { href: '/dashboard/new',          label: '+ Добавить' },
-    { href: '/dashboard/import',       label: 'Импорт CSV' },
     { href: '/dashboard/export-kaspi', label: 'Экспорт → Каспи' },
     { href: '/dashboard/reference',    label: 'Справочники' },
   ];

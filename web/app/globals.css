@@ -1,5 +1,7 @@
-@import "tailwindcss";
+/* @import rules must precede all other rules — the tailwindcss import expands
+   into real CSS, so the fonts import has to come first or browsers drop it. */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
 /* ============================================================
    MY AVTO — design tokens (locked brand + supporting neutrals)

@@ -1,18 +1,35 @@
-# MY AVTO landing
+# MY AVTO — my-avto.kz
 
-Рабочий сайт находится в `site/`.
+Магазин запчастей для капремонта двигателей (Алматы). SEO-витрина + кабинет
+продавца. Один проект, один владелец.
+
+## Структура
+
+```
+web/                 — сайт (Next.js 16, static export) + кабинет /dashboard
+supabase/functions/  — Edge Functions (rebuild-site: кнопка «Опубликовать сайт»)
+docs/                — playbook, SEO-индексация, onboarding
+.github/workflows/   — деплой на GitHub Pages (домен my-avto.kz)
+CLAUDE.md            — техническое состояние проекта (источник истины для агента)
+```
+
+## Запуск локально
 
 ```sh
-cd site
+cd web
 npm ci
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-Билд:
+Нужен `web/.env.local`:
 
-```sh
-cd site
-npm run build
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
-Нужен `DATABASE_URL` в локальном `.env` или GitHub Actions secret. Каталоговые изображения TEIKIN лежат в `site/public/teikin-catalog/` и используются на страницах моторов и товаров.
+## Как обновляется прод
+
+Товар добавляется в кабинете (`/dashboard`) → статус «Опубликован» → кнопка
+«⟳ Опубликовать сайт» (или cron каждые 6 ч) → GitHub Actions пересобирает
+`web/` → GitHub Pages. Страница товара и sitemap появляются автоматически.
