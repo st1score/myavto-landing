@@ -134,7 +134,7 @@ const cfg = { wa: SITE.waNumber, ga: SITE.analytics.ga4, ym: SITE.analytics.ym, 
     function track(name, params) {
       try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
       try { if (window.ym) window.ym(cfg.ym, 'reachGoal', name, params || {}); } catch (e) {}
-      if (name === 'whatsapp_click' && cfg.adsLabel) {
+      if ((name === 'whatsapp_click' || name === 'form_whatsapp' || name === 'listing_whatsapp') && cfg.adsLabel) {
         try { window.gtag && window.gtag('event', 'conversion', { send_to: cfg.ads + '/' + cfg.adsLabel }); } catch (e) {}
       }
     }

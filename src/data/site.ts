@@ -8,14 +8,14 @@ export const SITE = {
   phoneTel: '+77777807787',
   waNumber: '77777807787',
   address: {
-    full: 'ТЦ CarCity, 3 ярус, бутик 135В',
+    full: 'ТЦ CarCity, мкр. Баянаул, 57а, 3 ярус, бутик 135В',
     city: 'Алматы',
     country: 'KZ',
   },
   // Часы работы — по времени Алматы (UTC+5)
   hours: { open: 9, close: 17, text: 'ежедневно 9:00–17:00' },
-  // TODO: точные координаты CarCity (не выдумывать — взять из 2ГИС/Google)
-  geo: null as null | { lat: number; lng: number },
+  // Координаты точки MY AVTO в 2ГИС (ТЦ CarCity, мкр. Баянаул, 57а)
+  geo: { lat: 43.238812, lng: 76.822849 } as null | { lat: number; lng: number },
   links: {
     twogis: 'https://go.2gis.com/mR5DQ',
     googleMaps: 'https://www.google.com/maps/search/?api=1&query=CarCity+%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B',
@@ -28,8 +28,8 @@ export const SITE = {
     ga4: 'G-YQ21411TM0',
     ym: 109115502,
     ads: 'AW-18062973221',
-    // TODO: метка конверсии из Google Ads (вида AbC-dEfGhI). Пусто = не отправляем.
-    adsWaLabel: '',
+    // Метка конверсии «WhatsApp Click» в Google Ads (аккаунт myavto 240-295-0803)
+    adsWaLabel: 'hTneCMP33q0cEKWyjKVD',
   },
 };
 
