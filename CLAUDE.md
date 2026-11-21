@@ -12,7 +12,7 @@
 - Контент — content collections (`src/content.config.ts`): `marki`, `zapchasti`, `prodazha`.
 - Стили — один `src/styles/global.css`, колонка max 520px (десктоп = та же колонка).
 - Шрифт Manrope (fontsource, self-hosted).
-- Деплой: `.github/workflows/deploy.yml` → GitHub Pages, ежедневная пересборка.
+- Деплой: `.github/workflows/pages.yml` → GitHub Pages, ежедневная пересборка.
 - `scripts/redirects.mjs` после сборки делает HTML-заглушки (canonical + meta refresh)
   для старых URL из `scripts/old-urls.txt`.
 
