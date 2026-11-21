@@ -17,8 +17,7 @@ export const SITE = {
   // TODO: точные координаты CarCity (не выдумывать — взять из 2ГИС/Google)
   geo: null as null | { lat: number; lng: number },
   links: {
-    // TODO: прямая ссылка на карточку в 2ГИС, когда будет
-    twogis: 'https://2gis.kz/almaty/search/CarCity',
+    twogis: 'https://go.2gis.com/mR5DQ',
     googleMaps: 'https://www.google.com/maps/search/?api=1&query=CarCity+%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B',
     tiktok: 'https://www.tiktok.com/@myavto.kz',
     instagram: 'https://www.instagram.com/myavto.kz_',

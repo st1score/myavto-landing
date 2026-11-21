@@ -37,7 +37,7 @@ for (const p of paths) {
   const to = target(p);
   if (!to) continue;
   const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Страница переехала — MY AVTO</title>` +
-    `<link rel="canonical" href="${SITE}${to}"><meta http-equiv="refresh" content="0; url=${to}">` +
+    `<meta name="robots" content="noindex"><link rel="canonical" href="${SITE}${to}"><meta http-equiv="refresh" content="0; url=${to}">` +
     `<script>location.replace(${JSON.stringify(to)})</script></head>` +
     `<body><a href="${to}">Страница переехала — перейти</a></body></html>`;
   const dir = join(dist, p);
