@@ -1,0 +1,24 @@
+---
+import { MARKS, POPULAR_MODELS, waLink } from '../data/site';
+const href = (m: (typeof MARKS)[number]) =>
+  m.page ? `/${m.slug}/` : waLink(`Здравствуйте! Нужна запчасть на ${m.name}.\n— с сайта my-avto.kz`);
+---
+<section class="sec" id="marki">
+  <h2>Марки</h2>
+  <div class="grid3">
+    {MARKS.map((m) => (
+      <a class="mark" href={href(m)} data-place="mark">
+        {m.logo && <img src={m.logo} alt="" height="28" loading="lazy" />}
+        <span>{m.name.toUpperCase()}</span>
+      </a>
+    ))}
+  </div>
+  <div>
+    <p class="small muted" style="font-weight:700;margin-bottom:8px">Часто ищут</p>
+    <div class="chips">
+      {POPULAR_MODELS.map((x) => (
+        <a class="chip" href={waLink(`Здравствуйте! Нужна запчасть на ${x}.\n— с сайта my-avto.kz`)} data-place="model">{x}</a>
+      ))}
+    </div>
+  </div>
+</section>

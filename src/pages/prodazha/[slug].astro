@@ -1,0 +1,52 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import SaleCard from '../../components/SaleCard.astro';
+import { getListings, TYPE_LABEL, formatPrice } from '../../lib/listings';
+import { SITE, waLink } from '../../data/site';
+
+export async function getStaticPaths() {
+  const list = await getListings();
+  return list.map((l) => ({ params: { slug: l.id }, props: { l, others: list.filter((o) => o.id !== l.id && o.data.status === 'v-prodazhe').slice(0, 4) } }));
+}
+const { l, others } = Astro.props;
+const d = l.data;
+const { Content } = await render(l);
+const url = `${SITE.url}/prodazha/${l.id}/`;
+const sold = d.status === 'prodano';
+const ld = {
+  '@context': 'https://schema.org', '@type': 'Product', name: d.title,
+  image: d.photos.map((p) => SITE.url + p),
+  offers: {
+    '@type': 'Offer', price: d.price, priceCurrency: 'KZT', url,
+    itemCondition: d.condition.toLowerCase().includes('нов') ? 'https://schema.org/NewCondition' : 'https://schema.org/UsedCondition',
+    availability: sold ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+    seller: { '@id': `${SITE.url}/#store` },
+  },
+};
+const wa = waLink(`Здравствуйте! Интересует «${d.title}» — ${url}`);
+---
+<Base title={`${d.title} — ${formatPrice(d.price)} | Алматы, MY AVTO`} description={`${TYPE_LABEL[d.type]}, ${d.condition.toLowerCase()}: ${d.title}. Цена ${formatPrice(d.price)}. Алматы, ТЦ CarCity. Спросить в WhatsApp.`} noindex={sold} jsonld={[ld]} waFirst={`Здравствуйте! Интересует «${d.title}».`}>
+  <section class="sec" style="padding-top:16px">
+    <nav class="crumbs" style="color:var(--muted-2)"><a href="/">Главная</a> › <a href="/prodazha/">Продаю своё</a></nav>
+    {d.photos.length > 0 && <div class="gallery">{d.photos.map((p, i) => <img src={p} alt={`${d.title} — фото ${i + 1}`} loading={i ? 'lazy' : 'eager'} />)}</div>}
+    <span class="lcard__tag">{TYPE_LABEL[d.type].toUpperCase()} · {d.condition.toUpperCase()}</span>
+    <h1 style="font-size:24px">{d.title}</h1>
+    {sold ? <span class="sold" style="align-self:flex-start">Продано</span> : <p style="font-size:26px;font-weight:800">{formatPrice(d.price)}</p>}
+    {!sold && <a class="btn btn--wa btn--big" href={wa} data-ev="listing_whatsapp" data-place="listing"><Icon name="wa" size={24} />Спросить в WhatsApp</a>}
+    {Object.keys(d.specs).length > 0 && (
+      <table class="specs"><tbody>{Object.entries(d.specs).map(([k, v]) => <tr><th>{k}</th><td>{v}</td></tr>)}</tbody></table>
+    )}
+    <div class="prose"><Content /></div>
+  </section>
+  {others.length > 0 && (
+    <section class="sec">
+      <h2>Другие объявления</h2>
+      <div class="grid2">{others.map((o) => <SaleCard l={o} />)}</div>
+    </section>
+  )}
+  <section class="sec">
+    <a class="card" href="/" style="color:var(--black);display:block"><strong>Ищете запчасти?</strong><br /><span class="small muted">Подберём по VIN на любую японскую машину →</span></a>
+  </section>
+</Base>

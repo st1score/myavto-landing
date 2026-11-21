@@ -1,19 +1,12 @@
-name: Deploy marketplace (web/) to GitHub Pages
+name: Deploy site to GitHub Pages
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'web/**'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
-  # Rebuild so newly added products get their own static pages + sitemap entry,
-  # even when no code changed. Cron = baseline; repository_dispatch = instant
-  # trigger fired by a Supabase webhook / dashboard "Publish" button.
-  repository_dispatch:
-    types: [rebuild-catalog]
+  # Раз в сутки пересобираем, чтобы проданные объявления сами уходили с сайта через 30 дней
   schedule:
-    - cron: '0 */6 * * *' # every 6 hours
+    - cron: '0 21 * * *' # 02:00 по Алматы
 
 permissions:
   contents: read
@@ -27,31 +20,21 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Build Next.js (static export)
+      - run: npm ci --no-audit --no-fund
+      - name: Build
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ secrets.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+          PUBLIC_YANDEX_VERIFICATION: ${{ secrets.NEXT_PUBLIC_YANDEX_VERIFICATION }}
         run: npm run build
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: web/out
+          path: dist
 
   deploy:
     needs: build
@@ -60,6 +43,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4

@@ -1,0 +1,28 @@
+---
+import { CATS, waLink } from '../data/site';
+interface Props { title?: string; exclude?: string }
+const { title = 'Что подбираем', exclude } = Astro.props;
+const list = CATS.filter((c) => c.slug !== exclude);
+const href = (c: (typeof CATS)[number]) =>
+  c.page ? `/zapchasti/${c.slug}/` : waLink(`Здравствуйте! Нужна запчасть: ${c.name.toLowerCase()}.\n— с сайта my-avto.kz`);
+---
+<section class="sec" id="zapchasti">
+  <div>
+    <h2>{title}</h2>
+    <p class="sec__sub">Всё для ремонта и ТО японских авто</p>
+  </div>
+  <div class="grid2">
+    {list.map((c, i) => (
+      <a class="cat" href={href(c)} data-place="cat">
+        <span class="cat__n">{String(i + 1).padStart(2, '0')}</span>
+        <strong>{c.name}</strong>
+        <span>{c.short}</span>
+      </a>
+    ))}
+    <a class="cat cat--dark" href={waLink('Здравствуйте! Нужна запчасть.\n— с сайта my-avto.kz')} data-place="cat-other">
+      <strong>Не нашли свою деталь?</strong>
+      <span>Спросите в WhatsApp →</span>
+    </a>
+  </div>
+  <p class="note">Не занимаемся: кузовные детали и оптика, шины, диски, элементы салона.</p>
+</section>

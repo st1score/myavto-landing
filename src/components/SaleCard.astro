@@ -1,0 +1,14 @@
+---
+import { TYPE_LABEL, formatPrice, type Listing } from '../lib/listings';
+interface Props { l: Listing }
+const { l } = Astro.props;
+const d = l.data;
+---
+<a class="lcard" href={`/prodazha/${l.id}/`}>
+  {d.photos[0] ? <img src={d.photos[0]} alt={d.title} loading="lazy" width="440" height="330" /> : <div style="aspect-ratio:4/3;background:#eceef0"></div>}
+  <div class="lcard__b">
+    <span class="lcard__tag">{TYPE_LABEL[d.type].toUpperCase()} · {d.condition.toUpperCase()}</span>
+    <strong style="font-size:14px;line-height:1.3">{d.title}</strong>
+    {d.status === 'prodano' ? <span class="sold">Продано</span> : <span class="lcard__price">{formatPrice(d.price)}</span>}
+  </div>
+</a>

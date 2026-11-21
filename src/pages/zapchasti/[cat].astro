@@ -1,0 +1,54 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import QuickForm from '../../components/QuickForm.astro';
+import Facts from '../../components/Facts.astro';
+import Steps from '../../components/Steps.astro';
+import Cats from '../../components/Cats.astro';
+import Faq from '../../components/Faq.astro';
+import Contacts from '../../components/Contacts.astro';
+import { SITE, MARKS } from '../../data/site';
+
+export async function getStaticPaths() {
+  const list = await getCollection('zapchasti');
+  return list.map((entry) => ({ params: { cat: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const url = `${SITE.url}/zapchasti/${entry.id}/`;
+const crumbsLd = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Главная', item: SITE.url + '/' },
+    { '@type': 'ListItem', position: 2, name: d.name, item: url },
+  ],
+};
+const first = `Здравствуйте! Нужно: ${d.waPart}.`;
+const marks = MARKS.filter((m) => m.page);
+---
+<Base title={d.title} description={d.description} jsonld={[crumbsLd]} waFirst={first}>
+  <Hero h1={d.h1} lead={d.lead} waFirst={first} crumbs={[{ href: '/#zapchasti', name: 'Запчасти' }, { href: '', name: d.name }]} />
+  <QuickForm part={d.waPart} />
+  <Facts />
+
+  <section class="sec">
+    <h2>Что подбираем в этой группе</h2>
+    <div class="chips">{d.items.map((i) => <span class="chip">{i}</span>)}</div>
+  </section>
+
+  <section class="sec">
+    <div class="card prose"><Content /></div>
+  </section>
+
+  <section class="sec">
+    <h2>По маркам</h2>
+    <div class="chips">{marks.map((m) => <a class="chip" href={`/${m.slug}/`}>{m.name}</a>)}</div>
+  </section>
+
+  <Steps />
+  <Faq items={d.faq} />
+  <Cats title="Другие группы запчастей" exclude={entry.id} />
+  <Contacts />
+</Base>

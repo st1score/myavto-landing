@@ -1,0 +1,19 @@
+---
+import { SITE } from '../data/site';
+---
+<section class="sec" id="kontakty">
+  <h2>Контакты</h2>
+  <div class="card contact">
+    <div class="contact__b">
+      <div>
+        <strong style="font-size:16px">{SITE.address.full}</strong>
+        <p class="small muted">{SITE.address.city} · {SITE.hours.text}</p>
+      </div>
+      <a class="contact__phone" href={`tel:${SITE.phoneTel}`} data-ev="phone_click" data-place="contacts">{SITE.phoneDisplay}</a>
+      <div class="grid2">
+        <a class="btn btn--light" href={SITE.links.twogis} rel="noopener" data-ev="map_click" data-place="2gis">Открыть в 2ГИС</a>
+        <a class="btn btn--light" href={SITE.links.googleMaps} rel="noopener" data-ev="map_click" data-place="google">Google Maps</a>
+      </div>
+    </div>
+  </div>
+</section>

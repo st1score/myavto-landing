@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import QuickForm from '../components/QuickForm.astro';
+import Facts from '../components/Facts.astro';
+import Steps from '../components/Steps.astro';
+import Cats from '../components/Cats.astro';
+import Marks from '../components/Marks.astro';
+import PartBrands from '../components/PartBrands.astro';
+import Why from '../components/Why.astro';
+import Vin from '../components/Vin.astro';
+import SaleStrip from '../components/SaleStrip.astro';
+import Faq from '../components/Faq.astro';
+import Contacts from '../components/Contacts.astro';
+import { SITE } from '../data/site';
+
+const faq = [
+  { q: 'Оригинал или аналог?', a: 'Предлагаем оба варианта: оригинал и проверенные аналоги японских и тайваньских производителей. Цену и разницу объясним — выбор за вами.' },
+  { q: 'Можно вернуть, если не подошло?', a: 'Да, обмен и возврат в течение 14 дней, если товар не вскрыт и не установлен.' },
+  { q: 'Что делать, если нет VIN?', a: 'Пришлите номер кузова или фото техпаспорта. Если есть — добавьте фото старой детали, так подбор точнее.' },
+  { q: 'Доставляете в другие города?', a: 'Да, отправляем по Казахстану. Стоимость и срок доставки подскажем в WhatsApp.' },
+  { q: 'Где вы находитесь?', a: `Алматы, ${SITE.address.full}. Работаем ${SITE.hours.text}.` },
+];
+---
+<Base
+  title="Запчасти на японские авто в Алматы — подбор по VIN | MY AVTO"
+  description="Подбор запчастей на Toyota, Lexus, Nissan, Honda, Mitsubishi, Mazda по VIN в Алматы. Двигатель, тормоза, фильтры, подвеска. Пишите в WhatsApp — пришлём 2–3 варианта по цене."
+  jsonld={[{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'MY AVTO', url: SITE.url + '/' }]}
+>
+  <Hero
+    h1="Запчасти на японские авто — подбор по VIN"
+    lead="Напишите в WhatsApp, какая деталь нужна — подберём и пришлём 2–3 варианта по цене."
+  />
+  <QuickForm />
+  <Facts />
+  <Steps />
+  <Cats />
+  <Marks />
+  <PartBrands />
+  <Why />
+  <Vin />
+  <SaleStrip />
+  <Faq items={faq} />
+  <Contacts />
+</Base>

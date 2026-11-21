@@ -1,0 +1,18 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import SaleCard from '../../components/SaleCard.astro';
+import { getListings } from '../../lib/listings';
+const list = await getListings();
+const active = list.filter((l) => l.data.status === 'v-prodazhe');
+---
+<Base title="Б/у шины и диски в Алматы — продаю своё | MY AVTO" description="Б/у шины, литые диски и другие вещи со своих машин. Алматы, ТЦ CarCity. Спросить можно в WhatsApp." noindex={active.length === 0} waFirst="Здравствуйте! Пишу по объявлению на сайте.">
+  <Hero h1="Продаю своё: б/у шины, диски и другое" lead="Вещи со своих машин — без посредников. Понравилось — напишите в WhatsApp." waFirst="Здравствуйте! Пишу по объявлению на сайте." crumbs={[{ href: '', name: 'Продаю своё' }]} />
+  <section class="sec">
+    {list.length === 0 ? (
+      <p class="card">Сейчас объявлений нет — загляните позже.</p>
+    ) : (
+      <div class="grid2">{list.map((l) => <SaleCard l={l} />)}</div>
+    )}
+  </section>
+</Base>

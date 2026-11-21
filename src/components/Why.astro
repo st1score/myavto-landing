@@ -1,0 +1,18 @@
+---
+import Icon from './Icon.astro';
+const why = [
+  { t: 'Проверяем по VIN до покупки', d: 'Меньше риск, что деталь не подойдёт.' },
+  { t: '2–3 варианта по цене', d: 'Оригинал, качественный аналог и бюджетный.' },
+  { t: 'Живой бутик в ТЦ CarCity', d: 'Можно приехать, посмотреть и забрать.' },
+  { t: 'Обмен и возврат 14 дней', d: 'Если товар не вскрыт и не установлен.' },
+];
+---
+<section class="sec sec--dark">
+  <h2>Почему MY AVTO</h2>
+  {why.map((w) => (
+    <div class="why">
+      <span class="why__ic"><Icon name="check" size={12} stroke="#fff" width={3.5} /></span>
+      <div><strong>{w.t}</strong><span>{w.d}</span></div>
+    </div>
+  ))}
+</section>
