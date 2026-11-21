@@ -1,0 +1,28 @@
+---
+import Icon from './Icon.astro';
+import { SITE, waLink, waText } from '../data/site';
+
+interface Props {
+  h1: string;
+  lead: string;
+  waFirst?: string;
+  crumbs?: { href: string; name: string }[];
+}
+const { h1, lead, waFirst, crumbs } = Astro.props;
+const path = Astro.url.pathname;
+const wa = waLink(waText(path, waFirst));
+---
+<section class="hero">
+  {crumbs && (
+    <nav class="crumbs" aria-label="Навигация">
+      <a href="/">Главная</a>
+      {crumbs.map((c) => <> › {c.href ? <a href={c.href}>{c.name}</a> : <span>{c.name}</span>}</>)}
+    </nav>
+  )}
+  <span class="tag"><Icon name="pin" size={12} width={2.5} />{SITE.address.city} · ТЦ CarCity</span>
+  <h1>{h1}</h1>
+  <p class="hero__lead">{lead}</p>
+  <a class="btn btn--wa btn--big" href={wa} data-ev="whatsapp_click" data-place="hero"><Icon name="wa" size={24} />Написать в WhatsApp</a>
+  <p class="hero__sub">или позвоните <a href={`tel:${SITE.phoneTel}`} data-ev="phone_click" data-place="hero">{SITE.phoneDisplay}</a> · {SITE.hours.text}</p>
+  <p class="hero__status" data-hours></p>
+</section>

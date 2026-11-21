@@ -1,0 +1,188 @@
+---
+import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { SITE, waLink, waText, CATS, MARKS } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+  jsonld?: object[];
+  waFirst?: string; // первая строка сообщения в WhatsApp для этой страницы
+}
+const { title, description, noindex = false, jsonld = [], waFirst } = Astro.props;
+const path = Astro.url.pathname;
+const canonical = new URL(path, SITE.url).href;
+const wa = waLink(waText(path, waFirst));
+
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'AutoPartsStore',
+  '@id': `${SITE.url}/#store`,
+  name: SITE.name,
+  url: SITE.url + '/',
+  logo: `${SITE.url}/img/logo.webp`,
+  image: `${SITE.url}/img/og.jpg`,
+  telephone: SITE.phoneTel,
+  priceRange: '₸₸',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: SITE.address.full,
+    addressLocality: SITE.address.city,
+    addressCountry: SITE.address.country,
+  },
+  ...(SITE.geo ? { geo: { '@type': 'GeoCoordinates', latitude: SITE.geo.lat, longitude: SITE.geo.lng } } : {}),
+  openingHoursSpecification: [{
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    opens: '09:00',
+    closes: '17:00',
+  }],
+  sameAs: [SITE.links.tiktok, SITE.links.instagram, SITE.links.kolesa, SITE.links.kaspi].filter(Boolean),
+};
+const ld = [org, ...jsonld];
+const footerCats = CATS.filter((c) => c.page);
+const footerMarks = MARKS.filter((m) => m.page);
+const cfg = { wa: SITE.waNumber, ga: SITE.analytics.ga4, ym: SITE.analytics.ym, ads: SITE.analytics.ads, adsLabel: SITE.analytics.adsWaLabel, open: SITE.hours.open, close: SITE.hours.close };
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {noindex && <meta name="robots" content="noindex, follow" />}
+  <meta name="theme-color" content="#111111" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ru_RU" />
+  <meta property="og:site_name" content="MY AVTO" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={`${SITE.url}/img/og.jpg`} />
+  <meta name="twitter:card" content="summary_large_image" />
+  {import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION && <meta name="google-site-verification" content={import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION} />}
+  <meta name="yandex-verification" content={import.meta.env.PUBLIC_YANDEX_VERIFICATION || 'daa2b9be5f7af7bb'} />
+  {ld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+</head>
+<body>
+  <div class="page">
+    <header class="hdr">
+      <a class="hdr__logo" href="/" aria-label="MY AVTO — на главную">
+        <img src="/img/logo.webp" alt="MY AVTO" width="86" height="44" />
+      </a>
+      <div class="hdr__actions">
+        <a class="iconbtn" href={`tel:${SITE.phoneTel}`} aria-label="Позвонить" data-ev="phone_click" data-place="header"><Icon name="phone" /></a>
+        <details class="menu">
+          <summary class="iconbtn" aria-label="Меню"><Icon name="menu" /></summary>
+          <nav class="menu__panel" aria-label="Разделы">
+            <a href="/#zapchasti">Что подбираем</a>
+            <a href="/#marki">Марки</a>
+            <a href="/brendy/">Бренды</a>
+            <a href="/prodazha/">Продаю своё</a>
+            <a href="/kontakty/">Контакты</a>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="ftr">
+      <img src="/img/logo-white.webp" alt="MY AVTO" width="87" height="44" loading="lazy" />
+      <p>Запчасти на японские авто с подбором по VIN. {SITE.address.city}, {SITE.address.full}. {SITE.hours.text}.</p>
+      <a href={`tel:${SITE.phoneTel}`} style="font-size:18px;font-weight:800" data-ev="phone_click" data-place="footer">{SITE.phoneDisplay}</a>
+      <nav class="ftr__links" aria-label="Страницы">
+        {footerCats.map((c) => <a href={`/zapchasti/${c.slug}/`}>{c.name}</a>)}
+        {footerMarks.map((m) => <a href={`/${m.slug}/`}>Запчасти {m.name}</a>)}
+        <a href="/brendy/">Бренды</a>
+        <a href="/prodazha/">Продаю своё</a>
+        <a href="/kontakty/">Контакты</a>
+      </nav>
+      <div class="ftr__soc">
+        {SITE.links.kaspi && <a href={SITE.links.kaspi} rel="noopener">Kaspi</a>}
+        <a href={SITE.links.kolesa} rel="noopener">Kolesa</a>
+        <a href={SITE.links.tiktok} rel="noopener">TikTok</a>
+        <a href={SITE.links.instagram} rel="noopener">Instagram</a>
+      </div>
+      <a class="ftr__legal" href="/privacy/">Политика конфиденциальности</a>
+    </footer>
+
+    <div class="bar">
+      <div class="bar__in">
+        <a class="btn btn--outline" href={`tel:${SITE.phoneTel}`} data-ev="phone_click" data-place="bar"><Icon name="phone" size={18} />Позвонить</a>
+        <a class="btn btn--wa" href={wa} data-ev="whatsapp_click" data-place="bar"><Icon name="wa" size={18} />Написать в WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ cfg }}>
+    // --- UTM: запоминаем источник на время визита, дописываем в сообщение WhatsApp
+    try {
+      var q = new URLSearchParams(location.search);
+      if (q.get('utm_source')) sessionStorage.setItem('utm', q.get('utm_source') + (q.get('utm_campaign') ? '/' + q.get('utm_campaign') : ''));
+      if (q.get('gclid') || q.get('yclid')) sessionStorage.setItem('utm', sessionStorage.getItem('utm') || (q.get('gclid') ? 'google' : 'yandex'));
+    } catch (e) {}
+
+    function track(name, params) {
+      try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
+      try { if (window.ym) window.ym(cfg.ym, 'reachGoal', name, params || {}); } catch (e) {}
+      if (name === 'whatsapp_click' && cfg.adsLabel) {
+        try { window.gtag && window.gtag('event', 'conversion', { send_to: cfg.ads + '/' + cfg.adsLabel }); } catch (e) {}
+      }
+    }
+    window.__track = track;
+
+    function addUtm(href) {
+      var u; try { u = sessionStorage.getItem('utm'); } catch (e) {}
+      if (!u || href.indexOf('wa.me') < 0) return href;
+      var url = new URL(href);
+      var t = url.searchParams.get('text') || '';
+      if (t.indexOf('(реклама') < 0) url.searchParams.set('text', t + ' (реклама: ' + u + ')');
+      return url.toString();
+    }
+
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a');
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      var ev = a.dataset.ev || (href.indexOf('wa.me') > -1 ? 'whatsapp_click' : href.indexOf('tel:') === 0 ? 'phone_click' : null);
+      if (href.indexOf('wa.me') > -1) a.href = addUtm(a.href);
+      if (ev) track(ev, { place: a.dataset.place || 'other', page: location.pathname });
+    });
+
+    // --- «Сейчас закрыто» вне рабочего времени (по Алматы, UTC+5)
+    (function () {
+      var now = new Date();
+      var h = (now.getUTCHours() + 5) % 24 + now.getUTCMinutes() / 60;
+      if (h >= cfg.open && h < cfg.close) return;
+      document.querySelectorAll('[data-hours]').forEach(function (el) {
+        el.textContent = 'Сейчас не работаем — ответим с ' + cfg.open + ':00';
+      });
+    })();
+
+    // --- Счётчики грузим после загрузки страницы, чтобы не тормозить сайт
+    function loadAnalytics() {
+      var s = document.createElement('script');
+      s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + cfg.ga;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date()); gtag('config', cfg.ga); gtag('config', cfg.ads);
+      (function (m, e, t, r, i, k, a) { m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments); }; m[i].l = 1 * new Date();
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a);
+      })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=' + cfg.ym, 'ym');
+      ym(cfg.ym, 'init', { ssr: true, webvisor: true, clickmap: true, accurateTrackBounce: true, trackLinks: true });
+    }
+    if (document.readyState === 'complete') setTimeout(loadAnalytics, 1500);
+    else addEventListener('load', function () { setTimeout(loadAnalytics, 1500); });
+  </script>
+</body>
+</html>

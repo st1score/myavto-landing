@@ -1,23 +1,6 @@
-.DS_Store
 node_modules/
-.vscode/
-.idea/
-.claude/
-.env
-.env.local
 dist/
 .astro/
-site/scripts/cache-teikin-pdfs/
-site/scripts/.teikin-cookies.txt
-tmp/
-
-# TinaCMS — generated на build, не коммитим
-site/tina/__generated__/
-site/public/admin/
-site/tina-lock.json
-
-# Directus local admin
-.env.directus
-directus/uploads/
-directus/database/
-directus/extensions/
+.env
+.env.*
+.DS_Store

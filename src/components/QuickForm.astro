@@ -1,0 +1,46 @@
+---
+// Необязательная форма: свёрнута по умолчанию. Ничего не отправляет на сервер —
+// только собирает текст и открывает WhatsApp.
+import Icon from './Icon.astro';
+import { SITE } from '../data/site';
+interface Props { car?: string; part?: string }
+const { car = '', part = '' } = Astro.props;
+---
+<details class="qf">
+  <summary>
+    <span>Указать авто и VIN<span class="qf__hint">по желанию — так подберём быстрее</span></span>
+    <span class="qf__chev"><Icon name="chev" stroke="#d7000f" width={2.5} /></span>
+  </summary>
+  <form class="js-qf" data-wa={SITE.waNumber} novalidate>
+    <label class="field">Машина
+      <input name="car" type="text" value={car} placeholder="Toyota Camry 2015" autocomplete="off" />
+    </label>
+    <label class="field">VIN или номер кузова
+      <input name="vin" type="text" class="mono" placeholder="XW7BF4FK00S123456" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+    </label>
+    <label class="field">Какая запчасть нужна
+      <input name="part" type="text" value={part} placeholder="Передние тормозные колодки" autocomplete="off" />
+    </label>
+    <button class="btn btn--wa" type="submit">Отправить в WhatsApp</button>
+    <p class="qf__note">Фото детали или техпаспорта можно прикрепить в чате</p>
+  </form>
+</details>
+
+<script is:inline>
+  document.querySelectorAll('.js-qf').forEach(function (f) {
+    if (f.dataset.bound) return; f.dataset.bound = '1';
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = function (n) { return (f.elements[n].value || '').trim(); };
+      var lines = ['Здравствуйте! Нужна запчасть.'];
+      if (v('car')) lines.push('Авто: ' + v('car'));
+      if (v('vin')) lines.push('VIN: ' + v('vin').toUpperCase());
+      if (v('part')) lines.push('Деталь: ' + v('part'));
+      lines.push('— с сайта my-avto.kz' + (location.pathname === '/' ? '' : location.pathname));
+      var u; try { u = sessionStorage.getItem('utm'); } catch (x) {}
+      if (u) lines[lines.length - 1] += ' (реклама: ' + u + ')';
+      if (window.__track) window.__track('form_whatsapp', { page: location.pathname, vin: v('vin') ? 'yes' : 'no' });
+      window.location.href = 'https://wa.me/' + f.dataset.wa + '?text=' + encodeURIComponent(lines.join('\n'));
+    });
+  });
+</script>

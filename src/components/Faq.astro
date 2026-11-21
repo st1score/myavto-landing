@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+interface Props { items: { q: string; a: string }[]; title?: string }
+const { items, title = 'Вопросы и ответы' } = Astro.props;
+const ld = {
+  '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: items.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
+};
+---
+{items.length > 0 && (
+  <section class="sec" id="faq">
+    <h2>{title}</h2>
+    <div class="faq">
+      {items.map((i, n) => (
+        <details open={n === 0}>
+          <summary>{i.q}<Icon name="chev" size={18} stroke="#d7000f" width={2.5} /></summary>
+          <p>{i.a}</p>
+        </details>
+      ))}
+    </div>
+    <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+  </section>
+)}

@@ -1,0 +1,12 @@
+---
+import { PART_BRANDS } from '../data/site';
+interface Props { link?: boolean }
+const { link = true } = Astro.props;
+---
+<section class="sec">
+  <h2>Бренды, с которыми работаем</h2>
+  <div class="logos">
+    {PART_BRANDS.map((b) => <div><img src={b.logo} alt={b.name} loading="lazy" /></div>)}
+  </div>
+  {link && <a href="/brendy/" style="font-weight:700;font-size:14px">Все бренды →</a>}
+</section>

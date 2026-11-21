@@ -1,0 +1,15 @@
+---
+import SaleCard from './SaleCard.astro';
+import { getListings } from '../lib/listings';
+const list = (await getListings()).filter((l) => l.data.status === 'v-prodazhe').slice(0, 6);
+---
+{list.length > 0 && (
+  <section class="sec">
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <h2>Продаю своё</h2>
+      <a href="/prodazha/" style="font-weight:700;font-size:14px">Все →</a>
+    </div>
+    <p class="sec__sub" style="margin-top:-8px">Б/у шины, диски и другое — со своих машин</p>
+    <div class="sale">{list.map((l) => <SaleCard l={l} />)}</div>
+  </section>
+)}

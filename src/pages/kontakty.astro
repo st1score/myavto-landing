@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Contacts from '../components/Contacts.astro';
+import Steps from '../components/Steps.astro';
+import { SITE } from '../data/site';
+---
+<Base title="Контакты MY AVTO — ТЦ CarCity, Алматы" description={`MY AVTO: ${SITE.address.full}, Алматы. ${SITE.phoneDisplay}, WhatsApp. Работаем ${SITE.hours.text}.`}>
+  <Hero h1="Контакты MY AVTO" lead={`Алматы, ${SITE.address.full}. Работаем ${SITE.hours.text}. Быстрее всего ответим в WhatsApp.`} crumbs={[{ href: '', name: 'Контакты' }]} />
+  <Contacts />
+  <section class="sec">
+    <div class="card prose">
+      <h2 style="margin-top:0">Как нас найти</h2>
+      <p>ТЦ CarCity, поднимайтесь на 3 ярус, бутик 135В. Перед приездом напишите в WhatsApp, что нужно, — подготовим детали заранее.</p>
+      <h2>Доставка</h2>
+      <p>Отправляем по Казахстану. Стоимость и срок доставки подскажем в WhatsApp.</p>
+      <h2>Обмен и возврат</h2>
+      <p>В течение 14 дней, если товар не вскрыт и не установлен.</p>
+    </div>
+  </section>
+  <Steps />
+</Base>

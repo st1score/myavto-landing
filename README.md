@@ -1,35 +1,29 @@
 # MY AVTO — my-avto.kz
 
-Магазин запчастей для капремонта двигателей (Алматы). SEO-витрина + кабинет
-продавца. Один проект, один владелец.
+Сайт-визитка магазина запчастей на японские авто (Алматы, ТЦ CarCity).
+Главное действие — переход в WhatsApp. Без базы данных, корзины и оплаты.
 
-## Структура
+## Где что менять
 
-```
-web/                 — сайт (Next.js 16, static export) + кабинет /dashboard
-supabase/functions/  — Edge Functions (rebuild-site: кнопка «Опубликовать сайт»)
-docs/                — playbook, SEO-индексация, onboarding
-.github/workflows/   — деплой на GitHub Pages (домен my-avto.kz)
-CLAUDE.md            — техническое состояние проекта (источник истины для агента)
-```
+| Что | Файл |
+| --- | --- |
+| Телефон, WhatsApp, адрес, график, ссылки, ID счётчиков | `src/data/site.ts` |
+| Марки, группы запчастей, бренды на главной | `src/data/site.ts` |
+| Тексты страниц марок (`/toyota/` …) | `src/content/marki/*.md` |
+| Тексты страниц групп (`/zapchasti/tormoza/` …) | `src/content/zapchasti/*.md` |
+| Объявления «Продаю своё» | `src/content/prodazha/*.md` — см. `docs/OBYAVLENIYA.md` |
+| Главная | `src/pages/index.astro` |
+| Цвета и стили | `src/styles/global.css` |
 
-## Запуск локально
+Новая страница марки или группы = новый `.md` файл в нужной папке + `page: true` у неё в `src/data/site.ts`.
+
+## Запуск
 
 ```sh
-cd web
 npm ci
-npm run dev        # http://localhost:3000
+npm run dev      # http://localhost:4321
+npm run build    # → dist/ (+ заглушки старых адресов)
 ```
 
-Нужен `web/.env.local`:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-```
-
-## Как обновляется прод
-
-Товар добавляется в кабинете (`/dashboard`) → статус «Опубликован» → кнопка
-«⟳ Опубликовать сайт» (или cron каждые 6 ч) → GitHub Actions пересобирает
-`web/` → GitHub Pages. Страница товара и sitemap появляются автоматически.
+Деплой: push в `main` → GitHub Actions → GitHub Pages (домен из `public/CNAME`).
+Старая версия (Next.js + Supabase) — тег `legacy-nextjs`.

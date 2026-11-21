@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import PartBrands from '../components/PartBrands.astro';
+import Cats from '../components/Cats.astro';
+import Contacts from '../components/Contacts.astro';
+---
+<Base title="Бренды запчастей для японских авто — MY AVTO, Алматы" description="Бренды запчастей, с которыми работает MY AVTO: оригинал и проверенные аналоги для японских авто. Подбор по VIN в Алматы.">
+  <Hero h1="Бренды запчастей, с которыми работаем" lead="Оригинал и проверенные аналоги японских и тайваньских производителей. Не знаете, какой бренд выбрать? Пришлём 2–3 варианта и объясним разницу." crumbs={[{ href: '', name: 'Бренды' }]} />
+  <PartBrands link={false} />
+  <section class="sec">
+    <div class="card prose">
+      <p>Для двигателей японских авто подбираем поршни, кольца, вкладыши и прокладки от производителей, которые поставляют детали на заводы и для ремонта: Teikin, NPR, Riken, TP, Taiho, NDC и других.</p>
+      <p>Для тормозов, подвески, фильтров и ГРМ предлагаем оригинал и аналоги в разных ценовых вариантах — под ваш бюджет.</p>
+    </div>
+  </section>
+  <Cats />
+  <Contacts />
+</Base>
