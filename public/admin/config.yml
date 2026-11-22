@@ -15,7 +15,7 @@ backend:
 
 site_url: https://my-avto.kz
 display_url: https://my-avto.kz
-logo_url: /favicon.svg
+logo_url: /apple-touch-icon.png
 
 media_folder: public/prodazha
 public_folder: /prodazha
