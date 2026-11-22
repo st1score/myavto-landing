@@ -68,9 +68,9 @@ export const CATS: { slug: string; name: string; short: string; page?: boolean }
   { slug: 'filtry', name: 'Фильтры и ТО', short: 'Масляные, воздушные, свечи', page: true },
   { slug: 'podveska', name: 'Подвеска', short: 'Амортизаторы, сайлентблоки, шаровые', page: true },
   { slug: 'grm', name: 'ГРМ и ремни', short: 'Ремни, цепи, ролики, помпы', page: true },
-  { slug: 'ohlazhdenie', name: 'Охлаждение', short: 'Радиаторы, термостаты, патрубки' },
+  { slug: 'ohlazhdenie', name: 'Охлаждение', short: 'Радиаторы, помпы, патрубки' },
   { slug: 'transmissiya', name: 'Трансмиссия', short: 'Сцепление, ШРУС, пыльники' },
-  { slug: 'elektrika', name: 'Электрика и датчики', short: 'Катушки, датчики, стартеры' },
+  { slug: 'elektrika', name: 'Зажигание и пуск', short: 'Свечи, катушки, стартеры, генераторы' },
   { slug: 'rulevoe', name: 'Рулевое', short: 'Тяги, наконечники, рейки' },
 ];
 

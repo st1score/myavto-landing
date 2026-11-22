@@ -3,7 +3,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import SaleCard from '../../components/SaleCard.astro';
-import { getListings, TYPE_LABEL, formatPrice } from '../../lib/listings';
+import { getListings, TYPE_LABEL, formatPrice, titleOf, specsOf } from '../../lib/listings';
 import { SITE, waLink } from '../../data/site';
 
 export async function getStaticPaths() {
@@ -12,11 +12,13 @@ export async function getStaticPaths() {
 }
 const { l, others } = Astro.props;
 const d = l.data;
+const title = titleOf(d);
+const specs = specsOf(d);
 const { Content } = await render(l);
 const url = `${SITE.url}/prodazha/${l.id}/`;
 const sold = d.status === 'prodano';
 const ld = {
-  '@context': 'https://schema.org', '@type': 'Product', name: d.title,
+  '@context': 'https://schema.org', '@type': 'Product', name: title,
   image: d.photos.map((p) => SITE.url + p),
   offers: {
     '@type': 'Offer', price: d.price, priceCurrency: 'KZT', url,
@@ -25,18 +27,18 @@ const ld = {
     seller: { '@id': `${SITE.url}/#store` },
   },
 };
-const wa = waLink(`Здравствуйте! Интересует «${d.title}» — ${url}`);
+const wa = waLink(`Здравствуйте! Интересует «${title}» — ${url}`);
 ---
-<Base title={`${d.title} — ${formatPrice(d.price)} | Алматы, MY AVTO`} description={`${TYPE_LABEL[d.type]}, ${d.condition.toLowerCase()}: ${d.title}. Цена ${formatPrice(d.price)}. Алматы, ТЦ CarCity. Спросить в WhatsApp.`} noindex={sold} jsonld={[ld]} waFirst={`Здравствуйте! Интересует «${d.title}».`}>
+<Base title={`${title} — ${formatPrice(d.price)} | Алматы, MY AVTO`} description={`${title}, ${d.condition.toLowerCase()}. Цена ${formatPrice(d.price)}${d.torg ? ', торг' : ''}. Алматы, ТЦ CarCity. Спросить в WhatsApp.`} noindex={sold} jsonld={[ld]} waFirst={`Здравствуйте! Интересует «${title}».`}>
   <section class="sec" style="padding-top:16px">
     <nav class="crumbs" style="color:var(--muted-2)"><a href="/">Главная</a> › <a href="/prodazha/">Продаю своё</a></nav>
-    {d.photos.length > 0 && <div class="gallery">{d.photos.map((p, i) => <img src={p} alt={`${d.title} — фото ${i + 1}`} loading={i ? 'lazy' : 'eager'} />)}</div>}
+    {d.photos.length > 0 && <div class="gallery">{d.photos.map((p, i) => <img src={p} alt={`${title} — фото ${i + 1}`} loading={i ? 'lazy' : 'eager'} />)}</div>}
     <span class="lcard__tag">{TYPE_LABEL[d.type].toUpperCase()} · {d.condition.toUpperCase()}</span>
-    <h1 style="font-size:24px">{d.title}</h1>
-    {sold ? <span class="sold" style="align-self:flex-start">Продано</span> : <p style="font-size:26px;font-weight:800">{formatPrice(d.price)}</p>}
+    <h1 style="font-size:24px">{title}</h1>
+    {sold ? <span class="sold" style="align-self:flex-start">Продано</span> : <p style="font-size:26px;font-weight:800">{formatPrice(d.price)}{d.torg && <span class="small muted" style="font-weight:600"> · торг</span>}</p>}
     {!sold && <a class="btn btn--wa btn--big" href={wa} data-ev="listing_whatsapp" data-place="listing"><Icon name="wa" size={24} />Спросить в WhatsApp</a>}
-    {Object.keys(d.specs).length > 0 && (
-      <table class="specs"><tbody>{Object.entries(d.specs).map(([k, v]) => <tr><th>{k}</th><td>{v}</td></tr>)}</tbody></table>
+    {specs.length > 0 && (
+      <table class="specs"><tbody>{specs.map(([k, v]) => <tr><th>{k}</th><td>{v}</td></tr>)}</tbody></table>
     )}
     <div class="prose"><Content /></div>
   </section>

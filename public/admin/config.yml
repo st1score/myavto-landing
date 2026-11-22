@@ -1,0 +1,148 @@
+# Админка объявлений «Продаю своё» — https://my-avto.kz/admin/
+# Вход: кнопка «Sign In with Token» и GitHub-токен (см. docs/OBYAVLENIYA.md).
+# Сохранение = коммит в main → GitHub Pages пересобирает сайт за 1–2 минуты.
+
+backend:
+  name: github
+  repo: st1score/myavto-landing
+  branch: main
+  commit_messages:
+    create: "Объявление: новое {{slug}}"
+    update: "Объявление: изменено {{slug}}"
+    delete: "Объявление: удалено {{slug}}"
+    uploadMedia: "Фото: {{path}}"
+    deleteMedia: "Фото удалено: {{path}}"
+
+site_url: https://my-avto.kz
+display_url: https://my-avto.kz
+logo_url: /favicon.svg
+
+media_folder: public/prodazha
+public_folder: /prodazha
+
+# Фото с телефона сжимаются перед загрузкой: WebP, не больше 1600 px
+media_libraries:
+  default:
+    config:
+      max_file_size: 15000000
+      transformations:
+        raster_image:
+          format: webp
+          quality: 82
+          width: 1600
+          height: 1600
+
+collections:
+  - name: prodazha
+    label: Объявления
+    label_singular: объявление
+    description: "Б/у шины, диски и другое. После «Сохранить» объявление появится на сайте через 1–2 минуты."
+    folder: src/content/prodazha
+    create: true
+    delete: true
+    extension: md
+    format: frontmatter
+    slug: "{{type}}-{{year}}{{month}}{{day}}-{{hour}}{{minute}}"
+    preview_path: "prodazha/{{slug}}/"
+    identifier_field: date
+    summary: "{{type}} · {{width}}/{{profile}} R{{diameter}} {{brand}} — {{price}} ₸ · {{status}}"
+    sortable_fields: [date, price, status]
+    fields:
+      - label: Что продаёте
+        name: type
+        widget: select
+        default: shiny
+        options:
+          - { label: Шины, value: shiny }
+          - { label: Диски, value: diski }
+          - { label: Колёса в сборе (шины на дисках), value: kolesa }
+          - { label: Другое, value: raznoe }
+
+      - label: Фото
+        name: photos
+        widget: image
+        multiple: true
+        required: false
+        hint: "3–10 фото. Первое — главное. Можно сразу с телефона, сайт сам уменьшит."
+
+      - label: Цена, ₸
+        name: price
+        widget: number
+        value_type: int
+        min: 0
+        hint: "Только цифры, например 120000"
+      - { label: Торг, name: torg, widget: boolean, default: false, required: false }
+
+      - label: Количество, шт
+        name: qty
+        widget: number
+        value_type: int
+        default: 4
+        required: false
+
+      - label: Состояние
+        name: condition
+        widget: select
+        default: Б/у
+        options: [Б/у, Новые]
+
+      # ---------- Шины ----------
+      - label: Сезон (для шин)
+        name: season
+        widget: select
+        required: false
+        options:
+          - { label: Зима, value: zima }
+          - { label: Лето, value: leto }
+          - { label: Всесезонные, value: vsesezon }
+      - { label: Шипы (для зимних), name: studs, widget: boolean, required: false }
+      - { label: Ширина шины, name: width, widget: string, required: false, hint: "Например 225" }
+      - { label: Профиль, name: profile, widget: string, required: false, hint: "Например 65" }
+      - { label: Диаметр, name: diameter, widget: string, required: false, hint: "Например 17 (для шин и дисков)" }
+      - { label: Производитель, name: brand, widget: string, required: false, hint: "Bridgestone, Yokohama, Toyota…" }
+      - { label: Модель, name: model, widget: string, required: false, hint: "Blizzak DM-V3" }
+      - { label: Год выпуска, name: year, widget: string, required: false }
+      - { label: Остаток протектора, name: tread, widget: string, required: false, hint: "Например 7 мм или 80%" }
+
+      # ---------- Диски ----------
+      - label: Тип дисков
+        name: diskType
+        widget: select
+        required: false
+        options:
+          - { label: Литые, value: litye }
+          - { label: Штампованные, value: shtamp }
+          - { label: Кованые, value: kovanye }
+      - { label: Ширина диска (J), name: rimWidth, widget: string, required: false, hint: "Например 7" }
+      - { label: Сверловка (PCD), name: pcd, widget: string, required: false, hint: "Например 5x114.3" }
+      - { label: Вылет (ET), name: et, widget: string, required: false, hint: "Например 45" }
+      - { label: Ступица (DIA), name: dia, widget: string, required: false, hint: "Например 60.1" }
+
+      # ---------- Общее ----------
+      - { label: С какой машины / на какие подходят, name: car, widget: string, required: false, hint: "Например: с Toyota RAV4 2019" }
+      - label: Заголовок (можно не заполнять)
+        name: title
+        widget: string
+        required: false
+        hint: "Пусто — сайт соберёт сам: «Зимние шины Bridgestone Blizzak 225/65 R17, 4 шт». Для «Другое» заполните обязательно."
+      - label: Описание
+        name: body
+        widget: text
+        required: false
+        hint: "Пара предложений: откуда, состояние, почему продаёте."
+
+      - label: Статус
+        name: status
+        widget: select
+        default: v-prodazhe
+        options:
+          - { label: В продаже, value: v-prodazhe }
+          - { label: Продано, value: prodano }
+        hint: "Продали — поставьте «Продано». 30 дней будет плашка, потом объявление исчезнет само."
+      - label: Дата публикации
+        name: date
+        widget: datetime
+        format: YYYY-MM-DD
+        date_format: DD.MM.YYYY
+        time_format: false
+        default: "{{now}}"
